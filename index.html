@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <title>Gespropiedad Avatar Demo</title>
@@ -13,23 +14,26 @@
       place-items: center;
       height: 100vh;
     }
+
     .stage {
       width: min(900px, 92vw);
       height: min(520px, 86vh);
       background: #0f1621;
       border: 1px solid #1f2a3a;
       border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .35);
       display: grid;
       grid-template-columns: 1.1fr 1fr;
       gap: 24px;
       padding: 28px;
       align-items: center;
     }
+
     .avatar {
       display: grid;
       place-items: center;
     }
+
     .head {
       width: 260px;
       height: 260px;
@@ -38,6 +42,7 @@
       position: relative;
       border: 1px solid #243247;
     }
+
     .eye {
       width: 26px;
       height: 26px;
@@ -46,14 +51,23 @@
       position: absolute;
       top: 90px;
     }
-    .eye.left { left: 80px; }
-    .eye.right { right: 80px; }
+
+    .eye.left {
+      left: 80px;
+    }
+
+    .eye.right {
+      right: 80px;
+    }
+
     .pupil {
-      width: 10px; height: 10px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: #0b0f14;
       position: absolute;
-      top: 8px; left: 8px;
+      top: 8px;
+      left: 8px;
     }
 
     .mouth {
@@ -69,6 +83,7 @@
       transition: transform 40ms linear;
       overflow: hidden;
     }
+
     .mouth-inner {
       width: 100%;
       height: 100%;
@@ -80,10 +95,12 @@
       display: grid;
       gap: 14px;
     }
+
     .status {
       font-size: 14px;
       opacity: 0.8;
     }
+
     .bubble {
       background: #0b111b;
       border: 1px solid #1d2a3b;
@@ -93,11 +110,13 @@
       font-size: 18px;
       line-height: 1.35;
     }
+
     .row {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
     }
+
     button {
       background: #1b2a3d;
       color: #e6edf3;
@@ -107,16 +126,26 @@
       cursor: pointer;
       font-weight: 600;
     }
-    button:hover { filter: brightness(1.08); }
+
+    button:hover {
+      filter: brightness(1.08);
+    }
   </style>
 </head>
+
 <body>
   <div class="stage">
     <div class="avatar">
       <div class="head">
-        <div class="eye left"><div class="pupil"></div></div>
-        <div class="eye right"><div class="pupil"></div></div>
-        <div class="mouth"><div class="mouth-inner"></div></div>
+        <div class="eye left">
+          <div class="pupil"></div>
+        </div>
+        <div class="eye right">
+          <div class="pupil"></div>
+        </div>
+        <div class="mouth">
+          <div class="mouth-inner"></div>
+        </div>
       </div>
     </div>
     <div class="panel">
@@ -142,18 +171,53 @@
   let analyser = null;
   let sourceNode = null;
   let rafId = null;
+  let fakeRaf = null;
 
   function setIdle() {
+    if (fakeRaf) cancelAnimationFrame(fakeRaf);
+    fakeRaf = null;
+
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+
     bubbleEl.textContent = "En espera…";
     mouthEl.style.transform = "translateX(-50%) scaleY(1)";
   }
 
+  function startFakeLipSync(durationMs = 2000) {
+    const start = performance.now();
+
+    if (fakeRaf) cancelAnimationFrame(fakeRaf);
+
+    const tick = (t) => {
+      const elapsed = t - start;
+
+      // patrón simple de "habla"
+      const wave = Math.sin(t / 80);
+      const open = 0.5 + 0.5 * wave;
+      const scaleY = 1 + open * 2.0;
+
+      mouthEl.style.transform = `translateX(-50%) scaleY(${scaleY.toFixed(3)})`;
+
+      if (elapsed < durationMs) {
+        fakeRaf = requestAnimationFrame(tick);
+      } else {
+        mouthEl.style.transform = "translateX(-50%) scaleY(1)";
+        fakeRaf = null;
+      }
+    };
+
+    fakeRaf = requestAnimationFrame(tick);
+  }
+
   function ensureAudioGraph() {
     if (audioCtx) return;
+
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     sourceNode = audioCtx.createMediaElementSource(audioEl);
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
+
     sourceNode.connect(analyser);
     analyser.connect(audioCtx.destination);
   }
@@ -164,6 +228,7 @@
 
     const tick = () => {
       analyser.getByteTimeDomainData(data);
+
       let sum = 0;
       for (let i = 0; i < data.length; i++) {
         const v = (data[i] - 128) / 128;
@@ -180,11 +245,12 @@
       if (!audioEl.paused && !audioEl.ended) {
         rafId = requestAnimationFrame(tick);
       } else {
-        cancelAnimationFrame(rafId);
+        if (rafId) cancelAnimationFrame(rafId);
         rafId = null;
         mouthEl.style.transform = "translateX(-50%) scaleY(1)";
       }
     };
+
     tick();
   }
 
@@ -193,7 +259,7 @@
       ensureAudioGraph();
       await audioCtx.resume();
       statusEl.textContent = "Estado: audio activado";
-      bubbleEl.textContent = "Listo para recibir voz del bot.";
+      bubbleEl.textContent = "Listo para recibir eventos del bot.";
     } catch (e) {
       statusEl.textContent = "Estado: error activando audio";
     }
@@ -206,15 +272,32 @@
   });
 
   audioEl.addEventListener("ended", () => {
-    // avisar backend si quieres
     setIdle();
   });
 
+  // =========================
   // WebSocket al Avatar Bridge
-  const ws = new WebSocket("ws://localhost:3005");
-  ws.onopen = () => statusEl.textContent = "Estado: conectado al bridge";
-  ws.onclose = () => statusEl.textContent = "Estado: desconectado";
-  ws.onerror = () => statusEl.textContent = "Estado: error WebSocket";
+  // =========================
+
+  // Permite override por querystring:
+  //  - Producción: https://hogar-avatar.conexiatec.com/
+  //  - Local dev:  http://localhost:8080/?backend=localhost:3005
+  //  - Test remoto: https://hogar-avatar.conexiatec.com/?backend=hogar-avatar-api.conexiatec.com
+  const qp = new URLSearchParams(location.search);
+  const BACKEND_HOST = qp.get("backend") || "hogar-avatar-api.conexiatec.com";
+
+  const wsProto = location.protocol === "https:" ? "wss://" : "ws://";
+  const ws = new WebSocket(`${wsProto}${BACKEND_HOST}`);
+
+  ws.onopen = () => {
+    statusEl.textContent = `Estado: conectado al bridge (${BACKEND_HOST})`;
+  };
+  ws.onclose = () => {
+    statusEl.textContent = "Estado: desconectado";
+  };
+  ws.onerror = () => {
+    statusEl.textContent = "Estado: error WebSocket";
+  };
 
   ws.onmessage = (ev) => {
     let msg;
@@ -223,15 +306,20 @@
     if (msg.type === "bot_speaking_start") {
       if (msg.text) bubbleEl.textContent = msg.text;
 
-      // IMPORTANT: requiere que hayas pulsado “Activar audio”
-      audioEl.src = msg.audioUrl.startsWith("http")
-        ? msg.audioUrl
-        : `http://localhost:3005${msg.audioUrl}`;
+      // Si viene audioUrl => modo audio real
+      if (msg.audioUrl) {
+        audioEl.src = msg.audioUrl;
+        audioEl.currentTime = 0;
 
-      audioEl.currentTime = 0;
-      audioEl.play().catch(() => {
-        bubbleEl.textContent = "⚠️ Pulsa “Activar audio” para permitir reproducción.";
-      });
+        audioEl.play().catch(() => {
+          bubbleEl.textContent = "⚠️ Pulsa “Activar audio” para permitir reproducción.";
+        });
+
+      } else {
+        // Modo sin audio => animación por duración estimada
+        const duration = msg.durationMs ?? 2000;
+        startFakeLipSync(duration);
+      }
     }
 
     if (msg.type === "bot_speaking_end") {
@@ -242,5 +330,7 @@
 
   setIdle();
 </script>
+
 </body>
+
 </html>

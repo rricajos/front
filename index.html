@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Gespropiedad Avatar Demo</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0b0f14;
+      color: #e6edf3;
+      display: grid;
+      place-items: center;
+      height: 100vh;
+    }
+    .stage {
+      width: min(900px, 92vw);
+      height: min(520px, 86vh);
+      background: #0f1621;
+      border: 1px solid #1f2a3a;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 24px;
+      padding: 28px;
+      align-items: center;
+    }
+    .avatar {
+      display: grid;
+      place-items: center;
+    }
+    .head {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #2b3b52, #111823 70%);
+      position: relative;
+      border: 1px solid #243247;
+    }
+    .eye {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #e6edf3;
+      position: absolute;
+      top: 90px;
+    }
+    .eye.left { left: 80px; }
+    .eye.right { right: 80px; }
+    .pupil {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #0b0f14;
+      position: absolute;
+      top: 8px; left: 8px;
+    }
+
+    .mouth {
+      width: 90px;
+      height: 18px;
+      background: #e6edf3;
+      border-radius: 0 0 18px 18px;
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%) scaleY(1);
+      transform-origin: center top;
+      transition: transform 40ms linear;
+      overflow: hidden;
+    }
+    .mouth-inner {
+      width: 100%;
+      height: 100%;
+      background: #0b0f14;
+      opacity: 0.85;
+    }
+
+    .panel {
+      display: grid;
+      gap: 14px;
+    }
+    .status {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .bubble {
+      background: #0b111b;
+      border: 1px solid #1d2a3b;
+      border-radius: 14px;
+      padding: 16px 18px;
+      min-height: 140px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: #1b2a3d;
+      color: #e6edf3;
+      border: 1px solid #2a3c54;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { filter: brightness(1.08); }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="avatar">
+      <div class="head">
+        <div class="eye left"><div class="pupil"></div></div>
+        <div class="eye right"><div class="pupil"></div></div>
+        <div class="mouth"><div class="mouth-inner"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="status" id="status">Estado: desconectado</div>
+      <div class="bubble" id="bubble">Pulsa “Activar audio” antes de la demo.</div>
+      <div class="row">
+        <button id="enableAudio">Activar audio</button>
+        <button id="idleBtn">Idle</button>
+      </div>
+      <audio id="ttsAudio" crossorigin="anonymous"></audio>
+    </div>
+  </div>
+
+<script>
+  const statusEl = document.getElementById("status");
+  const bubbleEl = document.getElementById("bubble");
+  const mouthEl = document.querySelector(".mouth");
+  const audioEl = document.getElementById("ttsAudio");
+  const enableBtn = document.getElementById("enableAudio");
+  const idleBtn = document.getElementById("idleBtn");
+
+  let audioCtx = null;
+  let analyser = null;
+  let sourceNode = null;
+  let rafId = null;
+
+  function setIdle() {
+    bubbleEl.textContent = "En espera…";
+    mouthEl.style.transform = "translateX(-50%) scaleY(1)";
+  }
+
+  function ensureAudioGraph() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    sourceNode = audioCtx.createMediaElementSource(audioEl);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    sourceNode.connect(analyser);
+    analyser.connect(audioCtx.destination);
+  }
+
+  function startLipSync() {
+    ensureAudioGraph();
+    const data = new Uint8Array(analyser.fftSize);
+
+    const tick = () => {
+      analyser.getByteTimeDomainData(data);
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) {
+        const v = (data[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / data.length);
+
+      // Ajustes simples para “mouth flap”
+      const open = Math.min(1, Math.max(0, (rms - 0.02) * 10));
+      const scaleY = 1 + open * 2.2;
+
+      mouthEl.style.transform = `translateX(-50%) scaleY(${scaleY.toFixed(3)})`;
+
+      if (!audioEl.paused && !audioEl.ended) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+        mouthEl.style.transform = "translateX(-50%) scaleY(1)";
+      }
+    };
+    tick();
+  }
+
+  enableBtn.addEventListener("click", async () => {
+    try {
+      ensureAudioGraph();
+      await audioCtx.resume();
+      statusEl.textContent = "Estado: audio activado";
+      bubbleEl.textContent = "Listo para recibir voz del bot.";
+    } catch (e) {
+      statusEl.textContent = "Estado: error activando audio";
+    }
+  });
+
+  idleBtn.addEventListener("click", setIdle);
+
+  audioEl.addEventListener("play", () => {
+    startLipSync();
+  });
+
+  audioEl.addEventListener("ended", () => {
+    // avisar backend si quieres
+    setIdle();
+  });
+
+  // WebSocket al Avatar Bridge
+  const ws = new WebSocket("ws://localhost:3005");
+  ws.onopen = () => statusEl.textContent = "Estado: conectado al bridge";
+  ws.onclose = () => statusEl.textContent = "Estado: desconectado";
+  ws.onerror = () => statusEl.textContent = "Estado: error WebSocket";
+
+  ws.onmessage = (ev) => {
+    let msg;
+    try { msg = JSON.parse(ev.data); } catch { return; }
+
+    if (msg.type === "bot_speaking_start") {
+      if (msg.text) bubbleEl.textContent = msg.text;
+
+      // IMPORTANT: requiere que hayas pulsado “Activar audio”
+      audioEl.src = msg.audioUrl.startsWith("http")
+        ? msg.audioUrl
+        : `http://localhost:3005${msg.audioUrl}`;
+
+      audioEl.currentTime = 0;
+      audioEl.play().catch(() => {
+        bubbleEl.textContent = "⚠️ Pulsa “Activar audio” para permitir reproducción.";
+      });
+    }
+
+    if (msg.type === "bot_speaking_end") {
+      audioEl.pause();
+      setIdle();
+    }
+  };
+
+  setIdle();
+</script>
+</body>
+</html>

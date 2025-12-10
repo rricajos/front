@@ -45,7 +45,7 @@
       border-radius: 24px;
       background: radial-gradient(circle at 30% 30%, #1a2535, #0d121b 70%);
       border: 1px solid #223146;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
     }
 
     canvas#riveCanvas {
@@ -94,8 +94,9 @@
       background: #0f1621;
       transform: translateY(-120%);
       animation: blink 6s infinite;
-      animation-timing-function: cubic-bezier(.2,.8,.2,1);
+      animation-timing-function: cubic-bezier(.2, .8, .2, 1);
     }
+
     .eye.right::after { animation-delay: .2s; }
 
     @keyframes blink {
@@ -145,12 +146,23 @@
       opacity: 0.8;
     }
 
+    .debug {
+      font-size: 12px;
+      opacity: 0.6;
+      font-family: monospace;
+      max-height: 80px;
+      overflow-y: auto;
+      background: #080b10;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
     .bubble {
       background: #0b111b;
       border: 1px solid #1d2a3b;
       border-radius: 14px;
       padding: 16px 18px;
-      min-height: 160px;
+      min-height: 120px;
       font-size: 18px;
       line-height: 1.35;
     }
@@ -171,7 +183,14 @@
       font-weight: 600;
     }
 
-    button:hover { filter: brightness(1.08); }
+    button:hover {
+      filter: brightness(1.08);
+    }
+
+    button.active {
+      background: #2a4a6d;
+      border-color: #4a7ab0;
+    }
   </style>
 </head>
 
@@ -186,18 +205,26 @@
       <!-- CSS FALLBACK -->
       <div class="css-avatar" id="cssAvatar">
         <div class="head">
-          <div class="eye left"><div class="pupil"></div></div>
-          <div class="eye right"><div class="pupil"></div></div>
-          <div class="mouth"><div class="mouth-inner"></div></div>
+          <div class="eye left">
+            <div class="pupil"></div>
+          </div>
+          <div class="eye right">
+            <div class="pupil"></div>
+          </div>
+          <div class="mouth" id="cssMouth">
+            <div class="mouth-inner"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="status" id="status">Estado: desconectado</div>
+      <div class="status" id="status">Estado: inicializando...</div>
+      <div class="debug" id="debug">Debug info...</div>
       <div class="bubble" id="bubble">Listo para recibir eventos del bot.</div>
       <div class="row">
         <button id="enableAudio">Activar audio</button>
+        <button id="testTalk">Test hablar</button>
         <button id="idleBtn">Idle</button>
       </div>
       <audio id="ttsAudio" crossorigin="anonymous"></audio>
@@ -209,19 +236,35 @@
     // DOM
     // -----------------------------
     const statusEl = document.getElementById("status");
+    const debugEl = document.getElementById("debug");
     const bubbleEl = document.getElementById("bubble");
     const audioEl = document.getElementById("ttsAudio");
     const enableBtn = document.getElementById("enableAudio");
+    const testTalkBtn = document.getElementById("testTalk");
     const idleBtn = document.getElementById("idleBtn");
 
     const riveWrap = document.getElementById("riveWrap");
     const riveCanvas = document.getElementById("riveCanvas");
 
     const cssAvatar = document.getElementById("cssAvatar");
-    const mouthEl = cssAvatar.querySelector(".mouth");
+    const cssMouth = document.getElementById("cssMouth");
+
+    function log(msg) {
+      console.log(msg);
+      debugEl.textContent = msg + "\n" + debugEl.textContent;
+    }
 
     // -----------------------------
-    // Audio
+    // CSS Fallback - Mouth control
+    // -----------------------------
+    function cssSetMouthOpen(value) {
+      // value: 0 (cerrada) a 1 (abierta)
+      const scale = 0.2 + (value * 0.8); // mínimo 0.2, máximo 1
+      cssMouth.style.transform = `translateX(-50%) scaleY(${scale})`;
+    }
+
+    // -----------------------------
+    // Audio Context
     // -----------------------------
     let audioCtx = null;
     let analyser = null;
@@ -243,76 +286,125 @@
       try {
         ensureAudioGraph();
         await audioCtx.resume();
-        statusEl.textContent = "Estado: audio activado";
-        bubbleEl.textContent = "Listo para recibir eventos del bot.";
-      } catch {
+        statusEl.textContent = "Estado: audio activado ✓";
+        log("AudioContext activado");
+      } catch (e) {
         statusEl.textContent = "Estado: error activando audio";
+        log("Error audio: " + e.message);
       }
     });
 
     // -----------------------------
-    // RIVE
+    // RIVE - Asset del Marketplace
     // -----------------------------
+    // Asset: https://rive.app/marketplace/22280-41736-avatar/
+    // Este asset usa State Machine "Avatar" con inputs específicos
+    
     const RIVE_FILE = "./avatar.riv";
-    const SM_CANDIDATES = ["Avatar", "State Machine 1", "AvatarSM", "Main", "default"];
-
+    
     let rive = null;
     let hasRive = false;
-    let isTalkingInput = null;  // boolean
-    let visemeInput = null;     // number
-    let activeSmName = null;
-    let visemeTimer = null;
+    let riveInputs = {};
 
     async function initRive() {
       try {
-        const { Rive } = await import("https://unpkg.com/@rive-app/canvas@latest");
+        log("Cargando Rive runtime...");
+        const { Rive } = await import("https://unpkg.com/@rive-app/canvas@2.21.0");
 
+        log(`Cargando archivo: ${RIVE_FILE}`);
+        
         rive = new Rive({
           src: RIVE_FILE,
           canvas: riveCanvas,
-          autoplay: true
+          autoplay: true,
+          onLoad: () => {
+            log("Rive onLoad triggered");
+            
+            // Listar todas las state machines disponibles
+            const stateMachines = rive.stateMachineNames;
+            log(`State Machines encontradas: ${JSON.stringify(stateMachines)}`);
+            
+            // Usar la primera state machine disponible
+            if (stateMachines && stateMachines.length > 0) {
+              const smName = stateMachines[0];
+              log(`Usando State Machine: "${smName}"`);
+              
+              // Obtener inputs
+              const inputs = rive.stateMachineInputs(smName) || [];
+              log(`Inputs encontrados (${inputs.length}):`);
+              
+              inputs.forEach(input => {
+                const info = `  - "${input.name}" (type: ${input.type})`;
+                log(info);
+                riveInputs[input.name] = input;
+              });
+              
+              hasRive = true;
+              riveWrap.style.display = "grid";
+              cssAvatar.style.display = "none";
+              statusEl.textContent = "Estado: Rive cargado ✓";
+            } else {
+              // Sin state machine, solo animación básica
+              log("No hay State Machines, usando animación base");
+              hasRive = true;
+              riveWrap.style.display = "grid";
+              cssAvatar.style.display = "none";
+              statusEl.textContent = "Estado: Rive (sin SM)";
+            }
+          },
+          onLoadError: (e) => {
+            log(`Error cargando Rive: ${e}`);
+            fallbackToCSS("Error de carga");
+          }
         });
 
-        // espera a carga básica
-        await new Promise(r => setTimeout(r, 120));
-
-        // intenta localizar inputs por nombres exactos
-        for (const sm of SM_CANDIDATES) {
-          try {
-            const inputs = rive.stateMachineInputs(sm) || [];
-            const talk = inputs.find(i => i.name === "isTalking");
-            const vis = inputs.find(i => i.name === "VisemeID");
-
-            if (talk || vis) {
-              isTalkingInput = talk || null;
-              visemeInput = vis || null;
-              activeSmName = sm;
-              break;
-            }
-          } catch {}
-        }
-
-        if (!isTalkingInput && !visemeInput) {
-          throw new Error("Inputs isTalking/VisemeID not found");
-        }
-
-        hasRive = true;
-        riveWrap.style.display = "grid";
-        cssAvatar.style.display = "none";
-        statusEl.textContent = "Estado: avatar Rive listo";
-      } catch {
-        // fallback CSS
-        hasRive = false;
-        riveWrap.style.display = "none";
-        cssAvatar.style.display = "grid";
-        statusEl.textContent = "Estado: avatar CSS (fallback)";
+      } catch (e) {
+        log(`Exception Rive: ${e.message}`);
+        fallbackToCSS(e.message);
       }
     }
 
-    function cssSetMouthOpen(v01) {
-      const v = Math.max(0, Math.min(1, v01));
-      const scaleY = 1 + v * 2.0;
-      mouthEl.style.transform = `translateX(-50%) scaleY(${scaleY.toFixed(3)})`;
+    function fallbackToCSS(reason) {
+      hasRive = false;
+      riveWrap.style.display = "none";
+      cssAvatar.style.display = "grid";
+      statusEl.textContent = `Estado: CSS fallback (${reason})`;
+    }
+
+    // -----------------------------
+    // Control de habla - Rive
+    // -----------------------------
+    let visemeTimer = null;
+
+    function setRiveInput(name, value) {
+      if (riveInputs[name]) {
+        riveInputs[name].value = value;
+        return true;
+      }
+      // Buscar variantes comunes
+      const variants = [
+        name,
+        name.toLowerCase(),
+        name.charAt(0).toUpperCase() + name.slice(1),
+      ];
+      for (const v of variants) {
+        if (riveInputs[v]) {
+          riveInputs[v].value = value;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function getRiveInput(name) {
+      if (riveInputs[name]) return riveInputs[name];
+      // Buscar por nombre parcial
+      for (const key of Object.keys(riveInputs)) {
+        if (key.toLowerCase().includes(name.toLowerCase())) {
+          return riveInputs[key];
+        }
+      }
+      return null;
     }
 
     function stopRiveTalking() {
@@ -320,66 +412,91 @@
         clearInterval(visemeTimer);
         visemeTimer = null;
       }
-      if (isTalkingInput) isTalkingInput.value = false;
-      if (visemeInput) visemeInput.value = 0;
+      
+      // Intentar con nombres comunes
+      setRiveInput("isTalking", false);
+      setRiveInput("talking", false);
+      setRiveInput("Talking", false);
+      setRiveInput("VisemeID", 0);
+      setRiveInput("viseme", 0);
+      setRiveInput("Viseme", 0);
+      setRiveInput("mouthOpen", 0);
+      setRiveInput("MouthOpen", 0);
     }
 
     function startRiveTalking(durationMs = 2000) {
-      if (!hasRive) return;
+      if (!hasRive) {
+        startCSSFakeTalking(durationMs);
+        return;
+      }
 
-      if (isTalkingInput) isTalkingInput.value = true;
+      // Activar estado de habla
+      const talkingSet = setRiveInput("isTalking", true) || 
+                         setRiveInput("talking", true) ||
+                         setRiveInput("Talking", true);
+      
+      if (talkingSet) {
+        log("isTalking activado");
+      }
 
-      // Si hay VisemeID, cicla visemas mientras dure la frase
+      // Si hay input de visema, ciclarlo
+      const visemeInput = getRiveInput("viseme") || getRiveInput("VisemeID");
       if (visemeInput) {
-        if (visemeTimer) clearInterval(visemeTimer);
-
-        // IDs comunes suelen ser 0..14 en rigs de visemas.
-        // No sabemos el mapping exacto del asset, así que usamos un set pequeño seguro.
+        log(`Ciclando visemas en: ${visemeInput.name}`);
         const VIS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-
+        
+        if (visemeTimer) clearInterval(visemeTimer);
         visemeTimer = setInterval(() => {
-          // evita repetir demasiado
-          const id = VIS[Math.floor(Math.random() * VIS.length)];
-          visemeInput.value = id;
+          visemeInput.value = VIS[Math.floor(Math.random() * VIS.length)];
         }, 90);
       }
 
-      // fin automático
-      window.setTimeout(() => {
-        stopRiveTalking();
-      }, durationMs + 120);
+      // También probar mouthOpen
+      const mouthInput = getRiveInput("mouth") || getRiveInput("MouthOpen");
+      if (mouthInput && !visemeInput) {
+        log(`Usando mouthOpen: ${mouthInput.name}`);
+        if (visemeTimer) clearInterval(visemeTimer);
+        visemeTimer = setInterval(() => {
+          mouthInput.value = Math.random();
+        }, 80);
+      }
+
+      // Auto-stop
+      setTimeout(() => stopRiveTalking(), durationMs + 100);
     }
 
-    // Para modo audio: mapea amplitud a visemas discretos
-    function applyAudioToRiveViseme(rms) {
+    function applyAudioToRive(rms) {
       if (!hasRive) return false;
 
-      if (isTalkingInput) isTalkingInput.value = true;
+      // Activar talking
+      setRiveInput("isTalking", true) || setRiveInput("talking", true);
 
+      // Aplicar a visema o mouth
+      const visemeInput = getRiveInput("viseme") || getRiveInput("VisemeID");
       if (visemeInput) {
-        // mapping simple por intensidad
         let id = 0;
         if (rms < 0.018) id = 0;
         else if (rms < 0.028) id = 1;
         else if (rms < 0.040) id = 3;
         else if (rms < 0.055) id = 5;
         else id = 7;
-
         visemeInput.value = id;
         return true;
       }
 
-      // si no hay viseme, al menos toggle talking
-      return !!isTalkingInput;
-    }
-
-    // Fake speaking genérico (Rive si está, CSS si no)
-    function startFakeLipSync(durationMs = 2000) {
-      if (hasRive) {
-        startRiveTalking(durationMs);
-        return;
+      const mouthInput = getRiveInput("mouth") || getRiveInput("MouthOpen");
+      if (mouthInput) {
+        mouthInput.value = Math.min(1, rms * 15);
+        return true;
       }
 
+      return false;
+    }
+
+    // -----------------------------
+    // Control de habla - CSS Fallback
+    // -----------------------------
+    function startCSSFakeTalking(durationMs = 2000) {
       const start = performance.now();
       if (fakeRaf) cancelAnimationFrame(fakeRaf);
 
@@ -390,7 +507,6 @@
         const progress = Math.min(1, elapsed / durationMs);
 
         const wave = Math.sin(t / 85);
-
         const attack = Math.min(1, elapsed / attackMs);
         const decay = 1 - Math.max(0, (progress - 0.85) / 0.15);
         const envelope = Math.max(0, Math.min(1, attack * decay));
@@ -409,7 +525,9 @@
       fakeRaf = requestAnimationFrame(tick);
     }
 
+    // -----------------------------
     // Lip-sync desde audio real
+    // -----------------------------
     function startLipSyncFromAudio() {
       ensureAudioGraph();
       const data = new Uint8Array(analyser.fftSize);
@@ -428,10 +546,8 @@
         const rawOpen = Math.min(1, Math.max(0, (rms - 0.015) * 12));
         smoothed = smoothed * 0.75 + rawOpen * 0.25;
 
-        // Si Rive puede usar visemas, lo aplicamos
-        const usedRive = applyAudioToRiveViseme(rms);
+        const usedRive = applyAudioToRive(rms);
 
-        // Si no, usamos CSS
         if (!usedRive) {
           cssSetMouthOpen(smoothed);
         }
@@ -441,7 +557,6 @@
         } else {
           if (rafId) cancelAnimationFrame(rafId);
           rafId = null;
-
           stopRiveTalking();
           cssSetMouthOpen(0);
         }
@@ -450,6 +565,9 @@
       tick();
     }
 
+    // -----------------------------
+    // Control general
+    // -----------------------------
     function setIdle() {
       if (fakeRaf) cancelAnimationFrame(fakeRaf);
       fakeRaf = null;
@@ -463,14 +581,25 @@
     }
 
     audioEl.addEventListener("play", () => {
+      log("Audio play");
       startLipSyncFromAudio();
     });
 
     audioEl.addEventListener("ended", () => {
+      log("Audio ended");
       setIdle();
     });
 
-    idleBtn.addEventListener("click", setIdle);
+    idleBtn.addEventListener("click", () => {
+      log("Idle manual");
+      setIdle();
+    });
+
+    testTalkBtn.addEventListener("click", () => {
+      log("Test hablar 3s");
+      bubbleEl.textContent = "Probando animación de habla...";
+      startRiveTalking(3000);
+    });
 
     // -----------------------------
     // WebSocket al Avatar Bridge
@@ -478,47 +607,69 @@
     const qp = new URLSearchParams(location.search);
     const BACKEND_HOST = qp.get("backend") || "hogar-avatar-api.conexiatec.com";
     const wsProto = location.protocol === "https:" ? "wss://" : "ws://";
-    const ws = new WebSocket(`${wsProto}${BACKEND_HOST}`);
+    
+    let ws = null;
+    
+    function connectWebSocket() {
+      try {
+        ws = new WebSocket(`${wsProto}${BACKEND_HOST}`);
 
-    ws.onopen = () => {
-      statusEl.textContent = `Estado: conectado al bridge (${BACKEND_HOST})`;
-    };
-    ws.onclose = () => {
-      statusEl.textContent = "Estado: desconectado";
-    };
-    ws.onerror = () => {
-      statusEl.textContent = "Estado: error WebSocket";
-    };
+        ws.onopen = () => {
+          statusEl.textContent = `Estado: conectado (${BACKEND_HOST})`;
+          log(`WebSocket conectado: ${BACKEND_HOST}`);
+        };
+        
+        ws.onclose = () => {
+          log("WebSocket cerrado");
+          setTimeout(connectWebSocket, 3000);
+        };
+        
+        ws.onerror = (e) => {
+          log("WebSocket error");
+        };
 
-    ws.onmessage = (ev) => {
-      let msg;
-      try { msg = JSON.parse(ev.data); } catch { return; }
+        ws.onmessage = (ev) => {
+          let msg;
+          try { msg = JSON.parse(ev.data); } catch { return; }
 
-      if (msg.type === "bot_speaking_start") {
-        if (msg.text) bubbleEl.textContent = msg.text;
+          log(`WS msg: ${msg.type}`);
 
-        if (msg.audioUrl) {
-          audioEl.src = msg.audioUrl;
-          audioEl.currentTime = 0;
+          if (msg.type === "bot_speaking_start") {
+            if (msg.text) bubbleEl.textContent = msg.text;
 
-          audioEl.play().catch(() => {
-            bubbleEl.textContent = "⚠️ Pulsa “Activar audio” para permitir reproducción.";
-          });
-        } else {
-          const duration = msg.durationMs ?? 2000;
-          startFakeLipSync(duration);
-        }
+            if (msg.audioUrl) {
+              audioEl.src = msg.audioUrl;
+              audioEl.currentTime = 0;
+              audioEl.play().catch(() => {
+                bubbleEl.textContent = "⚠️ Pulsa 'Activar audio' para permitir reproducción.";
+              });
+            } else {
+              const duration = msg.durationMs ?? 2000;
+              startRiveTalking(duration);
+            }
+          }
+
+          if (msg.type === "bot_speaking_end") {
+            audioEl.pause();
+            setIdle();
+          }
+        };
+      } catch (e) {
+        log(`WS exception: ${e.message}`);
       }
+    }
 
-      if (msg.type === "bot_speaking_end") {
-        audioEl.pause();
-        setIdle();
-      }
-    };
-
-    // init
+    // -----------------------------
+    // Init
+    // -----------------------------
     await initRive();
-    setIdle();
+    
+    // Esperar un momento para que Rive cargue completamente
+    setTimeout(() => {
+      connectWebSocket();
+      setIdle();
+    }, 500);
   </script>
 </body>
+
 </html>

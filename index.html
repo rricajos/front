@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <title>Gespropiedad Avatar Demo</title>
@@ -31,9 +32,11 @@
     .avatar {
       display: grid;
       place-items: center;
+      position: relative;
+      min-height: 320px;
     }
 
-    /* ---------- RIVE ---------- */
+    /* ---------- RIVE PRIMARY ---------- */
     .rive-wrap {
       width: 320px;
       height: 320px;
@@ -52,7 +55,8 @@
 
     /* ---------- CSS FALLBACK AVATAR ---------- */
     .css-avatar {
-      display: none; /* se mostrará solo si Rive falla */
+      display: none;
+      place-items: center;
     }
 
     .head {
@@ -174,8 +178,7 @@
 <body>
   <div class="stage">
     <div class="avatar">
-
-      <!-- RIVE PRIMARY -->
+      <!-- RIVE -->
       <div class="rive-wrap" id="riveWrap">
         <canvas id="riveCanvas" width="300" height="300"></canvas>
       </div>
@@ -188,7 +191,6 @@
           <div class="mouth"><div class="mouth-inner"></div></div>
         </div>
       </div>
-
     </div>
 
     <div class="panel">
@@ -219,7 +221,7 @@
     const mouthEl = cssAvatar.querySelector(".mouth");
 
     // -----------------------------
-    // Audio graph
+    // Audio
     // -----------------------------
     let audioCtx = null;
     let analyser = null;
@@ -249,85 +251,135 @@
     });
 
     // -----------------------------
-    // RIVE setup (primary avatar)
+    // RIVE
     // -----------------------------
+    const RIVE_FILE = "./avatar.riv";
+    const SM_CANDIDATES = ["Avatar", "State Machine 1", "AvatarSM", "Main", "default"];
+
     let rive = null;
-    let mouthInput = null;
     let hasRive = false;
+    let isTalkingInput = null;  // boolean
+    let visemeInput = null;     // number
+    let activeSmName = null;
+    let visemeTimer = null;
 
     async function initRive() {
       try {
         const { Rive } = await import("https://unpkg.com/@rive-app/canvas@latest");
 
         rive = new Rive({
-          src: "./avatar.riv",
+          src: RIVE_FILE,
           canvas: riveCanvas,
-          autoplay: true,
-          // Si tu archivo usa state machine, pon su nombre aquí:
-          // stateMachines: "AvatarSM",
-          // Si no sabes el nombre aún, deja esto sin definir y luego lo ajustas.
+          autoplay: true
         });
 
-        // Espera un frame para que cargue
-        await new Promise(r => setTimeout(r, 50));
+        // espera a carga básica
+        await new Promise(r => setTimeout(r, 120));
 
-        // Si tienes state machine, intenta leer inputs:
-        // const smName = "AvatarSM";
-        // const inputs = rive.stateMachineInputs(smName) || [];
-        // mouthInput = inputs.find(i => i.name === "MouthOpen");
+        // intenta localizar inputs por nombres exactos
+        for (const sm of SM_CANDIDATES) {
+          try {
+            const inputs = rive.stateMachineInputs(sm) || [];
+            const talk = inputs.find(i => i.name === "isTalking");
+            const vis = inputs.find(i => i.name === "VisemeID");
 
-        // Si NO tienes state machine listo todavía,
-        // este front usará fallback CSS automáticamente.
-        if (mouthInput) {
-          hasRive = true;
-          cssAvatar.style.display = "none";
-        } else {
-          // Mantén Rive visible si quieres aunque no tenga input de boca:
-          // pero para lip-sync mejor fallback claro.
-          throw new Error("MouthOpen input not found");
+            if (talk || vis) {
+              isTalkingInput = talk || null;
+              visemeInput = vis || null;
+              activeSmName = sm;
+              break;
+            }
+          } catch {}
         }
-      } catch (e) {
-        // Fallback a CSS
+
+        if (!isTalkingInput && !visemeInput) {
+          throw new Error("Inputs isTalking/VisemeID not found");
+        }
+
+        hasRive = true;
+        riveWrap.style.display = "grid";
+        cssAvatar.style.display = "none";
+        statusEl.textContent = "Estado: avatar Rive listo";
+      } catch {
+        // fallback CSS
         hasRive = false;
         riveWrap.style.display = "none";
         cssAvatar.style.display = "grid";
+        statusEl.textContent = "Estado: avatar CSS (fallback)";
       }
     }
 
-    // Llama init
-    initRive();
-
-    // -----------------------------
-    // Mouth control abstraction
-    // -----------------------------
-    function setMouthOpen(value01) {
-      const v = Math.max(0, Math.min(1, value01));
-
-      if (hasRive && mouthInput) {
-        mouthInput.value = v;
-        return;
-      }
-
-      // CSS fallback
+    function cssSetMouthOpen(v01) {
+      const v = Math.max(0, Math.min(1, v01));
       const scaleY = 1 + v * 2.0;
       mouthEl.style.transform = `translateX(-50%) scaleY(${scaleY.toFixed(3)})`;
     }
 
-    // -----------------------------
-    // Idle / fake lip-sync
-    // -----------------------------
-    function setIdle() {
-      if (fakeRaf) cancelAnimationFrame(fakeRaf);
-      fakeRaf = null;
-
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = null;
-
-      bubbleEl.textContent = "En espera…";
-      setMouthOpen(0);
+    function stopRiveTalking() {
+      if (visemeTimer) {
+        clearInterval(visemeTimer);
+        visemeTimer = null;
+      }
+      if (isTalkingInput) isTalkingInput.value = false;
+      if (visemeInput) visemeInput.value = 0;
     }
 
+    function startRiveTalking(durationMs = 2000) {
+      if (!hasRive) return;
+
+      if (isTalkingInput) isTalkingInput.value = true;
+
+      // Si hay VisemeID, cicla visemas mientras dure la frase
+      if (visemeInput) {
+        if (visemeTimer) clearInterval(visemeTimer);
+
+        // IDs comunes suelen ser 0..14 en rigs de visemas.
+        // No sabemos el mapping exacto del asset, así que usamos un set pequeño seguro.
+        const VIS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+        visemeTimer = setInterval(() => {
+          // evita repetir demasiado
+          const id = VIS[Math.floor(Math.random() * VIS.length)];
+          visemeInput.value = id;
+        }, 90);
+      }
+
+      // fin automático
+      window.setTimeout(() => {
+        stopRiveTalking();
+      }, durationMs + 120);
+    }
+
+    // Para modo audio: mapea amplitud a visemas discretos
+    function applyAudioToRiveViseme(rms) {
+      if (!hasRive) return false;
+
+      if (isTalkingInput) isTalkingInput.value = true;
+
+      if (visemeInput) {
+        // mapping simple por intensidad
+        let id = 0;
+        if (rms < 0.018) id = 0;
+        else if (rms < 0.028) id = 1;
+        else if (rms < 0.040) id = 3;
+        else if (rms < 0.055) id = 5;
+        else id = 7;
+
+        visemeInput.value = id;
+        return true;
+      }
+
+      // si no hay viseme, al menos toggle talking
+      return !!isTalkingInput;
+    }
+
+    // Fake speaking genérico (Rive si está, CSS si no)
     function startFakeLipSync(durationMs = 2000) {
+      if (hasRive) {
+        startRiveTalking(durationMs);
+        return;
+      }
+
       const start = performance.now();
       if (fakeRaf) cancelAnimationFrame(fakeRaf);
 
@@ -344,12 +396,12 @@
         const envelope = Math.max(0, Math.min(1, attack * decay));
 
         const open = (0.45 + 0.55 * wave) * envelope;
-        setMouthOpen(open);
+        cssSetMouthOpen(open);
 
         if (elapsed < durationMs) {
           fakeRaf = requestAnimationFrame(tick);
         } else {
-          setMouthOpen(0);
+          cssSetMouthOpen(0);
           fakeRaf = null;
         }
       };
@@ -357,13 +409,10 @@
       fakeRaf = requestAnimationFrame(tick);
     }
 
-    // -----------------------------
-    // Audio lip-sync (if audioUrl)
-    // -----------------------------
+    // Lip-sync desde audio real
     function startLipSyncFromAudio() {
       ensureAudioGraph();
       const data = new Uint8Array(analyser.fftSize);
-
       let smoothed = 0;
 
       const tick = () => {
@@ -379,18 +428,38 @@
         const rawOpen = Math.min(1, Math.max(0, (rms - 0.015) * 12));
         smoothed = smoothed * 0.75 + rawOpen * 0.25;
 
-        setMouthOpen(smoothed);
+        // Si Rive puede usar visemas, lo aplicamos
+        const usedRive = applyAudioToRiveViseme(rms);
+
+        // Si no, usamos CSS
+        if (!usedRive) {
+          cssSetMouthOpen(smoothed);
+        }
 
         if (!audioEl.paused && !audioEl.ended) {
           rafId = requestAnimationFrame(tick);
         } else {
           if (rafId) cancelAnimationFrame(rafId);
           rafId = null;
-          setMouthOpen(0);
+
+          stopRiveTalking();
+          cssSetMouthOpen(0);
         }
       };
 
       tick();
+    }
+
+    function setIdle() {
+      if (fakeRaf) cancelAnimationFrame(fakeRaf);
+      fakeRaf = null;
+
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+
+      bubbleEl.textContent = "En espera…";
+      stopRiveTalking();
+      cssSetMouthOpen(0);
     }
 
     audioEl.addEventListener("play", () => {
@@ -404,7 +473,7 @@
     idleBtn.addEventListener("click", setIdle);
 
     // -----------------------------
-    // WebSocket (production-ready)
+    // WebSocket al Avatar Bridge
     // -----------------------------
     const qp = new URLSearchParams(location.search);
     const BACKEND_HOST = qp.get("backend") || "hogar-avatar-api.conexiatec.com";
@@ -447,6 +516,8 @@
       }
     };
 
+    // init
+    await initRive();
     setIdle();
   </script>
 </body>

@@ -641,7 +641,7 @@
               audioEl.src = msg.audioUrl;
               audioEl.currentTime = 0;
               audioEl.play().catch(() => {
-                bubbleEl.textContent = "⚠️ Pulsa 'Activar audio' para permitir reproducción.";
+                bubbleEl.textContent = "⚠️ Pulsa Activar audio para permitir reproducción.";
               });
             } else {
               const duration = msg.durationMs ?? 2000;

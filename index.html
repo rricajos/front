@@ -6,8 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gespropiedad Avatar Demo</title>
   <style>
-    * { box-sizing: border-box; }
-    
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, sans-serif;
@@ -41,11 +43,11 @@
         gap: 20px;
         padding: 20px;
       }
-      
+
       .avatar {
         order: 1;
       }
-      
+
       .panel {
         order: 2;
       }
@@ -56,32 +58,32 @@
       body {
         padding: 8px;
       }
-      
+
       .stage {
         border-radius: 16px;
         padding: 16px;
         gap: 16px;
       }
-      
+
       .rive-wrap {
         width: 240px !important;
         height: 240px !important;
       }
-      
+
       #riveCanvas {
         width: 220px !important;
         height: 220px !important;
       }
-      
+
       .bubble {
         min-height: 80px !important;
         font-size: 16px !important;
       }
-      
+
       .row {
         flex-direction: column;
       }
-      
+
       button {
         width: 100%;
       }
@@ -102,7 +104,7 @@
       border-radius: 24px;
       background: radial-gradient(circle at 30% 30%, #1a2535, #0d121b 70%);
       border: 1px solid #223146;
-      box-shadow: 
+      box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.03),
         0 8px 32px rgba(0, 0, 0, 0.3);
       overflow: hidden;
@@ -130,8 +132,15 @@
     }
 
     @keyframes breathe {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-2px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-2px);
+      }
     }
 
     .eye {
@@ -144,8 +153,13 @@
       overflow: hidden;
     }
 
-    .eye.left { left: 60px; }
-    .eye.right { right: 60px; }
+    .eye.left {
+      left: 60px;
+    }
+
+    .eye.right {
+      right: 60px;
+    }
 
     .eye::after {
       content: "";
@@ -157,8 +171,17 @@
     }
 
     @keyframes blink {
-      0%, 92%, 100% { transform: translateY(-120%); }
-      94%, 96% { transform: translateY(0%); }
+
+      0%,
+      92%,
+      100% {
+        transform: translateY(-120%);
+      }
+
+      94%,
+      96% {
+        transform: translateY(0%);
+      }
     }
 
     .pupil {
@@ -208,13 +231,29 @@
       flex-shrink: 0;
     }
 
-    .status-dot.ok { background: #22c55e; }
-    .status-dot.error { background: #ef4444; }
-    .status-dot.loading { background: #eab308; animation: pulse 1s infinite; }
+    .status-dot.ok {
+      background: #22c55e;
+    }
+
+    .status-dot.error {
+      background: #ef4444;
+    }
+
+    .status-dot.loading {
+      background: #eab308;
+      animation: pulse 1s infinite;
+    }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
     }
 
     .debug {
@@ -237,9 +276,17 @@
       border-radius: 14px;
       padding: 16px 18px;
       min-height: 100px;
+      max-height: 150px;
+      overflow-y: auto;
       font-size: 17px;
       line-height: 1.45;
       flex-grow: 1;
+    }
+
+    @media (max-width: 480px) {
+      .bubble {
+        max-height: 100px;
+      }
     }
 
     .row {
@@ -290,8 +337,8 @@
       position: absolute;
       top: 10px;
       right: 10px;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       width: 40px;
       height: 40px;
       min-width: 40px;
@@ -305,7 +352,7 @@
     }
 
     .fullscreen-btn:hover {
-      background: rgba(0,0,0,0.7);
+      background: rgba(0, 0, 0, 0.7);
     }
 
     .avatar {
@@ -326,7 +373,28 @@
       background: #0b0f14;
     }
 
+    .rive-wrap.fullscreen::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60vmin;
+      height: 60vmin;
+      max-width: 400px;
+      max-height: 400px;
+      opacity: 0.08;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 226.1 219.1'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='56' y1='178.7' x2='56' y2='0' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%231ca4af'/%3E%3Cstop offset='1' stop-color='%231c3768'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='139.2' y1='53.5' x2='232.6' y2='215.2' href='%23a'/%3E%3C/defs%3E%3Cpolygon fill='url(%23a)' points='0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0'/%3E%3Cpolygon fill='url(%23b)' points='194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      pointer-events: none;
+      z-index: 0;
+    }
+
     .rive-wrap.fullscreen #riveCanvas {
+      position: relative;
+      z-index: 1;
       width: 90vmin !important;
       height: 90vmin !important;
     }
@@ -369,10 +437,70 @@
       padding: 12px;
       margin-top: 4px;
     }
+
+    /* Overlay de inicio para desbloquear audio */
+    .start-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      cursor: pointer;
+    }
+
+    .start-overlay.hidden {
+      display: none;
+    }
+
+    .start-overlay h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    .start-overlay p {
+      font-size: 1.1rem;
+      opacity: 0.7;
+      margin-bottom: 2rem;
+    }
+
+    .start-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 20px 50px;
+      font-size: 1.3rem;
+      border-radius: 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+    }
+
+    .start-btn:hover {
+      background: #1d4ed8;
+      transform: scale(1.05);
+    }
+
+    .start-btn:active {
+      transform: scale(0.98);
+    }
   </style>
 </head>
 
 <body>
+  <!-- Overlay para desbloquear audio -->
+  <div class="start-overlay" id="startOverlay">
+    <h1>🎙️ Avatar IA</h1>
+    <p>Pulsa para activar el audio y comenzar</p>
+    <button class="start-btn" id="startBtn">▶ Comenzar</button>
+  </div>
   <div class="stage">
     <div class="avatar">
       <!-- Rive Avatar -->
@@ -384,8 +512,12 @@
       <!-- CSS Fallback -->
       <div class="css-avatar" id="cssAvatar">
         <div class="head">
-          <div class="eye left"><div class="pupil"></div></div>
-          <div class="eye right"><div class="pupil"></div></div>
+          <div class="eye left">
+            <div class="pupil"></div>
+          </div>
+          <div class="eye right">
+            <div class="pupil"></div>
+          </div>
           <div class="mouth" id="cssMouth"></div>
         </div>
       </div>
@@ -398,12 +530,12 @@
       </div>
       <div class="debug" id="debug"></div>
       <div class="bubble" id="bubble">Listo para recibir eventos del bot.</div>
-      
+
       <div class="row">
         <button id="testTalk" class="primary">💬 Test hablar</button>
         <button id="idleBtn">⏸ Idle</button>
       </div>
-      
+
       <div class="settings">
         <label for="voiceSelect">🎙 Voz TTS:</label>
         <select id="voiceSelect" class="voice-select">
@@ -422,17 +554,19 @@
       ELEVENLABS_API_KEY: "sk_ed00c8630aeb0240abba435c3f0a4afcd6794a79c0d1aba6",  // Tu API key de ElevenLabs
       ELEVENLABS_VOICE_ID: "uU1QvfOppdkePeLtG9pI",  // Lucia - español España
       ELEVENLABS_MODEL: "eleven_multilingual_v2",
-      
+
       // WebSocket backend
       BACKEND_HOST: "hogar-avatar-api.conexiatec.com",
-      
+
       // Rive
       RIVE_FILE: "./avatar.riv",
       STATE_MACHINE: "State Machine",
-      
+
       // TTS Fallback (usar voz del navegador si no hay API key ni audio pregenerado)
       USE_BROWSER_TTS_FALLBACK: true,
     };
+
+
 
     // ===========================================
     // BANCO DE AUDIOS PREGENERADOS
@@ -457,7 +591,7 @@
         text: "Exacto: todavía no tengo nombre. De momento soy “la IA de Gestpropiedad”, pero suena un poco frío y poco personal, ¿verdad? Como voy a trabajar para vosotros y con vosotros, quiero que seáis vosotros quienes elijáis mi nombre esta noche. Yo me despido aquí y le dejo a Alejandro que os explique las opciones. La próxima vez que aparezca, será ya con mi nombre oficial. Ha sido un placer saludaros por primera vez. Gracias… y nos vemos muy pronto. Ah, y tranquilos: ninguna de las opciones es “ChatPaco” ni “BotManolo”. De eso se ha asegurado todo el equipo. ¡Muchas gracias, equipo!",
         audio: "./audio/despedida.mp3"
       },
-      
+
       // Añade más audios aquí:
       // "appointment_confirm": {
       //   text: "Tu cita ha sido confirmada para el día indicado.",
@@ -521,19 +655,19 @@
 
     function loadVoices() {
       voices = synth.getVoices();
-      
+
       // Filtrar voces en español preferentemente
       const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
       const otherVoices = voices.filter(v => !v.lang.startsWith('es'));
       const sortedVoices = [...spanishVoices, ...otherVoices];
-      
+
       voiceSelect.innerHTML = '';
-      
+
       if (sortedVoices.length === 0) {
         voiceSelect.innerHTML = '<option value="">No hay voces disponibles</option>';
         return;
       }
-      
+
       sortedVoices.forEach((voice, i) => {
         const option = document.createElement('option');
         option.value = i;
@@ -544,13 +678,13 @@
         }
         voiceSelect.appendChild(option);
       });
-      
+
       // Si no hay voz española, usar la primera
       if (!selectedVoice && sortedVoices.length > 0) {
         selectedVoice = sortedVoices[0];
         voiceSelect.selectedIndex = 0;
       }
-      
+
       log("Voces cargadas: " + sortedVoices.length);
     }
 
@@ -628,11 +762,11 @@
         synth.cancel();
 
         currentUtterance = new SpeechSynthesisUtterance(text);
-        
+
         if (selectedVoice) {
           currentUtterance.voice = selectedVoice;
         }
-        
+
         currentUtterance.lang = 'es-ES';
         currentUtterance.rate = 1.0;
         currentUtterance.pitch = 1.0;
@@ -663,7 +797,7 @@
     // -----------------------------
     let prerecordedAudio = null;
 
-    async function playPrerecordedAudio(audioUrl) {
+    async function playPrerecordedAudio(audioUrl, textWithPauses = "") {
       return new Promise((resolve, reject) => {
         if (prerecordedAudio) {
           prerecordedAudio.pause();
@@ -671,10 +805,15 @@
         }
 
         prerecordedAudio = new Audio(audioUrl);
-        
+
         prerecordedAudio.onplay = () => {
           log("Audio pregenerado reproduciendo");
-          startTTSLipSync();
+          // Usar lip-sync con pausas si hay texto con ::
+          if (textWithPauses && textWithPauses.includes("::")) {
+            startTTSLipSyncWithPauses(textWithPauses);
+          } else {
+            startTTSLipSync();
+          }
         };
 
         prerecordedAudio.onended = () => {
@@ -700,7 +839,7 @@
 
     async function speakWithElevenLabs(text) {
       log("ElevenLabs: generando audio...");
-      
+
       const response = await fetch(
         `https://api.elevenlabs.io/v1/text-to-speech/${CONFIG.ELEVENLABS_VOICE_ID}`,
         {
@@ -738,7 +877,7 @@
         }
 
         elevenLabsAudio = new Audio(audioUrl);
-        
+
         elevenLabsAudio.onplay = () => {
           log("ElevenLabs: reproduciendo");
           startTTSLipSync();
@@ -823,7 +962,7 @@
       setTimeout(() => {
         try {
           const inputs = riveInstance.stateMachineInputs(STATE_MACHINE);
-          
+
           if (!inputs || inputs.length === 0) {
             log("No se encontraron inputs");
             const sms = riveInstance.stateMachineNames;
@@ -833,7 +972,7 @@
           }
 
           log("Inputs: " + inputs.length);
-          
+
           inputs.forEach(input => {
             log(`  → ${input.name}`);
             if (input.name === "isTalking") isTalkingInput = input;
@@ -902,16 +1041,16 @@
 
       if (visemeIDInput) {
         if (visemeTimer) clearInterval(visemeTimer);
-        
+
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
-        
+
         visemeTimer = setInterval(() => {
           let newViseme;
           do {
             newViseme = visemes[Math.floor(Math.random() * visemes.length)];
           } while (newViseme === lastViseme);
-          
+
           lastViseme = newViseme;
           visemeIDInput.value = newViseme;
         }, 100);
@@ -923,6 +1062,9 @@
     }
 
     // Lip-sync para TTS (sin análisis de audio, solo animación)
+    // Soporta pausas con :: en el texto
+    let currentSpeakingText = "";
+
     function startTTSLipSync() {
       if (!hasRive) {
         // CSS fallback con animación continua
@@ -934,16 +1076,91 @@
 
       if (visemeIDInput) {
         if (ttsLipSyncTimer) clearInterval(ttsLipSyncTimer);
-        
+
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
-        
+
         ttsLipSyncTimer = setInterval(() => {
           let newViseme;
           do {
             newViseme = visemes[Math.floor(Math.random() * visemes.length)];
           } while (newViseme === lastViseme);
-          
+
+          lastViseme = newViseme;
+          visemeIDInput.value = newViseme;
+        }, 90);
+      }
+    }
+
+    // Lip-sync con pausas basadas en :: en el texto
+    function startTTSLipSyncWithPauses(text) {
+      if (!hasRive) {
+        startCSSFakeTalking(99999);
+        return;
+      }
+
+      // Dividir texto por :: para calcular pausas
+      const segments = text.split("::");
+      if (segments.length <= 1) {
+        // No hay pausas, usar lip-sync normal
+        startTTSLipSync();
+        return;
+      }
+
+      log("Lip-sync con " + (segments.length - 1) + " pausas");
+
+      // Calcular tiempos de pausa basados en posición del ::
+      const totalLength = text.replace(/::/g, "").length;
+      const pauseDuration = 500; // 0.5 segundos
+
+      let isPaused = false;
+      let charCount = 0;
+      let pausePoints = [];
+
+      // Calcular en qué momento (aprox) ocurre cada pausa
+      for (let i = 0; i < segments.length - 1; i++) {
+        charCount += segments[i].length;
+        // Aproximar tiempo: ~50ms por carácter (ajustable)
+        const timeMs = charCount * 50;
+        pausePoints.push(timeMs);
+      }
+
+      if (isTalkingInput) isTalkingInput.value = true;
+
+      if (visemeIDInput) {
+        if (ttsLipSyncTimer) clearInterval(ttsLipSyncTimer);
+
+        const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        let lastViseme = 0;
+        const startTime = performance.now();
+        let currentPauseIndex = 0;
+        let pauseEndTime = 0;
+
+        ttsLipSyncTimer = setInterval(() => {
+          const elapsed = performance.now() - startTime;
+
+          // Verificar si estamos en una pausa
+          if (currentPauseIndex < pausePoints.length) {
+            const pauseStart = pausePoints[currentPauseIndex];
+
+            if (elapsed >= pauseStart && elapsed < pauseStart + pauseDuration) {
+              // Estamos en pausa - cerrar boca
+              visemeIDInput.value = 0;
+              if (isTalkingInput) isTalkingInput.value = false;
+              return;
+            } else if (elapsed >= pauseStart + pauseDuration) {
+              // Pausa terminada, pasar a la siguiente
+              currentPauseIndex++;
+              if (isTalkingInput) isTalkingInput.value = true;
+            }
+          }
+
+          // Animación normal
+          let newViseme;
+          do {
+            newViseme = visemes[Math.floor(Math.random() * visemes.length)];
+          } while (newViseme === lastViseme);
+
           lastViseme = newViseme;
           visemeIDInput.value = newViseme;
         }, 90);
@@ -952,7 +1169,7 @@
 
     function startCSSFakeTalking(durationMs) {
       const start = performance.now();
-      
+
       const tick = () => {
         const elapsed = performance.now() - start;
         const progress = elapsed / durationMs;
@@ -1012,7 +1229,7 @@
 
     function connectWebSocket() {
       if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
-      
+
       try {
         log("WS: " + BACKEND_HOST);
         ws = new WebSocket(wsProto + BACKEND_HOST);
@@ -1033,22 +1250,27 @@
           log("WS: " + msg.type);
 
           if (msg.type === "bot_speaking_start") {
-            const text = msg.text || "";
-            const audioId = msg.audioId || null;  // ID del audio pregenerado
-            
-            if (text) bubbleEl.textContent = text;
+            const rawText = msg.text || "";
+            const audioId = msg.audioId || msg.lineId || null;
 
+            // Limpiar :: del texto para mostrar en bubble
+            const cleanText = rawText.replace(/::/g, " ").replace(/\s+/g, " ").trim();
+            if (cleanText) bubbleEl.textContent = cleanText;
+
+            // 1) Si viene audioUrl del backend, usarla directamente
             if (msg.audioUrl) {
-              // Audio URL directa (prioridad máxima)
+              log("Reproduciendo audioUrl: " + msg.audioUrl);
               try {
-                await playPrerecordedAudio(msg.audioUrl);
+                // Pasar texto original con :: para las pausas
+                await playPrerecordedAudio(msg.audioUrl, rawText);
               } catch (e) {
                 log("Error audioUrl: " + e.message);
-                await speak(text, audioId);
+                await speak(cleanText, audioId);
               }
-            } else {
-              // Usar sistema de prioridad: pregenerado > ElevenLabs > navegador
-              await speak(text, audioId);
+            }
+            // 2) Si no hay audioUrl, usar sistema de prioridad local
+            else {
+              await speak(cleanText, audioId);
             }
           }
 
@@ -1071,30 +1293,75 @@
     } else {
       log("TTS: Navegador (sin API key)");
     }
-    
+
+    // -----------------------------
+    // Audio unlock - Requiere interacción del usuario
+    // -----------------------------
+    let audioUnlocked = false;
+    const startOverlay = $("startOverlay");
+    const startBtn = $("startBtn");
+
+    async function unlockAudio() {
+      try {
+        // Crear y reproducir audio silencioso para desbloquear
+        const silentAudio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleCAHQJnx+aCFNgRDmvz/mXoxBEaZ/P+YdywFR5r8/5d3KgZIm/z/lnkpB0mc/P+VeigISp38/5R7JwlLnfz/k3wmCkye/P+SfSULTZ/8/5F+JAxOoPz/kH8jDU+h/P+PgCIOUKL8/46BIQ9Ro/z/jYIfEFKk/P+MgyAQU6X8/4uEHxFUpvz/ioUeElWn/P+Jhh0TV6j8/4iHHBRYqfz/h4gcFVqq/P+GiRsWW6v8/4WKGhdcrPz/hIoZGF2t/P+DixgZXq78/4KMGB5fr/z/gY0XH2Cw/P+AjhYgYbH8/3+PFSFisfz/fpAUI2Oz/P99kRMkZLT8/3ySEiVltfz/e5MSJGW1");
+        silentAudio.volume = 0.01;
+        await silentAudio.play();
+        silentAudio.pause();
+
+        // También preparar Web Speech API
+        if (synth) {
+          const testUtterance = new SpeechSynthesisUtterance("");
+          testUtterance.volume = 0;
+          synth.speak(testUtterance);
+          synth.cancel();
+        }
+
+        audioUnlocked = true;
+        log("Audio desbloqueado ✓");
+        return true;
+      } catch (e) {
+        log("Error desbloqueando audio: " + e.message);
+        return false;
+      }
+    }
+
+    startBtn.onclick = async () => {
+      await unlockAudio();
+      startOverlay.classList.add("hidden");
+    };
+
+    // También desbloquear con clic en cualquier parte del overlay
+    startOverlay.onclick = async (e) => {
+      if (e.target === startOverlay) {
+        await unlockAudio();
+        startOverlay.classList.add("hidden");
+      }
+    };
+
     // Fullscreen toggle
     const fullscreenBtn = $("fullscreenBtn");
     let isFullscreen = false;
 
     fullscreenBtn.onclick = () => {
       isFullscreen = !isFullscreen;
-      
+
       if (isFullscreen) {
         riveWrap.classList.add("fullscreen");
         fullscreenBtn.textContent = "✕";
         fullscreenBtn.title = "Salir de pantalla completa";
-        
+
         // También intentar fullscreen nativo
         if (riveWrap.requestFullscreen) {
-          riveWrap.requestFullscreen().catch(() => {});
+          riveWrap.requestFullscreen().catch(() => { });
         }
       } else {
         riveWrap.classList.remove("fullscreen");
         fullscreenBtn.textContent = "⛶";
         fullscreenBtn.title = "Pantalla completa";
-        
+
         if (document.exitFullscreen && document.fullscreenElement) {
-          document.exitFullscreen().catch(() => {});
+          document.exitFullscreen().catch(() => { });
         }
       }
     };

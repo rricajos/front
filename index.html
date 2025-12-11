@@ -5,6 +5,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gespropiedad Avatar Demo</title>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -318,6 +320,12 @@
       transform: scale(0.97);
     }
 
+    button i {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
     button.primary {
       background: #2563eb;
       border-color: #3b82f6;
@@ -347,8 +355,12 @@
       align-items: center;
       justify-content: center;
       border-radius: 8px;
-      font-size: 18px;
       z-index: 10;
+    }
+
+    .fullscreen-btn i {
+      width: 20px;
+      height: 20px;
     }
 
     .fullscreen-btn:hover {
@@ -376,20 +388,26 @@
     .rive-wrap.fullscreen::before {
       content: "";
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 60vmin;
-      height: 60vmin;
-      max-width: 400px;
-      max-height: 400px;
-      opacity: 0.08;
+      bottom: 40px;
+      right: 40px;
+      width: 180px;
+      height: 180px;
+      opacity: 0.25;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 226.1 219.1'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='56' y1='178.7' x2='56' y2='0' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%231ca4af'/%3E%3Cstop offset='1' stop-color='%231c3768'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='139.2' y1='53.5' x2='232.6' y2='215.2' href='%23a'/%3E%3C/defs%3E%3Cpolygon fill='url(%23a)' points='0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0'/%3E%3Cpolygon fill='url(%23b)' points='194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: center;
       background-size: contain;
       pointer-events: none;
       z-index: 0;
+    }
+
+    @media (max-width: 480px) {
+      .rive-wrap.fullscreen::before {
+        width: 100px;
+        height: 100px;
+        bottom: 20px;
+        right: 20px;
+      }
     }
 
     .rive-wrap.fullscreen #riveCanvas {
@@ -404,7 +422,13 @@
       right: 20px;
       width: 50px;
       height: 50px;
-      font-size: 24px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .rive-wrap.fullscreen .fullscreen-btn i {
+      width: 24px;
+      height: 24px;
     }
 
     /* Voice selector */
@@ -445,51 +469,71 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.9);
+      background: linear-gradient(135deg, #0b0f14 0%, #131a24 50%, #0d1117 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 10000;
-      cursor: pointer;
+      gap: 24px;
     }
 
     .start-overlay.hidden {
       display: none;
     }
 
+    .start-logo {
+      width: 120px;
+      height: auto;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+
     .start-overlay h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
+      font-size: 1.8rem;
+      margin: 0;
       color: #fff;
+      font-weight: 600;
+      letter-spacing: -0.02em;
     }
 
     .start-overlay p {
-      font-size: 1.1rem;
-      opacity: 0.7;
-      margin-bottom: 2rem;
+      font-size: 1rem;
+      opacity: 0.6;
+      margin: 0;
+      text-align: center;
+      max-width: 280px;
     }
 
     .start-btn {
-      background: #2563eb;
+      background: linear-gradient(135deg, #1ca4af 0%, #1c3768 100%);
       color: white;
       border: none;
-      padding: 20px 50px;
-      font-size: 1.3rem;
-      border-radius: 16px;
+      padding: 18px 48px;
+      font-size: 1.1rem;
+      border-radius: 14px;
       cursor: pointer;
-      font-weight: 700;
-      transition: all 0.2s;
-      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+      font-weight: 600;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 24px rgba(28, 164, 175, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
     }
 
     .start-btn:hover {
-      background: #1d4ed8;
-      transform: scale(1.05);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(28, 164, 175, 0.4);
     }
 
     .start-btn:active {
-      transform: scale(0.98);
+      transform: translateY(0);
+    }
+
+    .start-btn i {
+      width: 22px;
+      height: 22px;
     }
   </style>
 </head>
@@ -497,15 +541,33 @@
 <body>
   <!-- Overlay para desbloquear audio -->
   <div class="start-overlay" id="startOverlay">
-    <h1>🎙️ Avatar IA</h1>
-    <p>Pulsa para activar el audio y comenzar</p>
-    <button class="start-btn" id="startBtn">▶ Comenzar</button>
+    <svg class="start-logo" viewBox="0 0 226.1 219.1" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="grad1" x1="56" y1="178.7" x2="56" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#1ca4af" />
+          <stop offset="1" stop-color="#1c3768" />
+        </linearGradient>
+        <linearGradient id="grad2" x1="139.2" y1="53.5" x2="232.6" y2="215.2" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#1ca4af" />
+          <stop offset="1" stop-color="#1c3768" />
+        </linearGradient>
+      </defs>
+      <polygon fill="url(#grad1)" points="0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0" />
+      <polygon fill="url(#grad2)" points="194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6" />
+    </svg>
+    <h1>Asistente Virtual</h1>
+    <p>Activa el audio para interactuar con el avatar</p>
+    <button class="start-btn" id="startBtn">
+      <i data-lucide="volume-2"></i>
+      Comenzar
+    </button>
   </div>
   <div class="stage">
     <div class="avatar">
       <!-- Rive Avatar -->
       <div class="rive-wrap" id="riveWrap">
-        <button class="fullscreen-btn" id="fullscreenBtn" title="Pantalla completa">⛶</button>
+        <button class="fullscreen-btn" id="fullscreenBtn" title="Pantalla completa"><i
+            data-lucide="maximize-2"></i></button>
         <canvas id="riveCanvas" width="600" height="600"></canvas>
       </div>
 
@@ -532,12 +594,13 @@
       <div class="bubble" id="bubble">Listo para recibir eventos del bot.</div>
 
       <div class="row">
-        <button id="testTalk" class="primary">💬 Test hablar</button>
-        <button id="idleBtn">⏸ Idle</button>
+        <button id="testTalk" class="primary"><i data-lucide="message-circle"></i> Test hablar</button>
+        <button id="idleBtn"><i data-lucide="pause"></i> Idle</button>
       </div>
 
       <div class="settings">
-        <label for="voiceSelect">🎙 Voz TTS:</label>
+        <label for="voiceSelect"><i data-lucide="mic"
+            style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> Voz TTS:</label>
         <select id="voiceSelect" class="voice-select">
           <option value="">Cargando voces...</option>
         </select>
@@ -598,6 +661,7 @@
       //   audio: "./audio/appointment_confirm.mp3"
       // },
     };
+
 
     // ===========================================
     // También puedes mapear por texto exacto (alternativa)
@@ -1348,7 +1412,8 @@
 
       if (isFullscreen) {
         riveWrap.classList.add("fullscreen");
-        fullscreenBtn.textContent = "✕";
+        fullscreenBtn.innerHTML = '<i data-lucide="minimize-2"></i>';
+        lucide.createIcons();
         fullscreenBtn.title = "Salir de pantalla completa";
 
         // También intentar fullscreen nativo
@@ -1357,7 +1422,8 @@
         }
       } else {
         riveWrap.classList.remove("fullscreen");
-        fullscreenBtn.textContent = "⛶";
+        fullscreenBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
+        lucide.createIcons();
         fullscreenBtn.title = "Pantalla completa";
 
         if (document.exitFullscreen && document.fullscreenElement) {
@@ -1371,7 +1437,8 @@
       if (!document.fullscreenElement && isFullscreen) {
         isFullscreen = false;
         riveWrap.classList.remove("fullscreen");
-        fullscreenBtn.textContent = "⛶";
+        fullscreenBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
+        lucide.createIcons();
         fullscreenBtn.title = "Pantalla completa";
       }
     });
@@ -1380,7 +1447,8 @@
       if (e.key === "Escape" && isFullscreen) {
         isFullscreen = false;
         riveWrap.classList.remove("fullscreen");
-        fullscreenBtn.textContent = "⛶";
+        fullscreenBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
+        lucide.createIcons();
         fullscreenBtn.title = "Pantalla completa";
       }
     });
@@ -1388,6 +1456,9 @@
     await initRive();
     connectWebSocket();
     setIdle();
+
+    // Inicializar iconos Lucide
+    lucide.createIcons();
   </script>
 </body>
 

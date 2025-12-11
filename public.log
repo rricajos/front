@@ -1,0 +1,47 @@
+2025-12-05 17:12:30.965 call_bccfa3d3c125861deecb5cdfa0c info: Starting call: call_bccfa3d3c125861deecb5cdfa0c
+2025-12-05 17:12:38.108 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node begin (name: begin) to node node-1764765099869 (name: Logic Split Node)
+2025-12-05 17:12:38.458 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764765099869 (name: Logic Split Node) to node node-1764073888568 (name: Conversation)
+2025-12-05 17:12:55.639 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764073888568 (name: Conversation) to node node-1764074125061 (name: Extract Variables)
+2025-12-05 17:12:55.639 call_bccfa3d3c125861deecb5cdfa0c info: Calling tool: extract_dynamic_variables 
+Arguments: 
+2025-12-05 17:12:58.154 call_bccfa3d3c125861deecb5cdfa0c info: Received result for tool: extract_dynamic_variables_f7af7d extract_dynamic_variables 
+Result: {"nombre":"","intencion_llamada":"comprar_inmueble","intencion_passiva":false}
+2025-12-05 17:12:58.423 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764074125061 (name: Extract Variables) to node node-1764078478927 (name: Conversation)
+2025-12-05 17:13:08.921 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764078478927 (name: Conversation) to node node-1764074125061 (name: Extract Variables)
+2025-12-05 17:13:08.921 call_bccfa3d3c125861deecb5cdfa0c info: Calling tool: extract_dynamic_variables 
+Arguments: 
+2025-12-05 17:13:11.174 call_bccfa3d3c125861deecb5cdfa0c info: Received result for tool: extract_dynamic_variables_5dee6e extract_dynamic_variables 
+Result: {"nombre":"Ricardo","intencion_llamada":"comprar_inmueble","intencion_passiva":false}
+2025-12-05 17:13:11.329 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764074125061 (name: Extract Variables) to node node-1764081110283 (name: Logic Split Node)
+2025-12-05 17:13:11.334 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764081110283 (name: Logic Split Node) to node component-node-1764081199959-conversation-1764078592192 (name: Conversation)
+2025-12-05 17:13:26.888 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node component-node-1764081199959-conversation-1764078592192 (name: Conversation) to node component-node-1764081199959-node-1764599122364 (name: Logic Split)
+2025-12-05 17:13:26.893 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node component-node-1764081199959-node-1764599122364 (name: Logic Split) to node component-node-1764081199959-conversation-1764599218144 (name: Conversation)
+2025-12-05 17:13:54.069 call_bccfa3d3c125861deecb5cdfa0c info: E2E latency for this turn: 5076
+2025-12-05 17:14:22.475 call_bccfa3d3c125861deecb5cdfa0c info: E2E latency for this turn: 1682
+2025-12-05 17:14:46.746 call_bccfa3d3c125861deecb5cdfa0c info: E2E latency for this turn: 2892
+2025-12-05 17:15:08.055 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node component-node-1764081199959-conversation-1764599218144 (name: Conversation) to node component-node-1764081199959-node-1764082293712 (name: Extract Variables)
+2025-12-05 17:15:08.055 call_bccfa3d3c125861deecb5cdfa0c info: Calling tool: extract_dynamic_variables 
+Arguments: 
+2025-12-05 17:15:10.938 call_bccfa3d3c125861deecb5cdfa0c info: Received result for tool: extract_dynamic_variables_97d2cf extract_dynamic_variables 
+Result: {"compra_zona_preferida":"Maresme, cerca de Barcelona y con vistas al mar","compra_tipo_inmueble":"piso","compra_presupuesto_max":"200000","compra_habitaciones_min":3,"compra_uso":"vivienda_habitual"}
+2025-12-05 17:15:11.245 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node component-node-1764081199959-node-1764082293712 (name: Extract Variables) to node component-node-1764081199959-component-end-1764078592192 (name: Exit Component)
+2025-12-05 17:15:11.481 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node component-node-1764081199959-component-end-1764078592192 (name: Exit Component) to node node-1764075121964 (name: Bbdd)
+2025-12-05 17:15:14.069 call_bccfa3d3c125861deecb5cdfa0c info: Calling tool: BBDD 
+Arguments: {"field1":"comprar_inmueble"}
+2025-12-05 17:15:35.628 call_bccfa3d3c125861deecb5cdfa0c info: Received result for tool: tool_call_b41a2a BBDD 
+Result: {"output":"He analizado 1 archivo.  \nEl resultado está vacío, no aparecen pisos que cumplan todos tus requisitos (Maresme, 3 habitaciones, vistas al mar y hasta 200000).  \n\nCon esos filtros tan concretos, ahora mismo la base de datos no tiene ninguna vivienda disponible.  \nTe recomendaría que el asesor revise también opciones cercanas (sin vistas directas al mar o con 2 habitaciones ampliables, o algo por encima de 200000 si puedes estirarte un poco) para aumentar las posibilidades.  \n\nEn resumen, hoy no hay pisos exactamente con tus condiciones en Maresme, pero ajustando un poco los requisitos sí podrían encontrarte alternativas."}
+2025-12-05 17:15:50.622 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764075121964 (name: Bbdd) to node node-1764236085652 (name: WHATSAPP)
+2025-12-05 17:15:52.877 call_bccfa3d3c125861deecb5cdfa0c info: Calling tool: WHATSAPP 
+Arguments: {"intent":"comprar_inmueble"}
+2025-12-05 17:16:01.438 call_bccfa3d3c125861deecb5cdfa0c info: Received result for tool: tool_call_f0375a WHATSAPP 
+Result: {"status":"200"}
+2025-12-05 17:16:02.874 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764236085652 (name: WHATSAPP) to node node-1764600386057 (name: Conversation)
+2025-12-05 17:16:06.811 call_bccfa3d3c125861deecb5cdfa0c info: E2E latency for this turn: 4978
+2025-12-05 17:16:36.134 call_bccfa3d3c125861deecb5cdfa0c info: E2E latency for this turn: 2880.989990234375
+2025-12-05 17:16:49.288 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764600386057 (name: Conversation) to node node-1764600559737 (name: Extract Variables)
+2025-12-05 17:16:49.288 call_bccfa3d3c125861deecb5cdfa0c info: Calling tool: extract_dynamic_variables 
+Arguments: 
+2025-12-05 17:16:51.339 call_bccfa3d3c125861deecb5cdfa0c info: Received result for tool: extract_dynamic_variables_ad070c extract_dynamic_variables 
+Result: {"name":"Ricardo Minos"}
+2025-12-05 17:16:51.491 call_bccfa3d3c125861deecb5cdfa0c info: Transitioning from node node-1764600559737 (name: Extract Variables) to node node-1764600532249 (name: Conversation)
+2025-12-05 17:17:02.598 call_bccfa3d3c125861deecb5cdfa0c info: Ending call: call_bccfa3d3c125861deecb5cdfa0c

@@ -418,10 +418,10 @@
     // CONFIGURACIÓN - Modifica estos valores
     // ===========================================
     const CONFIG = {
-      // ElevenLabs
+      // ElevenLabs (para generación en tiempo real - tiene delay)
       ELEVENLABS_API_KEY: "sk_ed00c8630aeb0240abba435c3f0a4afcd6794a79c0d1aba6",  // Tu API key de ElevenLabs
-      ELEVENLABS_VOICE_ID: "ajOR9IDAaubDK5qtLUqQ",  // ID de la voz (ej: Valentina español)
-      ELEVENLABS_MODEL: "eleven_multilingual_v2",  // Modelo a usar
+      ELEVENLABS_VOICE_ID: "uU1QvfOppdkePeLtG9pI",  // Lucia - español España
+      ELEVENLABS_MODEL: "eleven_multilingual_v2",
       
       // WebSocket backend
       BACKEND_HOST: "hogar-avatar-api.conexiatec.com",
@@ -430,8 +430,50 @@
       RIVE_FILE: "./avatar.riv",
       STATE_MACHINE: "State Machine",
       
-      // TTS Fallback (usar voz del navegador si no hay API key)
+      // TTS Fallback (usar voz del navegador si no hay API key ni audio pregenerado)
       USE_BROWSER_TTS_FALLBACK: true,
+    };
+
+    // ===========================================
+    // BANCO DE AUDIOS PREGENERADOS
+    // Mapea textos exactos o IDs a archivos MP3
+    // Prioridad: 1) Audio pregenerado, 2) ElevenLabs, 3) TTS navegador
+    // ===========================================
+    const AUDIO_BANK = {
+      // Por ID (recomendado para llamadas desde Retell/backend)
+      "welcome": {
+        text: "Hola, bienvenido a Gespropiedad. ¿En qué puedo ayudarte hoy?",
+        audio: "./audio/welcome.mp3"
+      },
+      "goodbye": {
+        text: "Gracias por contactar con nosotros. ¡Hasta pronto!",
+        audio: "./audio/goodbye.mp3"
+      },
+      "hold": {
+        text: "Un momento por favor, estoy consultando la información.",
+        audio: "./audio/hold.mp3"
+      },
+      "not_understood": {
+        text: "Lo siento, no he entendido bien. ¿Podrías repetirlo?",
+        audio: "./audio/not_understood.mp3"
+      },
+      "transfer": {
+        text: "Te voy a transferir con un agente. Un momento por favor.",
+        audio: "./audio/transfer.mp3"
+      },
+      
+      // Añade más audios aquí:
+      // "appointment_confirm": {
+      //   text: "Tu cita ha sido confirmada para el día indicado.",
+      //   audio: "./audio/appointment_confirm.mp3"
+      // },
+    };
+
+    // ===========================================
+    // También puedes mapear por texto exacto (alternativa)
+    // ===========================================
+    const AUDIO_BY_TEXT = {
+      // "Texto exacto que dice el bot": "./audio/archivo.mp3",
     };
     // ===========================================
 
@@ -531,22 +573,47 @@
       log("Voz seleccionada: " + (selectedVoice?.name || "ninguna"));
     });
 
-    function speak(text) {
+    function speak(text, audioId = null) {
       return new Promise(async (resolve) => {
-        if (!text) {
+        if (!text && !audioId) {
           resolve();
           return;
         }
 
-        // Si hay API key de ElevenLabs, usarla
-        if (CONFIG.ELEVENLABS_API_KEY) {
+        // 1) Buscar audio pregenerado por ID
+        if (audioId && AUDIO_BANK[audioId]) {
+          const entry = AUDIO_BANK[audioId];
+          log("Audio pregenerado: " + audioId);
+          bubbleEl.textContent = entry.text;
+          try {
+            await playPrerecordedAudio(entry.audio);
+            resolve();
+            return;
+          } catch (e) {
+            log("Error audio pregenerado: " + e.message);
+          }
+        }
+
+        // 2) Buscar audio pregenerado por texto exacto
+        if (text && AUDIO_BY_TEXT[text]) {
+          log("Audio por texto encontrado");
+          try {
+            await playPrerecordedAudio(AUDIO_BY_TEXT[text]);
+            resolve();
+            return;
+          } catch (e) {
+            log("Error audio por texto: " + e.message);
+          }
+        }
+
+        // 3) Si hay API key de ElevenLabs, usarla
+        if (CONFIG.ELEVENLABS_API_KEY && text) {
           try {
             await speakWithElevenLabs(text);
             resolve();
             return;
           } catch (e) {
             log("ElevenLabs error: " + e.message);
-            // Fallback a TTS del navegador si está habilitado
             if (!CONFIG.USE_BROWSER_TTS_FALLBACK) {
               stopTalking();
               resolve();
@@ -556,8 +623,8 @@
           }
         }
 
-        // TTS del navegador
-        if (!synth) {
+        // 4) TTS del navegador como último recurso
+        if (!synth || !text) {
           resolve();
           return;
         }
@@ -592,6 +659,41 @@
         };
 
         synth.speak(currentUtterance);
+      });
+    }
+
+    // -----------------------------
+    // Audio Pregenerado
+    // -----------------------------
+    let prerecordedAudio = null;
+
+    async function playPrerecordedAudio(audioUrl) {
+      return new Promise((resolve, reject) => {
+        if (prerecordedAudio) {
+          prerecordedAudio.pause();
+          prerecordedAudio = null;
+        }
+
+        prerecordedAudio = new Audio(audioUrl);
+        
+        prerecordedAudio.onplay = () => {
+          log("Audio pregenerado reproduciendo");
+          startTTSLipSync();
+        };
+
+        prerecordedAudio.onended = () => {
+          log("Audio pregenerado terminado");
+          stopTalking();
+          resolve();
+        };
+
+        prerecordedAudio.onerror = (e) => {
+          log("Error cargando audio: " + audioUrl);
+          stopTalking();
+          reject(new Error("Error cargando audio pregenerado"));
+        };
+
+        prerecordedAudio.play().catch(reject);
       });
     }
 
@@ -671,6 +773,10 @@
       if (elevenLabsAudio) {
         elevenLabsAudio.pause();
         elevenLabsAudio = null;
+      }
+      if (prerecordedAudio) {
+        prerecordedAudio.pause();
+        prerecordedAudio = null;
       }
       stopTalking();
     }
@@ -886,10 +992,17 @@
     };
 
     $("testTalk").onclick = async () => {
-      const testText = "Hola, soy tu asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?";
-      bubbleEl.textContent = testText;
-      log("Test TTS");
-      await speak(testText);
+      // Probar con audio pregenerado "welcome" si existe
+      if (AUDIO_BANK["welcome"]) {
+        log("Test: audio pregenerado 'welcome'");
+        await speak(null, "welcome");
+      } else {
+        // Fallback a texto normal
+        const testText = "Hola, soy tu asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?";
+        bubbleEl.textContent = testText;
+        log("Test TTS");
+        await speak(testText);
+      }
     };
 
     // -----------------------------
@@ -925,18 +1038,21 @@
 
           if (msg.type === "bot_speaking_start") {
             const text = msg.text || "";
-            bubbleEl.textContent = text;
+            const audioId = msg.audioId || null;  // ID del audio pregenerado
+            
+            if (text) bubbleEl.textContent = text;
 
             if (msg.audioUrl) {
-              // Si hay audio URL, usarla (futuro)
-              // Por ahora usar TTS del navegador
-              await speak(text);
-            } else if (text) {
-              // Usar TTS del navegador
-              await speak(text);
+              // Audio URL directa (prioridad máxima)
+              try {
+                await playPrerecordedAudio(msg.audioUrl);
+              } catch (e) {
+                log("Error audioUrl: " + e.message);
+                await speak(text, audioId);
+              }
             } else {
-              // Solo animar sin voz
-              startTalking(msg.durationMs || 2000);
+              // Usar sistema de prioridad: pregenerado > ElevenLabs > navegador
+              await speak(text, audioId);
             }
           }
 

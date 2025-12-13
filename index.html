@@ -222,27 +222,52 @@
 
     .presentation-subtitle {
       position: fixed;
-      bottom: 6%;
+      bottom: 3%;
       left: 50%;
       transform: translateX(-50%);
-      max-width: 85%;
+      width: 90%;
+      max-width: 1000px;
+      max-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      font-size: clamp(1rem, 2.2vw, 1.4rem);
-      line-height: 1.6;
-      color: rgba(255, 255, 255, 0.95);
-      text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
+      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.4);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
       opacity: 0;
       transition: opacity 0.4s ease;
       z-index: 10001;
-      padding: 14px 24px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 10px;
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 14px 28px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 12px;
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .presentation-subtitle.visible {
       opacity: 1;
+    }
+
+    .presentation-subtitle .subtitle-content {
+      display: inline;
+    }
+
+    .presentation-subtitle .segment {
+      color: rgba(255, 255, 255, 0.3);
+      transition: color 0.4s ease, text-shadow 0.4s ease;
+    }
+
+    .presentation-subtitle .segment.active {
+      color: #fff;
+      text-shadow: 0 0 30px rgba(28, 164, 175, 0.9), 0 0 60px rgba(28, 164, 175, 0.4);
+    }
+
+    .presentation-subtitle .segment.past {
+      color: rgba(255, 255, 255, 0.5);
     }
 
     .exit-presentation-btn {
@@ -987,7 +1012,133 @@
     }
 
     function hideSubtitle() {
+      stopKaraokeSync();
       presentationSubtitle.classList.remove("visible");
+    }
+
+    // ===========================================
+    // KARAOKE SYNC
+    // ===========================================
+    let karaokeTimer = null;
+    let karaokeSegments = [];
+    let karaokeStartTime = 0;
+
+    function showSubtitleKaraoke(text, pauseTimestamps = []) {
+      if (!isPresentationMode) return;
+      
+      stopKaraokeSync();
+      
+      // Si no hay pausas, mostrar texto normal
+      if (!pauseTimestamps || pauseTimestamps.length === 0) {
+        presentationSubtitle.innerHTML = `<div class="subtitle-content"><span class="segment active">${text}</span></div>`;
+        presentationSubtitle.classList.add("visible");
+        return;
+      }
+
+      // Dividir texto en segmentos por puntuación natural
+      const segments = splitTextIntoSegments(text, pauseTimestamps.length + 1);
+      karaokeSegments = segments;
+      
+      // Crear HTML con spans para cada segmento
+      const html = segments.map((seg, i) => 
+        `<span class="segment" data-index="${i}">${seg}</span>`
+      ).join(' ');
+      
+      presentationSubtitle.innerHTML = `<div class="subtitle-content">${html}</div>`;
+      presentationSubtitle.classList.add("visible");
+      
+      // Crear timestamps para cada segmento (inicio de cada uno)
+      const segmentTimestamps = [0, ...pauseTimestamps];
+      
+      // Iniciar sincronización
+      startKaraokeSync(segmentTimestamps);
+    }
+
+    function splitTextIntoSegments(text, numSegments) {
+      if (numSegments <= 1) return [text];
+      
+      // Dividir por puntuación natural: . ; … y después de :
+      // Mantener el delimitador al final de cada parte
+      const parts = [];
+      let current = '';
+      
+      for (let i = 0; i < text.length; i++) {
+        current += text[i];
+        // Dividir después de . ; … o : seguido de espacio
+        if ((text[i] === '.' || text[i] === ';' || text[i] === '…') ||
+            (text[i] === ':' && text[i+1] === ' ')) {
+          if (current.trim()) {
+            parts.push(current.trim());
+            current = '';
+          }
+        }
+      }
+      if (current.trim()) parts.push(current.trim());
+      
+      // Si tenemos el número correcto de partes, usarlas directamente
+      if (parts.length === numSegments) return parts;
+      
+      // Si tenemos más partes que segmentos, agrupar las extras
+      if (parts.length > numSegments) {
+        const result = [];
+        const partsPerSeg = Math.ceil(parts.length / numSegments);
+        for (let i = 0; i < numSegments; i++) {
+          const start = i * partsPerSeg;
+          const end = Math.min(start + partsPerSeg, parts.length);
+          result.push(parts.slice(start, end).join(' '));
+        }
+        return result;
+      }
+      
+      // Si tenemos menos partes que segmentos, devolver lo que tenemos
+      return parts.length > 0 ? parts : [text];
+    }
+
+    function startKaraokeSync(segmentTimestamps) {
+      karaokeStartTime = performance.now();
+      let currentIndex = -1;
+      
+      // Activar primer segmento inmediatamente
+      updateActiveSegment(0);
+      currentIndex = 0;
+      
+      karaokeTimer = setInterval(() => {
+        const elapsed = performance.now() - karaokeStartTime;
+        
+        // Encontrar qué segmento debería estar activo
+        let newIndex = 0;
+        for (let i = 0; i < segmentTimestamps.length; i++) {
+          if (elapsed >= segmentTimestamps[i]) {
+            newIndex = i;
+          }
+        }
+        
+        // Solo actualizar si cambió
+        if (newIndex !== currentIndex) {
+          currentIndex = newIndex;
+          updateActiveSegment(currentIndex);
+        }
+      }, 100);
+    }
+
+    function updateActiveSegment(activeIndex) {
+      const segments = presentationSubtitle.querySelectorAll('.segment');
+      segments.forEach((seg, i) => {
+        seg.classList.remove('active', 'past');
+        if (i < activeIndex) {
+          seg.classList.add('past');
+        } else if (i === activeIndex) {
+          seg.classList.add('active');
+        }
+      });
+    }
+
+    function stopKaraokeSync() {
+      if (karaokeTimer) {
+        clearInterval(karaokeTimer);
+        karaokeTimer = null;
+      }
+      karaokeSegments = [];
     }
 
     async function initPresentationRive() {
@@ -1119,7 +1270,7 @@
           const entry = AUDIO_BANK[audioId];
           log("Audio: " + audioId);
           bubbleEl.textContent = entry.text;
-          if (isPresentationMode) showSubtitle(entry.text);
+          if (isPresentationMode) showSubtitleKaraoke(entry.text, entry.pauses || []);
           try {
             // Pasar los timestamps de pausa al reproductor
             await playPrerecordedAudio(entry.audio, entry.pauses || []);
@@ -1568,7 +1719,7 @@
             const entry = AUDIO_BANK[audioId];
             
             bubbleEl.textContent = entry.text;
-            if (isPresentationMode) showSubtitle(entry.text);
+            if (isPresentationMode) showSubtitleKaraoke(entry.text, entry.pauses || []);
 
             // Reproducir audio pregenerado con timestamps
             if (msg.audioUrl) {

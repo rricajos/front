@@ -766,27 +766,60 @@
       USE_BROWSER_TTS_FALLBACK: true,
       PRESENTATION_START_ID: "intro_1",
       PRESENTATION_END_ID: "despedida_1",
+      
+      // Duración de cada pausa de labios (ms)
+      PAUSE_DURATION: 500,
     };
 
     // ===========================================
-    // BANCO DE AUDIOS - Solo estos se procesan
+    // BANCO DE AUDIOS CON TIMESTAMPS MANUALES
+    // 
+    // pauses: Array de timestamps (en milisegundos) donde 
+    //         los labios deben cerrarse durante PAUSE_DURATION ms
+    // 
+    // Ejemplo: pauses: [1500, 3200, 5800]
+    //          - En el ms 1500, cierra labios 500ms
+    //          - En el ms 3200, cierra labios 500ms
+    //          - En el ms 5800, cierra labios 500ms
+    //
+    // TIP: Reproduce el audio y anota los segundos donde hay pausas,
+    //      luego multiplica por 1000 para obtener milisegundos.
+    //      Ejemplo: pausa en 2.3 segundos → 2300
     // ===========================================
     const AUDIO_BANK = {
       "intro_1": {
-        text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: 'igual os habíais olvidado de mí'.",
-        audio: "./audio/intro_1.mp3"
+        text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: "igual os habíais olvidado de mí".",
+        audio: "./audio/intro_1.mp3",
+        // TODO: Ajustar estos timestamps escuchando el audio
+        pauses: [
+          // Ejemplo: si hay pausa después de "Hola a todos." aprox segundo 1.2
+          // 1200,
+          // Si hay pausa después de "estaba esperando." aprox segundo 3.5
+          // 3500,
+        ]
       },
       "que_es_1": {
         text: "Buenas noches a todos. Y sí, es cierto: no duermo… no pido vacaciones… y los lunes no me afectan. Pero prometo ser simpática igualmente. Me presento: soy la nueva IA de Gestpropiedad. Vengo a echar una mano en tres frentes. Primero, con los clientes. Cuando la oficina cierre, me quedo de guardia para que ningún cliente se quede sin respuesta. Segundo, en la web. Ayudaré a entender mejor cada vivienda y a guiar a cada cliente hasta el asesor correcto. Y tercero, el más importante: vosotros. Os ayudaré a encontrar la información que necesitéis en segundos, y a responder con más claridad… sin quitaros vuestro estilo.",
-        audio: "./audio/que_es_1.mp3"
+        audio: "./audio/que_es_1.mp3",
+        // TODO: Ajustar timestamps
+        pauses: [
+          // Después de "Buenas noches a todos."
+          // Después de "no me afectan."
+          // Después de "ser simpática igualmente."
+          // etc...
+        ]
       },
       "aprendizaje_1": {
         text: "No es todo, esto es solo el principio. Hoy es, literalmente, mi nacimiento. A partir de ahora iré aprendiendo cada día: de las consultas… de cómo trabajáis… de lo que necesitan los clientes… y de los datos que me ha proporcionado el equipo. Cuanto más se me use, mejor podré ayudar… y en más ámbitos. Prometo crecer rápido… y sin adolescencia rebelde.",
-        audio: "./audio/aprendizaje_1.mp3"
+        audio: "./audio/aprendizaje_1.mp3",
+        // TODO: Ajustar timestamps
+        pauses: []
       },
       "despedida_1": {
-        text: "Exacto. No tengo nombre. De momento soy 'la IA de Gestpropiedad'… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es 'ChatPaco' ni 'BotManolo'... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
-        audio: "./audio/despedida_1.mp3"
+        text: "Exacto. No tengo nombre. De momento soy "la IA de Gestpropiedad"… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es "ChatPaco" ni "BotManolo"... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
+        audio: "./audio/despedida_1.mp3",
+        // TODO: Ajustar timestamps
+        pauses: []
       },
     };
 
@@ -1043,9 +1076,10 @@
           const entry = AUDIO_BANK[audioId];
           log("Audio: " + audioId);
           bubbleEl.textContent = entry.text;
-          if (isPresentationMode) showSubtitle(entry.text.replace(/::/g, " ").trim());
+          if (isPresentationMode) showSubtitle(entry.text);
           try {
-            await playPrerecordedAudio(entry.audio, entry.text);
+            // Pasar los timestamps de pausa al reproductor
+            await playPrerecordedAudio(entry.audio, entry.pauses || []);
             resolve();
             return;
           } catch (e) {
@@ -1055,7 +1089,7 @@
 
         if (text && AUDIO_BY_TEXT[text]) {
           try {
-            await playPrerecordedAudio(AUDIO_BY_TEXT[text]);
+            await playPrerecordedAudio(AUDIO_BY_TEXT[text], []);
             resolve();
             return;
           } catch (e) {}
@@ -1092,11 +1126,11 @@
     }
 
     // ===========================================
-    // Audio Pregenerado
+    // Audio Pregenerado con Timestamps de Pausa
     // ===========================================
     let prerecordedAudio = null;
 
-    async function playPrerecordedAudio(audioUrl, textWithPauses = "") {
+    async function playPrerecordedAudio(audioUrl, pauseTimestamps = []) {
       return new Promise((resolve, reject) => {
         if (prerecordedAudio) {
           prerecordedAudio.pause();
@@ -1106,15 +1140,22 @@
         prerecordedAudio = new Audio(audioUrl);
         
         prerecordedAudio.onplay = () => {
-          if (textWithPauses && textWithPauses.includes("::")) {
-            startTTSLipSyncWithPauses(textWithPauses);
-          } else {
-            startTTSLipSync();
-          }
+          log("▶ Audio reproduciendo");
+          // Iniciar lip-sync con los timestamps de pausa
+          startLipSyncWithTimestamps(pauseTimestamps);
         };
 
-        prerecordedAudio.onended = () => { stopTalking(); resolve(); };
-        prerecordedAudio.onerror = () => { stopTalking(); reject(new Error("Audio error")); };
+        prerecordedAudio.onended = () => { 
+          log("⏹ Audio terminado");
+          stopTalking(); 
+          resolve(); 
+        };
+        
+        prerecordedAudio.onerror = () => { 
+          stopTalking(); 
+          reject(new Error("Audio error")); 
+        };
+        
         prerecordedAudio.play().catch(reject);
       });
     }
@@ -1263,6 +1304,7 @@
       cssSetMouthOpen(0);
     }
 
+    // Lip sync simple sin pausas
     function startTTSLipSync() {
       if (!hasRive && !isPresentationMode) {
         startCSSFakeTalking(99999);
@@ -1294,29 +1336,26 @@
       }
     }
 
-    function startTTSLipSyncWithPauses(text) {
+    // ===========================================
+    // Lip Sync con Timestamps Manuales
+    // ===========================================
+    function startLipSyncWithTimestamps(pauseTimestamps = []) {
       if (!hasRive && !isPresentationMode) {
         startCSSFakeTalking(99999);
         return;
       }
 
-      const segments = text.split("::");
-      if (segments.length <= 1) {
+      const targetIsTalkingInput = isPresentationMode ? presentationIsTalkingInput : isTalkingInput;
+      const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
+
+      // Si no hay pausas definidas, usar lip-sync normal
+      if (!pauseTimestamps || pauseTimestamps.length === 0) {
+        log("Sin pausas definidas, lip-sync continuo");
         startTTSLipSync();
         return;
       }
 
-      const pauseDuration = 500;
-      let charCount = 0;
-      let pausePoints = [];
-      
-      for (let i = 0; i < segments.length - 1; i++) {
-        charCount += segments[i].length;
-        pausePoints.push(charCount * 50);
-      }
-
-      const targetIsTalkingInput = isPresentationMode ? presentationIsTalkingInput : isTalkingInput;
-      const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
+      log("Lip-sync con " + pauseTimestamps.length + " pausas: " + pauseTimestamps.join(", ") + " ms");
 
       if (targetIsTalkingInput) targetIsTalkingInput.value = true;
 
@@ -1326,22 +1365,32 @@
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
         const startTime = performance.now();
-        let currentPauseIndex = 0;
+        const pauseDuration = CONFIG.PAUSE_DURATION;
+        
+        // Crear rangos de pausa [inicio, fin]
+        const pauseRanges = pauseTimestamps.map(t => ({
+          start: t,
+          end: t + pauseDuration
+        }));
         
         ttsLipSyncTimer = setInterval(() => {
           const elapsed = performance.now() - startTime;
           
-          if (currentPauseIndex < pausePoints.length) {
-            const pauseStart = pausePoints[currentPauseIndex];
-            
-            if (elapsed >= pauseStart && elapsed < pauseStart + pauseDuration) {
-              targetVisemeInput.value = 0;
-              if (targetIsTalkingInput) targetIsTalkingInput.value = false;
-              return;
-            } else if (elapsed >= pauseStart + pauseDuration) {
-              currentPauseIndex++;
-              if (targetIsTalkingInput) targetIsTalkingInput.value = true;
-            }
+          // Verificar si estamos dentro de algún rango de pausa
+          const inPause = pauseRanges.some(range => 
+            elapsed >= range.start && elapsed < range.end
+          );
+          
+          if (inPause) {
+            // Estamos en pausa - cerrar boca
+            targetVisemeInput.value = 0;
+            if (targetIsTalkingInput) targetIsTalkingInput.value = false;
+            return;
+          }
+          
+          // No estamos en pausa - animar labios
+          if (targetIsTalkingInput && !targetIsTalkingInput.value) {
+            targetIsTalkingInput.value = true;
           }
           
           let newViseme;
@@ -1431,20 +1480,19 @@
             }
             
             const entry = AUDIO_BANK[audioId];
-            const cleanText = entry.text.replace(/::/g, " ").replace(/\s+/g, " ").trim();
             
-            bubbleEl.textContent = cleanText;
-            if (isPresentationMode) showSubtitle(cleanText);
+            bubbleEl.textContent = entry.text;
+            if (isPresentationMode) showSubtitle(entry.text);
 
-            // Reproducir audio pregenerado
+            // Reproducir audio pregenerado con timestamps
             if (msg.audioUrl) {
               try {
-                await playPrerecordedAudio(msg.audioUrl, entry.text);
+                await playPrerecordedAudio(msg.audioUrl, entry.pauses || []);
               } catch (e) {
-                await speak(cleanText, audioId);
+                await speak(entry.text, audioId);
               }
             } else {
-              await speak(cleanText, audioId);
+              await speak(entry.text, audioId);
             }
             
             // Si es despedida_1 y estamos en presentación, ocultar avatar

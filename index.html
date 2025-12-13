@@ -22,6 +22,150 @@
       padding: 16px;
     }
 
+    /* ============================
+       MODO PRESENTACIÓN
+       ============================ */
+    body.presentation-mode {
+      background: #000;
+      padding: 0;
+    }
+
+    body.presentation-mode .stage {
+      display: none;
+    }
+
+    /* Contenedor de presentación fullscreen */
+    .presentation-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body.presentation-mode .presentation-container {
+      display: flex;
+    }
+
+    /* Avatar en modo presentación */
+    .presentation-avatar {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+      position: relative;
+    }
+
+    .presentation-avatar.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .presentation-avatar.fading-out {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 2s ease-in, transform 2s ease-in;
+    }
+
+    .presentation-avatar .rive-wrap {
+      width: 100vmin;
+      height: 100vmin;
+      max-width: 800px;
+      max-height: 800px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    .presentation-avatar #presentationCanvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Logo de fondo en presentación */
+    .presentation-container::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90vh;
+      height: 90vh;
+      opacity: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 226.1 219.1'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='56' y1='178.7' x2='56' y2='0' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%231ca4af'/%3E%3Cstop offset='1' stop-color='%231c3768'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='139.2' y1='53.5' x2='232.6' y2='215.2' href='%23a'/%3E%3C/defs%3E%3Cpolygon fill='url(%23a)' points='0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0'/%3E%3Cpolygon fill='url(%23b)' points='194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      pointer-events: none;
+      z-index: 0;
+      transition: opacity 1.5s ease-out;
+    }
+
+    .presentation-container.show-logo::before {
+      opacity: 0.2;
+    }
+
+    /* Subtítulos en presentación */
+    .presentation-subtitle {
+      position: fixed;
+      bottom: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 80%;
+      text-align: center;
+      font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: 10001;
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .presentation-subtitle.visible {
+      opacity: 1;
+    }
+
+    /* Botón salir de presentación */
+    .exit-presentation-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 10002;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s, background 0.2s;
+    }
+
+    .exit-presentation-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      opacity: 1 !important;
+    }
+
+    .presentation-container:hover .exit-presentation-btn {
+      opacity: 0.5;
+    }
+
+    /* ============================
+       ESTILOS ORIGINALES
+       ============================ */
     .stage {
       width: 100%;
       max-width: 980px;
@@ -36,7 +180,6 @@
       align-items: center;
     }
 
-    /* Tablet */
     @media (max-width: 800px) {
       .stage {
         grid-template-columns: 1fr;
@@ -53,7 +196,6 @@
       }
     }
 
-    /* Mobile */
     @media (max-width: 480px) {
       body {
         padding: 8px;
@@ -94,6 +236,7 @@
       justify-content: center;
       align-items: center;
       min-height: 280px;
+      position: relative;
     }
 
     .rive-wrap {
@@ -277,7 +420,6 @@
     }
 
     button:hover {
-
       border-color: #3a5a7a;
     }
 
@@ -305,7 +447,7 @@
       cursor: not-allowed;
     }
 
-    /* Fullscreen */
+    /* Fullscreen button in normal mode */
     .fullscreen-btn {
       position: absolute;
       top: 10px;
@@ -330,70 +472,6 @@
 
     .fullscreen-btn:hover {
       background: rgba(0,0,0,0.7);
-    }
-
-    .avatar {
-      position: relative;
-    }
-
-    /* Fullscreen mode */
-    .rive-wrap.fullscreen {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      max-width: none !important;
-      max-height: none !important;
-      border-radius: 0 !important;
-      z-index: 9999;
-      background: #0b0f14;
-    }
-
-    .rive-wrap.fullscreen::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 105vh;
-      height: 105vh;
-      opacity: 0.33;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 226.1 219.1'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='56' y1='178.7' x2='56' y2='0' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%231ca4af'/%3E%3Cstop offset='1' stop-color='%231c3768'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='139.2' y1='53.5' x2='232.6' y2='215.2' href='%23a'/%3E%3C/defs%3E%3Cpolygon fill='url(%23a)' points='0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0'/%3E%3Cpolygon fill='url(%23b)' points='194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: contain;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    @media (max-width: 480px) {
-      .rive-wrap.fullscreen::before {
-        width: 80vh;
-        height: 80vh;
-      }
-    }
-
-    .rive-wrap.fullscreen #riveCanvas {
-      position: relative;
-      z-index: 1;
-      width: 100vmin !important;
-      height: 100vmin !important;
-    }
-
-    .rive-wrap.fullscreen .fullscreen-btn {
-      top: 20px;
-      right: 20px;
-      width: 50px;
-      height: 50px;
-      font-size: 18px;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.15);
-    }
-
-    .rive-wrap.fullscreen .fullscreen-btn i {
-      width: 1.2em;
-      height: 1.2em;
     }
 
     /* Voice selector */
@@ -472,8 +550,7 @@
 
     .start-btn {
       max-width: 80vw;
-
-          max-height: 64px;
+      max-height: 64px;
       background: linear-gradient(135deg, #1ca4af 0%, #1c3768 100%);
       color: white;
       border: none;
@@ -488,7 +565,6 @@
       align-items: center;
       gap: 10px;
       margin: 1rem;
-      
     }
 
     .start-btn:hover {
@@ -503,6 +579,16 @@
     .start-btn i {
       width: 1.1em;
       height: 1.1em;
+    }
+
+    /* Botón modo presentación */
+    .presentation-mode-btn {
+      background: linear-gradient(135deg, #1c3768 0%, #1ca4af 100%);
+      border-color: #1ca4af;
+    }
+
+    .presentation-mode-btn:hover {
+      background: linear-gradient(135deg, #152a52 0%, #178a94 100%);
     }
   </style>
 </head>
@@ -530,7 +616,25 @@
       <i data-lucide="volume-2"></i>
       Comenzar
     </button>
+    <button class="start-btn presentation-mode-btn" id="startPresentationBtn">
+      <i data-lucide="presentation"></i>
+      Modo Presentación
+    </button>
   </div>
+
+  <!-- Contenedor de presentación fullscreen -->
+  <div class="presentation-container" id="presentationContainer">
+    <button class="exit-presentation-btn" id="exitPresentationBtn" title="Salir de presentación">
+      <i data-lucide="x"></i>
+    </button>
+    <div class="presentation-avatar" id="presentationAvatar">
+      <div class="rive-wrap">
+        <canvas id="presentationCanvas" width="800" height="800"></canvas>
+      </div>
+    </div>
+    <div class="presentation-subtitle" id="presentationSubtitle"></div>
+  </div>
+
   <div class="stage">
     <div class="avatar">
       <!-- Rive Avatar -->
@@ -562,6 +666,10 @@
         <button id="idleBtn"><i data-lucide="pause"></i> Idle</button>
       </div>
       
+      <div class="row">
+        <button id="enterPresentationBtn" class="presentation-mode-btn"><i data-lucide="presentation"></i> Modo Presentación</button>
+      </div>
+      
       <div class="settings">
         <label for="voiceSelect"><i data-lucide="mic" style="width:1em;height:1em;vertical-align:middle;margin-right:4px;"></i> Voz TTS:</label>
         <select id="voiceSelect" class="voice-select">
@@ -573,36 +681,28 @@
 
   <script type="module">
     // ===========================================
-    // CONFIGURACIÓN - Modifica estos valores
+    // CONFIGURACIÓN
     // ===========================================
     const CONFIG = {
-      // ElevenLabs (para generación en tiempo real - tiene delay)
-      ELEVENLABS_API_KEY: "sk_ed00c8630aeb0240abba435c3f0a4afcd6794a79c0d1aba6",  // Tu API key de ElevenLabs
-      ELEVENLABS_VOICE_ID: "uU1QvfOppdkePeLtG9pI",  // Lucia - español España
+      ELEVENLABS_API_KEY: "sk_ed00c8630aeb0240abba435c3f0a4afcd6794a79c0d1aba6",
+      ELEVENLABS_VOICE_ID: "uU1QvfOppdkePeLtG9pI",
       ELEVENLABS_MODEL: "eleven_multilingual_v2",
-      
-      // WebSocket backend
       BACKEND_HOST: "hogar-avatar-api.conexiatec.com",
-      
-      // Rive
       RIVE_FILE: "./avatar.riv",
       STATE_MACHINE: "State Machine",
-      
-      // TTS Fallback (usar voz del navegador si no hay API key ni audio pregenerado)
       USE_BROWSER_TTS_FALLBACK: true,
+      
+      // IDs que controlan la presentación
+      PRESENTATION_START_ID: "intro_1",      // ID que inicia la aparición
+      PRESENTATION_END_ID: "despedida_1",    // ID que inicia la desaparición
     };
-    
 
-
-// ===========================================
+    // ===========================================
     // BANCO DE AUDIOS PREGENERADOS
-    // Mapea textos exactos o IDs a archivos MP3
-    // Prioridad: 1) Audio pregenerado, 2) ElevenLabs, 3) TTS navegador
     // ===========================================
     const AUDIO_BANK = {
-      // Por ID (recomendado para llamadas desde Retell/backend)
       "intro_1": {
-        text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: “igual os habíais olvidado de mí”.",
+        text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: 'igual os habíais olvidado de mí'.",
         audio: "./audio/intro_1.mp3"
       },
       "que_es_1": {
@@ -614,34 +714,21 @@
         audio: "./audio/aprendizaje_1.mp3"
       },
       "despedida_1": {
-        text: "Exacto. No tengo nombre. De momento soy “la IA de Gestpropiedad”… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es “ChatPaco” ni “BotManolo”... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
+        text: "Exacto. No tengo nombre. De momento soy 'la IA de Gestpropiedad'… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es 'ChatPaco' ni 'BotManolo'... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
         audio: "./audio/despedida_1.mp3"
       },
-      
-      // Añade más audios aquí:
-      // "appointment_confirm": {
-      //   text: "Tu cita ha sido confirmada para el día indicado.",
-      //   audio: "./audio/appointment_confirm.mp3"
-      // },
     };
 
+    const AUDIO_BY_TEXT = {};
 
     // ===========================================
-    // También puedes mapear por texto exacto (alternativa)
+    // Importar Rive
     // ===========================================
-    const AUDIO_BY_TEXT = {
-      // "Texto exacto que dice el bot": "./audio/archivo.mp3",
-    };
-    // ===========================================
-
-    // -----------------------------
-    // Importar Rive desde CDN oficial
-    // -----------------------------
     import RiveCanvas from "https://cdn.jsdelivr.net/npm/@rive-app/canvas@2.21.6/+esm";
 
-    // -----------------------------
+    // ===========================================
     // DOM
-    // -----------------------------
+    // ===========================================
     const $ = id => document.getElementById(id);
     const statusDot = $("statusDot");
     const statusText = $("statusText");
@@ -652,6 +739,21 @@
     const cssAvatar = $("cssAvatar");
     const cssMouth = $("cssMouth");
     const voiceSelect = $("voiceSelect");
+
+    // Presentación
+    const presentationContainer = $("presentationContainer");
+    const presentationAvatar = $("presentationAvatar");
+    const presentationCanvas = $("presentationCanvas");
+    const presentationSubtitle = $("presentationSubtitle");
+    const exitPresentationBtn = $("exitPresentationBtn");
+    const enterPresentationBtn = $("enterPresentationBtn");
+    const startPresentationBtn = $("startPresentationBtn");
+
+    // Estado de presentación
+    let isPresentationMode = false;
+    let presentationRiveInstance = null;
+    let presentationIsTalkingInput = null;
+    let presentationVisemeIDInput = null;
 
     function setStatus(text, state = "loading") {
       statusText.textContent = text;
@@ -664,17 +766,122 @@
       debugEl.textContent = `[${time}] ${msg}\n` + debugEl.textContent.slice(0, 500);
     }
 
-    // -----------------------------
+    // ===========================================
+    // MODO PRESENTACIÓN
+    // ===========================================
+    async function enterPresentationMode() {
+      log("Entrando en modo presentación");
+      isPresentationMode = true;
+      document.body.classList.add("presentation-mode");
+      
+      // Inicializar Rive en el canvas de presentación si no existe
+      if (!presentationRiveInstance) {
+        await initPresentationRive();
+      }
+      
+      // El avatar empieza invisible, esperando el intro_1
+      presentationAvatar.classList.remove("visible", "fading-out");
+      presentationSubtitle.classList.remove("visible");
+      presentationSubtitle.textContent = "";
+    }
+
+    function exitPresentationMode() {
+      log("Saliendo de modo presentación");
+      isPresentationMode = false;
+      document.body.classList.remove("presentation-mode");
+      presentationAvatar.classList.remove("visible", "fading-out");
+      presentationContainer.classList.remove("show-logo");
+      presentationSubtitle.classList.remove("visible");
+    }
+
+    function showPresentationAvatar() {
+      log("Mostrando avatar con fade-in");
+      presentationContainer.classList.add("show-logo");
+      presentationAvatar.classList.remove("fading-out");
+      presentationAvatar.classList.add("visible");
+    }
+
+    function hidePresentationAvatar() {
+      log("Ocultando avatar con fade-out");
+      presentationAvatar.classList.add("fading-out");
+      presentationSubtitle.classList.remove("visible");
+      
+      // Después del fade-out, ocultar completamente
+      setTimeout(() => {
+        presentationContainer.classList.remove("show-logo");
+        presentationAvatar.classList.remove("visible", "fading-out");
+      }, 2500);
+    }
+
+    function showSubtitle(text) {
+      if (!isPresentationMode) return;
+      presentationSubtitle.textContent = text;
+      presentationSubtitle.classList.add("visible");
+    }
+
+    function hideSubtitle() {
+      presentationSubtitle.classList.remove("visible");
+    }
+
+    // Inicializar Rive para modo presentación
+    async function initPresentationRive() {
+      log("Iniciando Rive para presentación...");
+      
+      const Rive = RiveCanvas.Rive || RiveCanvas.default || RiveCanvas;
+
+      return new Promise((resolve, reject) => {
+        try {
+          presentationRiveInstance = new Rive({
+            src: CONFIG.RIVE_FILE,
+            canvas: presentationCanvas,
+            stateMachines: CONFIG.STATE_MACHINE,
+            autoplay: true,
+            onLoad: () => {
+              setTimeout(() => {
+                try {
+                  const inputs = presentationRiveInstance.stateMachineInputs(CONFIG.STATE_MACHINE);
+                  
+                  if (inputs && inputs.length > 0) {
+                    inputs.forEach(input => {
+                      if (input.name === "isTalking") presentationIsTalkingInput = input;
+                      else if (input.name === "VisemeID") presentationVisemeIDInput = input;
+                    });
+                    log("✓ Rive presentación listo");
+                  }
+                  resolve();
+                } catch (e) {
+                  log("Error inputs presentación: " + e.message);
+                  resolve();
+                }
+              }, 100);
+            },
+            onLoadError: (err) => {
+              log("Error Rive presentación: " + err);
+              resolve();
+            }
+          });
+        } catch (e) {
+          log("Error creando Rive presentación: " + e.message);
+          resolve();
+        }
+      });
+    }
+
+    // Event listeners para modo presentación
+    exitPresentationBtn.onclick = exitPresentationMode;
+    enterPresentationBtn.onclick = enterPresentationMode;
+
+    // ===========================================
     // CSS Fallback
-    // -----------------------------
+    // ===========================================
     function cssSetMouthOpen(value) {
       const scale = 0.2 + (value * 0.8);
       cssMouth.style.transform = `translateX(-50%) scaleY(${scale})`;
     }
 
-    // -----------------------------
+    // ===========================================
     // Web Speech API - TTS
-    // -----------------------------
+    // ===========================================
     let synth = window.speechSynthesis;
     let voices = [];
     let selectedVoice = null;
@@ -682,8 +889,6 @@
 
     function loadVoices() {
       voices = synth.getVoices();
-      
-      // Filtrar voces en español preferentemente
       const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
       const otherVoices = voices.filter(v => !v.lang.startsWith('es'));
       const sortedVoices = [...spanishVoices, ...otherVoices];
@@ -706,7 +911,6 @@
         voiceSelect.appendChild(option);
       });
       
-      // Si no hay voz española, usar la primera
       if (!selectedVoice && sortedVoices.length > 0) {
         selectedVoice = sortedVoices[0];
         voiceSelect.selectedIndex = 0;
@@ -715,7 +919,6 @@
       log("Voces cargadas: " + sortedVoices.length);
     }
 
-    // Las voces pueden cargarse async
     if (synth.onvoiceschanged !== undefined) {
       synth.onvoiceschanged = loadVoices;
     }
@@ -742,8 +945,9 @@
           const entry = AUDIO_BANK[audioId];
           log("Audio pregenerado: " + audioId);
           bubbleEl.textContent = entry.text;
+          if (isPresentationMode) showSubtitle(entry.text.replace(/::/g, " ").trim());
           try {
-            await playPrerecordedAudio(entry.audio);
+            await playPrerecordedAudio(entry.audio, entry.text);
             resolve();
             return;
           } catch (e) {
@@ -763,7 +967,7 @@
           }
         }
 
-        // 3) Si hay API key de ElevenLabs, usarla
+        // 3) ElevenLabs
         if (CONFIG.ELEVENLABS_API_KEY && text) {
           try {
             await speakWithElevenLabs(text);
@@ -780,14 +984,13 @@
           }
         }
 
-        // 4) TTS del navegador como último recurso
+        // 4) TTS del navegador
         if (!synth || !text) {
           resolve();
           return;
         }
 
         synth.cancel();
-
         currentUtterance = new SpeechSynthesisUtterance(text);
         
         if (selectedVoice) {
@@ -819,9 +1022,9 @@
       });
     }
 
-    // -----------------------------
+    // ===========================================
     // Audio Pregenerado
-    // -----------------------------
+    // ===========================================
     let prerecordedAudio = null;
 
     async function playPrerecordedAudio(audioUrl, textWithPauses = "") {
@@ -835,7 +1038,6 @@
         
         prerecordedAudio.onplay = () => {
           log("Audio pregenerado reproduciendo");
-          // Usar lip-sync con pausas si hay texto con ::
           if (textWithPauses && textWithPauses.includes("::")) {
             startTTSLipSyncWithPauses(textWithPauses);
           } else {
@@ -859,9 +1061,9 @@
       });
     }
 
-    // -----------------------------
+    // ===========================================
     // ElevenLabs TTS
-    // -----------------------------
+    // ===========================================
     let elevenLabsAudio = null;
 
     async function speakWithElevenLabs(text) {
@@ -893,7 +1095,6 @@
       }
 
       log("ElevenLabs: audio recibido");
-
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
 
@@ -929,9 +1130,7 @@
     }
 
     function stopSpeaking() {
-      if (synth) {
-        synth.cancel();
-      }
+      if (synth) synth.cancel();
       if (elevenLabsAudio) {
         elevenLabsAudio.pause();
         elevenLabsAudio = null;
@@ -941,14 +1140,12 @@
         prerecordedAudio = null;
       }
       stopTalking();
+      hideSubtitle();
     }
 
-    // -----------------------------
+    // ===========================================
     // RIVE
-    // -----------------------------
-    const RIVE_FILE = CONFIG.RIVE_FILE;
-    const STATE_MACHINE = CONFIG.STATE_MACHINE;
-
+    // ===========================================
     let riveInstance = null;
     let hasRive = false;
     let isTalkingInput = null;
@@ -970,9 +1167,9 @@
 
       try {
         riveInstance = new Rive({
-          src: RIVE_FILE,
+          src: CONFIG.RIVE_FILE,
           canvas: riveCanvas,
-          stateMachines: STATE_MACHINE,
+          stateMachines: CONFIG.STATE_MACHINE,
           autoplay: true,
           onLoad: onRiveLoad,
           onLoadError: onRiveError
@@ -988,12 +1185,10 @@
 
       setTimeout(() => {
         try {
-          const inputs = riveInstance.stateMachineInputs(STATE_MACHINE);
+          const inputs = riveInstance.stateMachineInputs(CONFIG.STATE_MACHINE);
           
           if (!inputs || inputs.length === 0) {
             log("No se encontraron inputs");
-            const sms = riveInstance.stateMachineNames;
-            log("State Machines: " + JSON.stringify(sms));
             fallbackToCSS("Sin inputs");
             return;
           }
@@ -1035,9 +1230,9 @@
       setStatus("CSS fallback", "error");
     }
 
-    // -----------------------------
-    // Control de habla
-    // -----------------------------
+    // ===========================================
+    // Control de habla - Soporta ambos modos
+    // ===========================================
     function stopTalking() {
       if (visemeTimer) {
         clearInterval(visemeTimer);
@@ -1048,10 +1243,15 @@
         ttsLipSyncTimer = null;
       }
 
+      // Modo normal
       if (hasRive) {
         if (isTalkingInput) isTalkingInput.value = false;
         if (visemeIDInput) visemeIDInput.value = 0;
       }
+
+      // Modo presentación
+      if (presentationIsTalkingInput) presentationIsTalkingInput.value = false;
+      if (presentationVisemeIDInput) presentationVisemeIDInput.value = 0;
 
       cssSetMouthOpen(0);
     }
@@ -1059,14 +1259,21 @@
     function startTalking(durationMs = 2000) {
       log("Animando " + durationMs + "ms");
 
-      if (!hasRive) {
+      if (!hasRive && !isPresentationMode) {
         startCSSFakeTalking(durationMs);
         return;
       }
 
-      if (isTalkingInput) isTalkingInput.value = true;
+      // Activar en el modo correspondiente
+      if (isPresentationMode && presentationIsTalkingInput) {
+        presentationIsTalkingInput.value = true;
+      } else if (isTalkingInput) {
+        isTalkingInput.value = true;
+      }
 
-      if (visemeIDInput) {
+      const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
+
+      if (targetVisemeInput) {
         if (visemeTimer) clearInterval(visemeTimer);
         
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
@@ -1079,7 +1286,7 @@
           } while (newViseme === lastViseme);
           
           lastViseme = newViseme;
-          visemeIDInput.value = newViseme;
+          targetVisemeInput.value = newViseme;
         }, 100);
       }
 
@@ -1088,20 +1295,22 @@
       }, durationMs);
     }
 
-    // Lip-sync para TTS (sin análisis de audio, solo animación)
-    // Soporta pausas con :: en el texto
-    let currentSpeakingText = "";
-    
     function startTTSLipSync() {
-      if (!hasRive) {
-        // CSS fallback con animación continua
+      if (!hasRive && !isPresentationMode) {
         startCSSFakeTalking(99999);
         return;
       }
 
-      if (isTalkingInput) isTalkingInput.value = true;
+      // Activar en el modo correspondiente
+      if (isPresentationMode && presentationIsTalkingInput) {
+        presentationIsTalkingInput.value = true;
+      } else if (isTalkingInput) {
+        isTalkingInput.value = true;
+      }
 
-      if (visemeIDInput) {
+      const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
+
+      if (targetVisemeInput) {
         if (ttsLipSyncTimer) clearInterval(ttsLipSyncTimer);
         
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
@@ -1114,82 +1323,71 @@
           } while (newViseme === lastViseme);
           
           lastViseme = newViseme;
-          visemeIDInput.value = newViseme;
+          targetVisemeInput.value = newViseme;
         }, 90);
       }
     }
 
-    // Lip-sync con pausas basadas en :: en el texto
     function startTTSLipSyncWithPauses(text) {
-      if (!hasRive) {
+      if (!hasRive && !isPresentationMode) {
         startCSSFakeTalking(99999);
         return;
       }
 
-      // Dividir texto por :: para calcular pausas
       const segments = text.split("::");
       if (segments.length <= 1) {
-        // No hay pausas, usar lip-sync normal
         startTTSLipSync();
         return;
       }
 
       log("Lip-sync con " + (segments.length - 1) + " pausas");
 
-      // Calcular tiempos de pausa basados en posición del ::
-      const totalLength = text.replace(/::/g, "").length;
-      const pauseDuration = 500; // 0.5 segundos
-      
-      let isPaused = false;
+      const pauseDuration = 500;
       let charCount = 0;
       let pausePoints = [];
       
-      // Calcular en qué momento (aprox) ocurre cada pausa
       for (let i = 0; i < segments.length - 1; i++) {
         charCount += segments[i].length;
-        // Aproximar tiempo: ~50ms por carácter (ajustable)
         const timeMs = charCount * 50;
         pausePoints.push(timeMs);
       }
 
-      if (isTalkingInput) isTalkingInput.value = true;
+      const targetIsTalkingInput = isPresentationMode ? presentationIsTalkingInput : isTalkingInput;
+      const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
 
-      if (visemeIDInput) {
+      if (targetIsTalkingInput) targetIsTalkingInput.value = true;
+
+      if (targetVisemeInput) {
         if (ttsLipSyncTimer) clearInterval(ttsLipSyncTimer);
         
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
         const startTime = performance.now();
         let currentPauseIndex = 0;
-        let pauseEndTime = 0;
         
         ttsLipSyncTimer = setInterval(() => {
           const elapsed = performance.now() - startTime;
           
-          // Verificar si estamos en una pausa
           if (currentPauseIndex < pausePoints.length) {
             const pauseStart = pausePoints[currentPauseIndex];
             
             if (elapsed >= pauseStart && elapsed < pauseStart + pauseDuration) {
-              // Estamos en pausa - cerrar boca
-              visemeIDInput.value = 0;
-              if (isTalkingInput) isTalkingInput.value = false;
+              targetVisemeInput.value = 0;
+              if (targetIsTalkingInput) targetIsTalkingInput.value = false;
               return;
             } else if (elapsed >= pauseStart + pauseDuration) {
-              // Pausa terminada, pasar a la siguiente
               currentPauseIndex++;
-              if (isTalkingInput) isTalkingInput.value = true;
+              if (targetIsTalkingInput) targetIsTalkingInput.value = true;
             }
           }
           
-          // Animación normal
           let newViseme;
           do {
             newViseme = visemes[Math.floor(Math.random() * visemes.length)];
           } while (newViseme === lastViseme);
           
           lastViseme = newViseme;
-          visemeIDInput.value = newViseme;
+          targetVisemeInput.value = newViseme;
         }, 90);
       }
     }
@@ -1218,9 +1416,9 @@
       requestAnimationFrame(tick);
     }
 
-    // -----------------------------
+    // ===========================================
     // Control general
-    // -----------------------------
+    // ===========================================
     function setIdle() {
       stopSpeaking();
       bubbleEl.textContent = "En espera…";
@@ -1232,12 +1430,10 @@
     };
 
     $("testTalk").onclick = async () => {
-      // Probar con audio pregenerado "welcome" si existe
       if (AUDIO_BANK["welcome"]) {
         log("Test: audio pregenerado 'welcome'");
         await speak(null, "welcome");
       } else {
-        // Fallback a texto normal
         const testText = "Hola, soy tu asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?";
         bubbleEl.textContent = testText;
         log("Test TTS");
@@ -1245,14 +1441,15 @@
       }
     };
 
-    // -----------------------------
+    // ===========================================
     // WebSocket
-    // -----------------------------
+    // ===========================================
     const qp = new URLSearchParams(location.search);
     const BACKEND_HOST = qp.get("backend") || CONFIG.BACKEND_HOST;
     const wsProto = location.protocol === "https:" ? "wss://" : "ws://";
     let ws = null;
     let wsReconnectTimer = null;
+    let currentAudioId = null;
 
     function connectWebSocket() {
       if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
@@ -1279,30 +1476,50 @@
           if (msg.type === "bot_speaking_start") {
             const rawText = msg.text || "";
             const audioId = msg.audioId || msg.lineId || null;
+            currentAudioId = audioId;
             
-            // Limpiar :: del texto para mostrar en bubble
+            // === LÓGICA DE PRESENTACIÓN ===
+            // Si llega intro_1 y estamos en modo presentación, mostrar avatar
+            if (audioId === CONFIG.PRESENTATION_START_ID && isPresentationMode) {
+              log("🎬 Iniciando aparición del avatar");
+              showPresentationAvatar();
+              // Pequeño delay para que se vea la transición antes de hablar
+              await new Promise(r => setTimeout(r, 800));
+            }
+            
             const cleanText = rawText.replace(/::/g, " ").replace(/\s+/g, " ").trim();
-            if (cleanText) bubbleEl.textContent = cleanText;
+            if (cleanText) {
+              bubbleEl.textContent = cleanText;
+              if (isPresentationMode) showSubtitle(cleanText);
+            }
 
-            // 1) Si viene audioUrl del backend, usarla directamente
             if (msg.audioUrl) {
               log("Reproduciendo audioUrl: " + msg.audioUrl);
               try {
-                // Pasar texto original con :: para las pausas
                 await playPrerecordedAudio(msg.audioUrl, rawText);
               } catch (e) {
                 log("Error audioUrl: " + e.message);
                 await speak(cleanText, audioId);
               }
-            } 
-            // 2) Si no hay audioUrl, usar sistema de prioridad local
-            else {
+            } else {
               await speak(cleanText, audioId);
+            }
+            
+            // === Si terminó despedida_1, ocultar avatar ===
+            if (audioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) {
+              log("🎬 Iniciando desaparición del avatar");
+              hidePresentationAvatar();
             }
           }
 
           if (msg.type === "bot_speaking_end") {
+            // También verificar al terminar de hablar
+            if (currentAudioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) {
+              log("🎬 Confirmando desaparición del avatar");
+              hidePresentationAvatar();
+            }
             stopSpeaking();
+            currentAudioId = null;
           }
         };
       } catch (e) {
@@ -1311,32 +1528,20 @@
       }
     }
 
-    // -----------------------------
-    // Init
-    // -----------------------------
-    log("Iniciando...");
-    if (CONFIG.ELEVENLABS_API_KEY) {
-      log("TTS: ElevenLabs configurado");
-    } else {
-      log("TTS: Navegador (sin API key)");
-    }
-
-    // -----------------------------
-    // Audio unlock - Requiere interacción del usuario
-    // -----------------------------
+    // ===========================================
+    // Audio unlock
+    // ===========================================
     let audioUnlocked = false;
     const startOverlay = $("startOverlay");
     const startBtn = $("startBtn");
 
     async function unlockAudio() {
       try {
-        // Crear y reproducir audio silencioso para desbloquear
         const silentAudio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleCAHQJnx+aCFNgRDmvz/mXoxBEaZ/P+YdywFR5r8/5d3KgZIm/z/lnkpB0mc/P+VeigISp38/5R7JwlLnfz/k3wmCkye/P+SfSULTZ/8/5F+JAxOoPz/kH8jDU+h/P+PgCIOUKL8/46BIQ9Ro/z/jYIfEFKk/P+MgyAQU6X8/4uEHxFUpvz/ioUeElWn/P+Jhh0TV6j8/4iHHBRYqfz/h4gcFVqq/P+GiRsWW6v8/4WKGhdcrPz/hIoZGF2t/P+DixgZXq78/4KMGB5fr/z/gY0XH2Cw/P+AjhYgYbH8/3+PFSFisfz/fpAUI2Oz/P99kRMkZLT8/3ySEiVltfz/e5MSJGW1");
         silentAudio.volume = 0.01;
         await silentAudio.play();
         silentAudio.pause();
         
-        // También preparar Web Speech API
         if (synth) {
           const testUtterance = new SpeechSynthesisUtterance("");
           testUtterance.volume = 0;
@@ -1353,12 +1558,19 @@
       }
     }
 
+    // Modo normal
     startBtn.onclick = async () => {
       await unlockAudio();
       startOverlay.classList.add("hidden");
     };
 
-    // También desbloquear con clic en cualquier parte del overlay
+    // Modo presentación desde overlay
+    startPresentationBtn.onclick = async () => {
+      await unlockAudio();
+      startOverlay.classList.add("hidden");
+      await enterPresentationMode();
+    };
+
     startOverlay.onclick = async (e) => {
       if (e.target === startOverlay) {
         await unlockAudio();
@@ -1366,7 +1578,7 @@
       }
     };
     
-    // Fullscreen toggle
+    // Fullscreen en modo normal (código original)
     const fullscreenBtn = $("fullscreenBtn");
     let isFullscreen = false;
 
@@ -1379,7 +1591,6 @@
         lucide.createIcons();
         fullscreenBtn.title = "Salir de pantalla completa";
         
-        // También intentar fullscreen nativo
         if (riveWrap.requestFullscreen) {
           riveWrap.requestFullscreen().catch(() => {});
         }
@@ -1395,7 +1606,6 @@
       }
     };
 
-    // Salir de fullscreen con ESC o cuando sale del fullscreen nativo
     document.addEventListener("fullscreenchange", () => {
       if (!document.fullscreenElement && isFullscreen) {
         isFullscreen = false;
@@ -1407,20 +1617,33 @@
     });
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && isFullscreen) {
-        isFullscreen = false;
-        riveWrap.classList.remove("fullscreen");
-        fullscreenBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
-        lucide.createIcons();
-        fullscreenBtn.title = "Pantalla completa";
+      if (e.key === "Escape") {
+        if (isPresentationMode) {
+          exitPresentationMode();
+        } else if (isFullscreen) {
+          isFullscreen = false;
+          riveWrap.classList.remove("fullscreen");
+          fullscreenBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
+          lucide.createIcons();
+          fullscreenBtn.title = "Pantalla completa";
+        }
       }
     });
+
+    // ===========================================
+    // Init
+    // ===========================================
+    log("Iniciando...");
+    if (CONFIG.ELEVENLABS_API_KEY) {
+      log("TTS: ElevenLabs configurado");
+    } else {
+      log("TTS: Navegador (sin API key)");
+    }
 
     await initRive();
     connectWebSocket();
     setIdle();
     
-    // Inicializar iconos Lucide
     lucide.createIcons();
   </script>
 </body>

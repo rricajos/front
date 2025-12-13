@@ -713,16 +713,26 @@
               setTimeout(() => {
                 try {
                   const inputs = presentationRiveInstance.stateMachineInputs(CONFIG.STATE_MACHINE);
+                  log("Rive inputs encontrados: " + (inputs ? inputs.length : 0));
                   if (inputs && inputs.length > 0) {
                     inputs.forEach(input => {
-                      if (input.name === "isTalking") presentationIsTalkingInput = input;
-                      else if (input.name === "VisemeID") presentationVisemeIDInput = input;
+                      log("  → Input: " + input.name);
+                      if (input.name === "isTalking") {
+                        presentationIsTalkingInput = input;
+                        log("  ✓ isTalking asignado");
+                      }
+                      else if (input.name === "VisemeID") {
+                        presentationVisemeIDInput = input;
+                        log("  ✓ VisemeID asignado");
+                      }
                     });
-                    log("✓ Rive presentación OK (inputs: " + inputs.length + ")");
+                    log("✓ Rive presentación OK - talking:" + !!presentationIsTalkingInput + " viseme:" + !!presentationVisemeIDInput);
+                  } else {
+                    log("⚠️ No se encontraron inputs en Rive");
                   }
                   resolve();
                 } catch (e) { log("Error inputs: " + e.message); resolve(); }
-              }, 100);
+              }, 150);
             },
             onLoadError: (err) => { log("Error Rive: " + err); resolve(); }
           });
@@ -782,17 +792,19 @@
       return new Promise(async (resolve) => {
         if (!text && !audioId) { resolve(); return; }
 
-        // IMPORTANTE: Solo detener audio, NO limpiar timers de lip-sync aquí
-        // porque playPrerecordedAudio iniciará nuevos timers
+        log("🗣️ speak() llamado - audioId:" + audioId);
+        
+        // Solo detener audio, NO limpiar timers de lip-sync
         stopAudioOnly();
 
         if (audioId && AUDIO_BANK[audioId]) {
           const entry = AUDIO_BANK[audioId];
-          log("🎵 Audio: " + audioId);
+          log("🎵 Usando AUDIO_BANK: " + audioId + " (" + entry.pauses.length + " pausas)");
           bubbleEl.textContent = entry.text;
           if (isPresentationMode) showSubtitleKaraoke(entry);
           try {
             await playPrerecordedAudio(entry.audio, entry.pauses || []);
+            log("✅ Audio completado: " + audioId);
             resolve();
             return;
           } catch (e) { log("Error audio: " + e.message); }
@@ -812,7 +824,7 @@
         currentUtterance = new SpeechSynthesisUtterance(text);
         if (selectedVoice) currentUtterance.voice = selectedVoice;
         currentUtterance.lang = 'es-ES';
-        currentUtterance.onstart = () => startTTSLipSync();
+        currentUtterance.onstart = () => startLipSyncWithTimestamps([]);
         currentUtterance.onend = () => { stopTalking(); resolve(); };
         currentUtterance.onerror = () => { stopTalking(); resolve(); };
         synth.speak(currentUtterance);
@@ -824,41 +836,63 @@
 
     async function playPrerecordedAudio(audioUrl, pauseTimestamps = []) {
       return new Promise((resolve, reject) => {
-        currentPauseTimestamps = [...pauseTimestamps]; // Copia para evitar referencias
+        const audioName = audioUrl.split('/').pop();
+        log("📀 Preparando: " + audioName);
         
+        // Guardar pausas ANTES de cualquier otra cosa
+        currentPauseTimestamps = pauseTimestamps.slice();
+        
+        // Limpiar audio anterior completamente
         if (prerecordedAudio) {
-          prerecordedAudio.onplay = null;
-          prerecordedAudio.onended = null;
-          prerecordedAudio.onerror = null;
-          prerecordedAudio.pause();
-          prerecordedAudio.src = '';
+          try {
+            prerecordedAudio.pause();
+            prerecordedAudio.removeAttribute('src');
+            prerecordedAudio.load();
+          } catch(e) {}
           prerecordedAudio = null;
         }
 
-        prerecordedAudio = new Audio(audioUrl);
+        // Crear nuevo audio
+        const audio = new Audio();
+        prerecordedAudio = audio;
         
-        prerecordedAudio.onplay = () => {
-          log("▶ Reproduciendo: " + audioUrl.split('/').pop());
-          // Iniciar lip-sync SIEMPRE al comenzar reproducción
+        // Usar addEventListener para mejor control
+        const onPlay = () => {
+          log("▶ PLAY: " + audioName);
+          log("🔍 Inputs: isTalking=" + !!presentationIsTalkingInput + ", viseme=" + !!presentationVisemeIDInput);
           startLipSyncWithTimestamps(currentPauseTimestamps);
           startKaraokeSync();
         };
-
-        prerecordedAudio.onended = () => { 
-          log("⏹ Terminado");
+        
+        const onEnded = () => {
+          log("⏹ ENDED: " + audioName);
+          audio.removeEventListener('play', onPlay);
+          audio.removeEventListener('ended', onEnded);
+          audio.removeEventListener('error', onError);
           stopTalking();
           stopKaraokeSync();
-          resolve(); 
+          resolve();
         };
         
-        prerecordedAudio.onerror = (e) => { 
-          log("❌ Error audio");
-          stopTalking(); 
-          reject(new Error("Audio error")); 
+        const onError = (e) => {
+          log("❌ ERROR: " + audioName);
+          audio.removeEventListener('play', onPlay);
+          audio.removeEventListener('ended', onEnded);
+          audio.removeEventListener('error', onError);
+          stopTalking();
+          reject(new Error("Audio error"));
         };
         
-        prerecordedAudio.play().catch((e) => {
-          log("❌ Error play: " + e.message);
+        audio.addEventListener('play', onPlay);
+        audio.addEventListener('ended', onEnded);
+        audio.addEventListener('error', onError);
+        
+        // Cargar y reproducir
+        audio.src = audioUrl;
+        audio.play().then(() => {
+          log("✓ play() OK: " + audioName);
+        }).catch((e) => {
+          log("❌ play() FAIL: " + e.message);
           reject(e);
         });
       });
@@ -879,7 +913,7 @@
       return new Promise((resolve, reject) => {
         if (elevenLabsAudio) { elevenLabsAudio.onplay = null; elevenLabsAudio.onended = null; elevenLabsAudio.onerror = null; elevenLabsAudio.pause(); elevenLabsAudio.src = ''; elevenLabsAudio = null; }
         elevenLabsAudio = new Audio(audioUrl);
-        elevenLabsAudio.onplay = () => startTTSLipSync();
+        elevenLabsAudio.onplay = () => startLipSyncWithTimestamps([]);
         elevenLabsAudio.onended = () => { stopTalking(); URL.revokeObjectURL(audioUrl); resolve(); };
         elevenLabsAudio.onerror = () => { stopTalking(); URL.revokeObjectURL(audioUrl); reject(); };
         elevenLabsAudio.play().catch(reject);
@@ -887,9 +921,16 @@
     }
 
     function stopAudioOnly() {
+      log("🛑 stopAudioOnly");
       if (synth) synth.cancel();
-      if (elevenLabsAudio) { elevenLabsAudio.pause(); elevenLabsAudio.currentTime = 0; elevenLabsAudio.src = ''; elevenLabsAudio = null; }
-      if (prerecordedAudio) { prerecordedAudio.pause(); prerecordedAudio.currentTime = 0; prerecordedAudio.src = ''; prerecordedAudio = null; }
+      if (elevenLabsAudio) { 
+        elevenLabsAudio.pause(); 
+        elevenLabsAudio = null; 
+      }
+      if (prerecordedAudio) { 
+        prerecordedAudio.pause();
+        prerecordedAudio = null; 
+      }
     }
 
     function stopSpeaking() {
@@ -961,76 +1002,80 @@
       cssSetMouthOpen(0);
     }
 
-    function startTTSLipSync() {
-      // Limpiar timer anterior
-      if (ttsLipSyncTimer) { clearInterval(ttsLipSyncTimer); ttsLipSyncTimer = null; }
-
-      if (!hasRive && !isPresentationMode) { startCSSFakeTalking(99999); return; }
-
-      const targetIsTalkingInput = isPresentationMode ? presentationIsTalkingInput : isTalkingInput;
-      const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
-
-      log("🎤 Lip-sync continuo (viseme: " + (targetVisemeInput ? "OK" : "NULL") + ")");
-
-      if (targetIsTalkingInput) targetIsTalkingInput.value = true;
-
-      if (targetVisemeInput) {
-        const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-        let lastViseme = 0;
-        ttsLipSyncTimer = setInterval(() => {
-          let newViseme;
-          do { newViseme = visemes[Math.floor(Math.random() * visemes.length)]; } while (newViseme === lastViseme);
-          lastViseme = newViseme;
-          targetVisemeInput.value = newViseme;
-        }, 90);
-      }
-    }
-
     function startLipSyncWithTimestamps(pauseTimestamps = []) {
       // SIEMPRE limpiar timer anterior primero
-      if (ttsLipSyncTimer) { clearInterval(ttsLipSyncTimer); ttsLipSyncTimer = null; }
+      if (ttsLipSyncTimer) { 
+        clearInterval(ttsLipSyncTimer); 
+        ttsLipSyncTimer = null; 
+        log("🧹 Timer anterior limpiado");
+      }
 
-      if (!hasRive && !isPresentationMode) { startCSSFakeTalking(99999); return; }
-
+      // Determinar qué inputs usar
       const targetIsTalkingInput = isPresentationMode ? presentationIsTalkingInput : isTalkingInput;
       const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
 
-      log("🎤 Lip-sync con " + pauseTimestamps.length + " pausas");
+      log("🎤 startLipSync - mode:" + (isPresentationMode ? "PRES" : "NORMAL") + 
+          " talking:" + !!targetIsTalkingInput + 
+          " viseme:" + !!targetVisemeInput + 
+          " pausas:" + pauseTimestamps.length);
 
-      if (!pauseTimestamps || pauseTimestamps.length === 0) {
-        startTTSLipSync();
+      // Verificar que tenemos los inputs necesarios
+      if (!targetVisemeInput) {
+        log("⚠️ NO HAY VISEME INPUT - lip-sync imposible");
+        if (!hasRive && !isPresentationMode) {
+          startCSSFakeTalking(99999);
+        }
         return;
       }
 
-      if (targetIsTalkingInput) targetIsTalkingInput.value = true;
+      // Activar talking
+      if (targetIsTalkingInput) {
+        targetIsTalkingInput.value = true;
+        log("✓ isTalking = true");
+      }
 
-      if (targetVisemeInput) {
+      // Si no hay pausas, lip-sync continuo
+      if (!pauseTimestamps || pauseTimestamps.length === 0) {
+        log("→ Lip-sync continuo (sin pausas)");
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
-        const startTime = performance.now();
-        const pauseDuration = CONFIG.PAUSE_DURATION;
-        const pauseRanges = pauseTimestamps.map(t => ({ start: t, end: t + pauseDuration }));
-        
         ttsLipSyncTimer = setInterval(() => {
-          const elapsed = performance.now() - startTime;
-          const inPause = pauseRanges.some(range => elapsed >= range.start && elapsed < range.end);
-          
-          if (inPause) {
-            targetVisemeInput.value = 0;
-            if (targetIsTalkingInput) targetIsTalkingInput.value = false;
-            return;
-          }
-          
-          if (targetIsTalkingInput && !targetIsTalkingInput.value) targetIsTalkingInput.value = true;
-          
           let newViseme;
           do { newViseme = visemes[Math.floor(Math.random() * visemes.length)]; } while (newViseme === lastViseme);
           lastViseme = newViseme;
           targetVisemeInput.value = newViseme;
         }, 90);
-      } else {
-        log("⚠️ No hay visemeInput");
+        log("✓ Timer continuo iniciado");
+        return;
       }
+
+      // Lip-sync con pausas
+      log("→ Lip-sync con " + pauseTimestamps.length + " pausas");
+      const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+      let lastViseme = 0;
+      const startTime = performance.now();
+      const pauseDuration = CONFIG.PAUSE_DURATION;
+      const pauseRanges = pauseTimestamps.map(t => ({ start: t, end: t + pauseDuration }));
+      
+      ttsLipSyncTimer = setInterval(() => {
+        const elapsed = performance.now() - startTime;
+        const inPause = pauseRanges.some(range => elapsed >= range.start && elapsed < range.end);
+        
+        if (inPause) {
+          targetVisemeInput.value = 0;
+          if (targetIsTalkingInput) targetIsTalkingInput.value = false;
+          return;
+        }
+        
+        if (targetIsTalkingInput && !targetIsTalkingInput.value) targetIsTalkingInput.value = true;
+        
+        let newViseme;
+        do { newViseme = visemes[Math.floor(Math.random() * visemes.length)]; } while (newViseme === lastViseme);
+        lastViseme = newViseme;
+        targetVisemeInput.value = newViseme;
+      }, 90);
+      
+      log("✓ Timer con pausas iniciado");
     }
 
     function startCSSFakeTalking(durationMs) {
@@ -1072,19 +1117,22 @@
         ws.onmessage = async (ev) => {
           let msg;
           try { msg = JSON.parse(ev.data); } catch { return; }
-          log("WS: " + msg.type);
+          log("WS: " + msg.type + (msg.audioId ? " [" + msg.audioId + "]" : ""));
           if (msg.type === "bot_speaking_start") {
             const audioId = msg.audioId || msg.lineId || null;
             if (!audioId || !AUDIO_BANK[audioId]) { log("⏭️ Ignorando: " + audioId); return; }
             currentAudioId = audioId;
+            log("🎬 Procesando: " + audioId);
             if (audioId === CONFIG.PRESENTATION_START_ID && isPresentationMode) {
               showPresentationAvatar();
               await new Promise(r => setTimeout(r, 800));
             }
             await speak(null, audioId);
+            log("🎬 Completado: " + audioId);
             if (audioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) hidePresentationAvatar();
           }
           if (msg.type === "bot_speaking_end") {
+            log("🛑 bot_speaking_end recibido");
             if (currentAudioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) hidePresentationAvatar();
             stopSpeaking();
             currentAudioId = null;

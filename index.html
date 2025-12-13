@@ -197,14 +197,15 @@
       height: 100%;
     }
 
+    /* Logo de fondo grande y visible */
     .presentation-container::before {
       content: "";
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 85vh;
-      height: 85vh;
+      width: 105vh;
+      height: 105vh;
       opacity: 0;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 226.1 219.1'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='56' y1='178.7' x2='56' y2='0' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%231ca4af'/%3E%3Cstop offset='1' stop-color='%231c3768'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='139.2' y1='53.5' x2='232.6' y2='215.2' href='%23a'/%3E%3C/defs%3E%3Cpolygon fill='url(%23a)' points='0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0'/%3E%3Cpolygon fill='url(%23b)' points='194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
@@ -216,7 +217,7 @@
     }
 
     .presentation-container.show-logo::before {
-      opacity: 0.15;
+      opacity: 0.33;
     }
 
     .presentation-subtitle {
@@ -650,7 +651,7 @@
 </head>
 
 <body>
-  <!-- Overlay inicio -->
+  <!-- Overlay de inicio -->
   <div class="start-overlay" id="startOverlay">
     <svg class="start-logo" viewBox="0 0 226.1 219.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -768,11 +769,11 @@
     };
 
     // ===========================================
-    // BANCO DE AUDIOS
+    // BANCO DE AUDIOS - Solo estos se procesan
     // ===========================================
     const AUDIO_BANK = {
       "intro_1": {
-        text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: 'igual os habíais olvidado de mí'.",
+        text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: "igual os habíais olvidado de mí".",
         audio: "./audio/intro_1.mp3"
       },
       "que_es_1": {
@@ -784,7 +785,7 @@
         audio: "./audio/aprendizaje_1.mp3"
       },
       "despedida_1": {
-        text: "Exacto. No tengo nombre. De momento soy 'la IA de Gestpropiedad'… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es 'ChatPaco' ni 'BotManolo'... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
+        text: "Exacto. No tengo nombre. De momento soy "la IA de Gestpropiedad"… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es "ChatPaco" ni "BotManolo"... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
         audio: "./audio/despedida_1.mp3"
       },
     };
@@ -809,6 +810,9 @@
     const cssAvatar = $("cssAvatar");
     const cssMouth = $("cssMouth");
     const voiceSelect = $("voiceSelect");
+    const startOverlay = $("startOverlay");
+    const startNormalBtn = $("startNormalBtn");
+    const startPresentationBtn = $("startPresentationBtn");
 
     const presentationContainer = $("presentationContainer");
     const presentationAvatar = $("presentationAvatar");
@@ -816,9 +820,6 @@
     const presentationSubtitle = $("presentationSubtitle");
     const exitPresentationBtn = $("exitPresentationBtn");
     const enterPresentationBtn = $("enterPresentationBtn");
-    const startPresentationBtn = $("startPresentationBtn");
-    const startNormalBtn = $("startNormalBtn");
-    const startOverlay = $("startOverlay");
 
     let isPresentationMode = false;
     let presentationRiveInstance = null;
@@ -835,6 +836,44 @@
       const time = new Date().toLocaleTimeString("es", { hour12: false });
       debugEl.textContent = `[${time}] ${msg}\n` + debugEl.textContent.slice(0, 400);
     }
+
+    // ===========================================
+    // AUDIO UNLOCK
+    // ===========================================
+    async function unlockAudio() {
+      try {
+        const silentAudio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleCAHQJnx+aCFNgRDmvz/mXoxBEaZ/P+YdywFR5r8/5d3KgZIm/z/lnkpB0mc/P+VeigISp38/5R7JwlLnfz/k3wmCkye/P+SfSULTZ/8/5F+JAxOoPz/kH8jDU+h/P+PgCIOUKL8/46BIQ9Ro/z/jYIfEFKk/P+MgyAQU6X8/4uEHxFUpvz/ioUeElWn/P+Jhh0TV6j8/4iHHBRYqfz/h4gcFVqq/P+GiRsWW6v8/4WKGhdcrPz/hIoZGF2t/P+DixgZXq78/4KMGB5fr/z/gY0XH2Cw/P+AjhYgYbH8/3+PFSFisfz/fpAUI2Oz/P99kRMkZLT8/3ySEiVltfz/e5MSJGW1");
+        silentAudio.volume = 0.01;
+        await silentAudio.play();
+        silentAudio.pause();
+        
+        if (synth) {
+          const u = new SpeechSynthesisUtterance("");
+          u.volume = 0;
+          synth.speak(u);
+          synth.cancel();
+        }
+        
+        log("Audio OK ✓");
+        return true;
+      } catch (e) {
+        log("Audio error: " + e.message);
+        return false;
+      }
+    }
+
+    // Modo normal
+    startNormalBtn.onclick = async () => {
+      await unlockAudio();
+      startOverlay.classList.add("hidden");
+    };
+
+    // Modo presentación desde overlay
+    startPresentationBtn.onclick = async () => {
+      await unlockAudio();
+      startOverlay.classList.add("hidden");
+      await enterPresentationMode();
+    };
 
     // ===========================================
     // MODO PRESENTACIÓN
@@ -1375,24 +1414,32 @@
           log("WS: " + msg.type);
 
           if (msg.type === "bot_speaking_start") {
-            const rawText = msg.text || "";
             const audioId = msg.audioId || msg.lineId || null;
+            
+            // ⚡ FILTRO: Solo procesar si el audioId está en AUDIO_BANK
+            if (!audioId || !AUDIO_BANK[audioId]) {
+              log("⏭️ Ignorando mensaje (no es audio pregenerado): " + audioId);
+              return;
+            }
+            
             currentAudioId = audioId;
             
+            // Si es intro_1 y estamos en presentación, mostrar avatar
             if (audioId === CONFIG.PRESENTATION_START_ID && isPresentationMode) {
               showPresentationAvatar();
               await new Promise(r => setTimeout(r, 1000));
             }
             
-            const cleanText = rawText.replace(/::/g, " ").replace(/\s+/g, " ").trim();
-            if (cleanText) {
-              bubbleEl.textContent = cleanText;
-              if (isPresentationMode) showSubtitle(cleanText);
-            }
+            const entry = AUDIO_BANK[audioId];
+            const cleanText = entry.text.replace(/::/g, " ").replace(/\s+/g, " ").trim();
+            
+            bubbleEl.textContent = cleanText;
+            if (isPresentationMode) showSubtitle(cleanText);
 
+            // Reproducir audio pregenerado
             if (msg.audioUrl) {
               try {
-                await playPrerecordedAudio(msg.audioUrl, rawText);
+                await playPrerecordedAudio(msg.audioUrl, entry.text);
               } catch (e) {
                 await speak(cleanText, audioId);
               }
@@ -1400,6 +1447,7 @@
               await speak(cleanText, audioId);
             }
             
+            // Si es despedida_1 y estamos en presentación, ocultar avatar
             if (audioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) {
               hidePresentationAvatar();
             }
@@ -1420,44 +1468,8 @@
     }
 
     // ===========================================
-    // Audio unlock
-    // ===========================================
-    async function unlockAudio() {
-      try {
-        const silentAudio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleCAHQJnx+aCFNgRDmvz/mXoxBEaZ/P+YdywFR5r8/5d3KgZIm/z/lnkpB0mc/P+VeigISp38/5R7JwlLnfz/k3wmCkye/P+SfSULTZ/8/5F+JAxOoPz/kH8jDU+h/P+PgCIOUKL8/46BIQ9Ro/z/jYIfEFKk/P+MgyAQU6X8/4uEHxFUpvz/ioUeElWn/P+Jhh0TV6j8/4iHHBRYqfz/h4gcFVqq/P+GiRsWW6v8/4WKGhdcrPz/hIoZGF2t/P+DixgZXq78/4KMGB5fr/z/gY0XH2Cw/P+AjhYgYbH8/3+PFSFisfz/fpAUI2Oz/P99kRMkZLT8/3ySEiVltfz/e5MSJGW1");
-        silentAudio.volume = 0.01;
-        await silentAudio.play();
-        silentAudio.pause();
-        
-        if (synth) {
-          const u = new SpeechSynthesisUtterance("");
-          u.volume = 0;
-          synth.speak(u);
-          synth.cancel();
-        }
-        
-        log("Audio OK ✓");
-        return true;
-      } catch (e) {
-        log("Audio error: " + e.message);
-        return false;
-      }
-    }
-
-    // Modo normal
-    startNormalBtn.onclick = async () => {
-      await unlockAudio();
-      startOverlay.classList.add("hidden");
-    };
-
-    // Modo presentación desde overlay
-    startPresentationBtn.onclick = async () => {
-      await unlockAudio();
-      startOverlay.classList.add("hidden");
-      await enterPresentationMode();
-    };
-
     // Fullscreen normal
+    // ===========================================
     const fullscreenBtn = $("fullscreenBtn");
     let isFullscreen = false;
 

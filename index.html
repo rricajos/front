@@ -674,13 +674,13 @@
       <polygon fill="url(#grad2)" points="194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6"/>
     </svg>
     <h1>Asistente Virtual</h1>
-    <p>Conexia Telecom · Gestpropiedad</p>
+    <p>Selecciona cómo quieres interactuar con el avatar</p>
     <div class="start-buttons">
       <button class="start-btn" id="startPresentationBtn">
         <i data-lucide="tv"></i>
         Modo Presentación
       </button>
-      <button class="start-btn secondary" id="startNormalBtn" disabled>
+      <button class="start-btn secondary" id="startNormalBtn">
         <i data-lucide="settings-2"></i>
         Panel de Control
       </button>
@@ -689,7 +689,7 @@
 
   <!-- Contenedor presentación fullscreen -->
   <div class="presentation-container" id="presentationContainer">
-    <button class="exit-presentation-btn" id="exitPresentationBtn" title="Salir (ESC)" disabled>
+    <button class="exit-presentation-btn" id="exitPresentationBtn" title="Salir (ESC)">
       <i data-lucide="x"></i>
     </button>
     <div class="presentation-avatar" id="presentationAvatar">
@@ -1009,10 +1009,8 @@
       
       stopKaraokeSync();
       
-      // Si no hay pausas, mostrar texto completo
+      // Si no hay pausas, guardar texto completo
       if (!pauseTimestamps || pauseTimestamps.length === 0) {
-        presentationSubtitle.innerHTML = `<span class="segment active">${text}</span>`;
-        presentationSubtitle.classList.add("visible");
         karaokeSegments = [text];
         karaokeTimestamps = [0];
         return;
@@ -1025,9 +1023,7 @@
       // Timestamps: segmento 0 empieza en 0, luego cada pausa marca el inicio del siguiente
       karaokeTimestamps = [0, ...pauseTimestamps];
       
-      // Mostrar primer segmento (el timer lo iniciará playPrerecordedAudio.onplay)
-      presentationSubtitle.innerHTML = `<span class="segment active">${segments[0] || text}</span>`;
-      presentationSubtitle.classList.add("visible");
+      // NO mostrar nada aún - se mostrará cuando el audio empiece
     }
 
     function startKaraokeSync() {
@@ -1035,6 +1031,10 @@
       
       karaokeStartTime = performance.now();
       let currentIndex = 0;
+      
+      // Mostrar primer segmento ahora que el audio está sonando
+      presentationSubtitle.innerHTML = `<span class="segment active">${karaokeSegments[0]}</span>`;
+      presentationSubtitle.classList.add("visible");
       
       log("▶ Karaoke iniciado con " + karaokeSegments.length + " segmentos");
       

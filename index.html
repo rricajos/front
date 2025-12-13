@@ -22,8 +22,10 @@
       --warning: #eab308;
     }
 
-    * { box-sizing: border-box; }
-    
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, sans-serif;
@@ -301,31 +303,49 @@
         gap: 20px;
         padding: 20px;
       }
-      .avatar { order: 1; }
-      .panel { order: 2; }
+
+      .avatar {
+        order: 1;
+      }
+
+      .panel {
+        order: 2;
+      }
     }
 
     @media (max-width: 480px) {
-      body { padding: 8px; }
+      body {
+        padding: 8px;
+      }
+
       .stage {
         border-radius: 16px;
         padding: 16px;
         gap: 16px;
       }
+
       .rive-wrap {
         width: 220px !important;
         height: 220px !important;
       }
+
       #riveCanvas {
         width: 200px !important;
         height: 200px !important;
       }
+
       .bubble {
         min-height: 70px !important;
         font-size: 15px !important;
       }
-      .btn-row { flex-direction: column; }
-      .btn { width: 100%; }
+
+      .btn-row {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
     }
 
     /* Avatar */
@@ -345,7 +365,7 @@
       border-radius: 20px;
       background: radial-gradient(circle at 30% 30%, #1a2535, #0d121b 70%);
       border: 1px solid #223146;
-      box-shadow: 
+      box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.03),
         0 8px 32px rgba(0, 0, 0, 0.3);
       overflow: hidden;
@@ -374,8 +394,15 @@
     }
 
     @keyframes breathe {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-2px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-2px);
+      }
     }
 
     .eye {
@@ -388,8 +415,13 @@
       overflow: hidden;
     }
 
-    .eye.left { left: 55px; }
-    .eye.right { right: 55px; }
+    .eye.left {
+      left: 55px;
+    }
+
+    .eye.right {
+      right: 55px;
+    }
 
     .eye::after {
       content: "";
@@ -401,8 +433,17 @@
     }
 
     @keyframes blink {
-      0%, 92%, 100% { transform: translateY(-120%); }
-      94%, 96% { transform: translateY(0%); }
+
+      0%,
+      92%,
+      100% {
+        transform: translateY(-120%);
+      }
+
+      94%,
+      96% {
+        transform: translateY(0%);
+      }
     }
 
     .pupil {
@@ -453,13 +494,29 @@
       flex-shrink: 0;
     }
 
-    .status-dot.ok { background: var(--success); }
-    .status-dot.error { background: var(--error); }
-    .status-dot.loading { background: var(--warning); animation: pulse 1s infinite; }
+    .status-dot.ok {
+      background: var(--success);
+    }
+
+    .status-dot.error {
+      background: var(--error);
+    }
+
+    .status-dot.loading {
+      background: var(--warning);
+      animation: pulse 1s infinite;
+    }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
     }
 
     .status-text {
@@ -656,16 +713,16 @@
     <svg class="start-logo" viewBox="0 0 226.1 219.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="grad1" x1="56" y1="178.7" x2="56" y2="0" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#1ca4af"/>
-          <stop offset="1" stop-color="#1c3768"/>
+          <stop offset="0" stop-color="#1ca4af" />
+          <stop offset="1" stop-color="#1c3768" />
         </linearGradient>
         <linearGradient id="grad2" x1="139.2" y1="53.5" x2="232.6" y2="215.2" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#1ca4af"/>
-          <stop offset="1" stop-color="#1c3768"/>
+          <stop offset="0" stop-color="#1ca4af" />
+          <stop offset="1" stop-color="#1c3768" />
         </linearGradient>
       </defs>
-      <polygon fill="url(#grad1)" points="0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0"/>
-      <polygon fill="url(#grad2)" points="194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6"/>
+      <polygon fill="url(#grad1)" points="0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0" />
+      <polygon fill="url(#grad2)" points="194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6" />
     </svg>
     <h1>Asistente Virtual</h1>
     <p>Selecciona cómo quieres interactuar con el avatar</p>
@@ -705,8 +762,12 @@
       </div>
       <div class="css-avatar" id="cssAvatar">
         <div class="head">
-          <div class="eye left"><div class="pupil"></div></div>
-          <div class="eye right"><div class="pupil"></div></div>
+          <div class="eye left">
+            <div class="pupil"></div>
+          </div>
+          <div class="eye right">
+            <div class="pupil"></div>
+          </div>
           <div class="mouth" id="cssMouth"></div>
         </div>
       </div>
@@ -721,7 +782,7 @@
       <div class="debug" id="debug"></div>
 
       <div class="bubble" id="bubble">Listo para recibir eventos.</div>
-      
+
       <div class="btn-row">
         <button class="btn primary" id="testTalkBtn">
           <i data-lucide="play"></i>
@@ -732,14 +793,14 @@
           Detener
         </button>
       </div>
-      
+
       <div class="btn-row">
         <button class="btn primary" id="enterPresentationBtn">
           <i data-lucide="tv"></i>
           Modo Presentación
         </button>
       </div>
-      
+
       <div class="settings-section">
         <label>
           <i data-lucide="volume-2"></i>
@@ -766,7 +827,7 @@
       USE_BROWSER_TTS_FALLBACK: true,
       PRESENTATION_START_ID: "intro_1",
       PRESENTATION_END_ID: "despedida_1",
-      
+
       // Duración de cada pausa de labios (ms)
       PAUSE_DURATION: 500,
     };
@@ -788,41 +849,68 @@
     // ===========================================
     const AUDIO_BANK = {
       "intro_1": {
-        text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: "igual os habíais olvidado de mí".",
+        text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: 'igual os habíais olvidado de mí'.",
         audio: "./audio/intro_1.mp3",
-        // TODO: Ajustar estos timestamps escuchando el audio
+        // Duración: 6.58s
         pauses: [
-          // Ejemplo: si hay pausa después de "Hola a todos." aprox segundo 1.2
-          // 1200,
-          // Si hay pausa después de "estaba esperando." aprox segundo 3.5
-          // 3500,
+          770,   // después de "Hola a todos."
+          2240,  // después de "estaba esperando."
+          4420,  // después de "Y he pensado:"
         ]
       },
       "que_es_1": {
         text: "Buenas noches a todos. Y sí, es cierto: no duermo… no pido vacaciones… y los lunes no me afectan. Pero prometo ser simpática igualmente. Me presento: soy la nueva IA de Gestpropiedad. Vengo a echar una mano en tres frentes. Primero, con los clientes. Cuando la oficina cierre, me quedo de guardia para que ningún cliente se quede sin respuesta. Segundo, en la web. Ayudaré a entender mejor cada vivienda y a guiar a cada cliente hasta el asesor correcto. Y tercero, el más importante: vosotros. Os ayudaré a encontrar la información que necesitéis en segundos, y a responder con más claridad… sin quitaros vuestro estilo.",
         audio: "./audio/que_es_1.mp3",
-        // TODO: Ajustar timestamps
+        // Duración: 40.80s
         pauses: [
-          // Después de "Buenas noches a todos."
-          // Después de "no me afectan."
-          // Después de "ser simpática igualmente."
-          // etc...
+          1050,  // después de "Buenas noches a todos."
+          4770,  // después de "no duermo…"
+          6910,  // después de "no pido vacaciones…"
+          10260, // después de "ser simpática igualmente."
+          11780, // después de "Me presento:"
+          14760, // después de "Gestpropiedad."
+          18300, // después de "Primero, con los clientes."
+          23740, // después de "sin respuesta."
+          26200, // después de "Segundo, en la web."
+          29030, // después de "asesor correcto."
+          31620, // después de "Y tercero, el más importante:"
+          36240, // después de "en segundos,"
+          38170, // después de "más claridad…"
         ]
       },
       "aprendizaje_1": {
         text: "No es todo, esto es solo el principio. Hoy es, literalmente, mi nacimiento. A partir de ahora iré aprendiendo cada día: de las consultas… de cómo trabajáis… de lo que necesitan los clientes… y de los datos que me ha proporcionado el equipo. Cuanto más se me use, mejor podré ayudar… y en más ámbitos. Prometo crecer rápido… y sin adolescencia rebelde.",
         audio: "./audio/aprendizaje_1.mp3",
-        // TODO: Ajustar timestamps
-        pauses: []
+        // Duración: 24.69s
+        pauses: [
+          1805,  // después de "esto es solo el principio."
+          5440,  // después de "mi nacimiento."
+          8560,  // después de "cada día:"
+          11420, // después de "de cómo trabajáis…"
+          13870, // después de "de lo que necesitan los clientes…"
+          16530, // después de "el equipo."
+          18730, // después de "y en más ámbitos."
+          22500, // después de "crecer rápido…"
+        ]
       },
       "despedida_1": {
-        text: "Exacto. No tengo nombre. De momento soy "la IA de Gestpropiedad"… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es "ChatPaco" ni "BotManolo"... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
+        text: "Exacto. No tengo nombre. De momento soy 'la IA de Gestpropiedad'… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es 'ChatPaco' ni 'BotManolo'... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
         audio: "./audio/despedida_1.mp3",
-        // TODO: Ajustar timestamps
-        pauses: []
+        // Duración: 35.60s
+        pauses: [
+          640,   // después de "Exacto."
+          4560,  // después de "No tengo nombre."
+          7050,  // después de "poco personal..."
+          12820, // después de "esta noche."
+          17540, // después de "las opciones."
+          19490, // después de "Para cuando vuelva…"
+          21070, // después de "nombre oficial."
+          23100, // después de "Y tranquilos:"
+          30250, // después de "estar seguros..."
+          32820, // después de "primera vez."
+        ]
       },
     };
-
     const AUDIO_BY_TEXT = {};
 
     // ===========================================
@@ -879,14 +967,14 @@
         silentAudio.volume = 0.01;
         await silentAudio.play();
         silentAudio.pause();
-        
+
         if (synth) {
           const u = new SpeechSynthesisUtterance("");
           u.volume = 0;
           synth.speak(u);
           synth.cancel();
         }
-        
+
         log("Audio OK ✓");
         return true;
       } catch (e) {
@@ -915,11 +1003,11 @@
       log("→ Modo presentación");
       isPresentationMode = true;
       document.body.classList.add("presentation-mode");
-      
+
       if (!presentationRiveInstance) {
         await initPresentationRive();
       }
-      
+
       presentationAvatar.classList.remove("visible", "fading-out");
       presentationSubtitle.classList.remove("visible");
       presentationSubtitle.textContent = "";
@@ -945,7 +1033,7 @@
       log("✨ Avatar desapareciendo");
       presentationAvatar.classList.add("fading-out");
       presentationSubtitle.classList.remove("visible");
-      
+
       setTimeout(() => {
         presentationContainer.classList.remove("show-logo");
         presentationAvatar.classList.remove("visible", "fading-out");
@@ -964,7 +1052,7 @@
 
     async function initPresentationRive() {
       log("Cargando Rive (presentación)...");
-      
+
       const Rive = RiveCanvas.Rive || RiveCanvas.default || RiveCanvas;
 
       return new Promise((resolve) => {
@@ -1028,14 +1116,14 @@
       const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
       const otherVoices = voices.filter(v => !v.lang.startsWith('es'));
       const sortedVoices = [...spanishVoices, ...otherVoices];
-      
+
       voiceSelect.innerHTML = '';
-      
+
       if (sortedVoices.length === 0) {
         voiceSelect.innerHTML = '<option value="">Sin voces</option>';
         return;
       }
-      
+
       sortedVoices.forEach((voice, i) => {
         const option = document.createElement('option');
         option.value = i;
@@ -1046,12 +1134,12 @@
         }
         voiceSelect.appendChild(option);
       });
-      
+
       if (!selectedVoice && sortedVoices.length > 0) {
         selectedVoice = sortedVoices[0];
         voiceSelect.selectedIndex = 0;
       }
-      
+
       log("Voces: " + sortedVoices.length);
     }
 
@@ -1092,7 +1180,7 @@
             await playPrerecordedAudio(AUDIO_BY_TEXT[text], []);
             resolve();
             return;
-          } catch (e) {}
+          } catch (e) { }
         }
 
         if (CONFIG.ELEVENLABS_API_KEY && text) {
@@ -1138,24 +1226,24 @@
         }
 
         prerecordedAudio = new Audio(audioUrl);
-        
+
         prerecordedAudio.onplay = () => {
           log("▶ Audio reproduciendo");
           // Iniciar lip-sync con los timestamps de pausa
           startLipSyncWithTimestamps(pauseTimestamps);
         };
 
-        prerecordedAudio.onended = () => { 
+        prerecordedAudio.onended = () => {
           log("⏹ Audio terminado");
-          stopTalking(); 
-          resolve(); 
+          stopTalking();
+          resolve();
         };
-        
-        prerecordedAudio.onerror = () => { 
-          stopTalking(); 
-          reject(new Error("Audio error")); 
+
+        prerecordedAudio.onerror = () => {
+          stopTalking();
+          reject(new Error("Audio error"));
         };
-        
+
         prerecordedAudio.play().catch(reject);
       });
     }
@@ -1167,7 +1255,7 @@
 
     async function speakWithElevenLabs(text) {
       log("ElevenLabs...");
-      
+
       const response = await fetch(
         `https://api.elevenlabs.io/v1/text-to-speech/${CONFIG.ELEVENLABS_VOICE_ID}`,
         {
@@ -1248,12 +1336,12 @@
       setTimeout(() => {
         try {
           const inputs = riveInstance.stateMachineInputs(CONFIG.STATE_MACHINE);
-          
+
           if (!inputs || inputs.length === 0) {
             fallbackToCSS("Sin inputs");
             return;
           }
-          
+
           inputs.forEach(input => {
             if (input.name === "isTalking") isTalkingInput = input;
             else if (input.name === "VisemeID") visemeIDInput = input;
@@ -1321,10 +1409,10 @@
 
       if (targetVisemeInput) {
         if (ttsLipSyncTimer) clearInterval(ttsLipSyncTimer);
-        
+
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
-        
+
         ttsLipSyncTimer = setInterval(() => {
           let newViseme;
           do {
@@ -1361,38 +1449,38 @@
 
       if (targetVisemeInput) {
         if (ttsLipSyncTimer) clearInterval(ttsLipSyncTimer);
-        
+
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
         const startTime = performance.now();
         const pauseDuration = CONFIG.PAUSE_DURATION;
-        
+
         // Crear rangos de pausa [inicio, fin]
         const pauseRanges = pauseTimestamps.map(t => ({
           start: t,
           end: t + pauseDuration
         }));
-        
+
         ttsLipSyncTimer = setInterval(() => {
           const elapsed = performance.now() - startTime;
-          
+
           // Verificar si estamos dentro de algún rango de pausa
-          const inPause = pauseRanges.some(range => 
+          const inPause = pauseRanges.some(range =>
             elapsed >= range.start && elapsed < range.end
           );
-          
+
           if (inPause) {
             // Estamos en pausa - cerrar boca
             targetVisemeInput.value = 0;
             if (targetIsTalkingInput) targetIsTalkingInput.value = false;
             return;
           }
-          
+
           // No estamos en pausa - animar labios
           if (targetIsTalkingInput && !targetIsTalkingInput.value) {
             targetIsTalkingInput.value = true;
           }
-          
+
           let newViseme;
           do {
             newViseme = visemes[Math.floor(Math.random() * visemes.length)];
@@ -1444,7 +1532,7 @@
 
     function connectWebSocket() {
       if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
-      
+
       try {
         log("WS: " + BACKEND_HOST);
         ws = new WebSocket(wsProto + BACKEND_HOST);
@@ -1464,23 +1552,23 @@
 
           if (msg.type === "bot_speaking_start") {
             const audioId = msg.audioId || msg.lineId || null;
-            
+
             // ⚡ FILTRO: Solo procesar si el audioId está en AUDIO_BANK
             if (!audioId || !AUDIO_BANK[audioId]) {
               log("⏭️ Ignorando mensaje (no es audio pregenerado): " + audioId);
               return;
             }
-            
+
             currentAudioId = audioId;
-            
+
             // Si es intro_1 y estamos en presentación, mostrar avatar
             if (audioId === CONFIG.PRESENTATION_START_ID && isPresentationMode) {
               showPresentationAvatar();
               await new Promise(r => setTimeout(r, 1000));
             }
-            
+
             const entry = AUDIO_BANK[audioId];
-            
+
             bubbleEl.textContent = entry.text;
             if (isPresentationMode) showSubtitle(entry.text);
 
@@ -1494,7 +1582,7 @@
             } else {
               await speak(entry.text, audioId);
             }
-            
+
             // Si es despedida_1 y estamos en presentación, ocultar avatar
             if (audioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) {
               hidePresentationAvatar();
@@ -1523,17 +1611,17 @@
 
     fullscreenBtn.onclick = () => {
       isFullscreen = !isFullscreen;
-      
+
       if (isFullscreen) {
         riveWrap.classList.add("fullscreen");
         fullscreenBtn.innerHTML = '<i data-lucide="minimize-2"></i>';
         lucide.createIcons();
-        if (riveWrap.requestFullscreen) riveWrap.requestFullscreen().catch(() => {});
+        if (riveWrap.requestFullscreen) riveWrap.requestFullscreen().catch(() => { });
       } else {
         riveWrap.classList.remove("fullscreen");
         fullscreenBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
         lucide.createIcons();
-        if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(() => { });
       }
     };
 

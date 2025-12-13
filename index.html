@@ -36,9 +36,6 @@
       padding: 16px;
     }
 
-    /* ============================
-       OVERLAY DE INICIO
-       ============================ */
     .start-overlay {
       position: fixed;
       top: 0;
@@ -55,9 +52,7 @@
       padding: 24px;
     }
 
-    .start-overlay.hidden {
-      display: none;
-    }
+    .start-overlay.hidden { display: none; }
 
     .start-logo {
       width: 100px;
@@ -110,14 +105,8 @@
       width: 100%;
     }
 
-    .start-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 28px rgba(28, 164, 175, 0.35);
-    }
-
-    .start-btn:active {
-      transform: translateY(0);
-    }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(28, 164, 175, 0.35); }
+    .start-btn:active { transform: translateY(0); }
 
     .start-btn.secondary {
       background: rgba(255, 255, 255, 0.08);
@@ -125,45 +114,25 @@
       box-shadow: none;
     }
 
-    .start-btn.secondary:hover {
-      background: rgba(255, 255, 255, 0.12);
-      box-shadow: none;
-    }
+    .start-btn.secondary:hover { background: rgba(255, 255, 255, 0.12); box-shadow: none; }
+    .start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+    .start-btn i { width: 18px; height: 18px; flex-shrink: 0; }
 
-    .start-btn i {
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-    }
-
-    /* ============================
-       MODO PRESENTACIÓN
-       ============================ */
-    body.presentation-mode {
-      background: #000;
-      padding: 0;
-    }
-
-    body.presentation-mode .stage {
-      display: none;
-    }
+    body.presentation-mode { background: #000; padding: 0; }
+    body.presentation-mode .stage { display: none; }
 
     .presentation-container {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
       background: #000;
       z-index: 9999;
       align-items: center;
       justify-content: center;
     }
 
-    body.presentation-mode .presentation-container {
-      display: flex;
-    }
+    body.presentation-mode .presentation-container { display: flex; }
 
     .presentation-avatar {
       opacity: 0;
@@ -172,40 +141,24 @@
       position: relative;
     }
 
-    .presentation-avatar.visible {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    .presentation-avatar.fading-out {
-      opacity: 0;
-      transform: scale(0.92);
-      transition: opacity 2.5s ease-in, transform 2.5s ease-in;
-    }
+    .presentation-avatar.visible { opacity: 1; transform: scale(1); }
+    .presentation-avatar.fading-out { opacity: 0; transform: scale(0.92); transition: opacity 2.5s ease-in, transform 2.5s ease-in; }
 
     .presentation-avatar .pres-rive-wrap {
-      width: 100vmin;
-      height: 100vmin;
-      max-width: 700px;
-      max-height: 700px;
+      width: 100vmin; height: 100vmin;
+      max-width: 700px; max-height: 700px;
       display: grid;
       place-items: center;
     }
 
-    .presentation-avatar #presentationCanvas {
-      width: 100%;
-      height: 100%;
-    }
+    .presentation-avatar #presentationCanvas { width: 100%; height: 100%; }
 
-    /* Logo de fondo grande y visible */
     .presentation-container::before {
       content: "";
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 105vh;
-      height: 105vh;
+      width: 105vh; height: 105vh;
       opacity: 0;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 226.1 219.1'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='56' y1='178.7' x2='56' y2='0' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%231ca4af'/%3E%3Cstop offset='1' stop-color='%231c3768'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='139.2' y1='53.5' x2='232.6' y2='215.2' href='%23a'/%3E%3C/defs%3E%3Cpolygon fill='url(%23a)' points='0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0'/%3E%3Cpolygon fill='url(%23b)' points='194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
@@ -216,17 +169,13 @@
       transition: opacity 1.8s ease-out;
     }
 
-    .presentation-container.show-logo::before {
-      opacity: 0.33;
-    }
+    .presentation-container.show-logo::before { opacity: 0.33; }
 
     .presentation-subtitle {
       position: fixed;
-      bottom: 4%;
-      left: 50%;
+      bottom: 4%; left: 50%;
       transform: translateX(-50%);
-      width: auto;
-      max-width: 85%;
+      width: auto; max-width: 85%;
       text-align: center;
       font-size: clamp(1rem, 1.8vw, 1.25rem);
       line-height: 1.5;
@@ -242,17 +191,12 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .presentation-subtitle.visible {
-      opacity: 1;
-    }
+    .presentation-subtitle.visible { opacity: 1; }
 
-    /* Logo Gestpropiedad en presentación */
     .presentation-logo {
       position: fixed;
-      bottom: 24px;
-      left: 24px;
-      height: 128px;
-      width: auto;
+      bottom: 24px; left: 24px;
+      height: 80px; width: auto;
       opacity: 0;
       transition: opacity 1.5s ease-out;
       z-index: 10001;
@@ -260,25 +204,16 @@
       border-radius: 10px;
     }
 
-    .presentation-container.show-logo .presentation-logo {
-      opacity: 0.9;
-    }
-
-    .presentation-avatar.fading-out ~ .presentation-logo,
-    .presentation-container:not(.show-logo) .presentation-logo {
-      opacity: 0;
-      transition: opacity 2s ease-in;
-    }
+    .presentation-container.show-logo .presentation-logo { opacity: 0.9; }
+    .presentation-avatar.fading-out ~ .presentation-logo { opacity: 0; transition: opacity 2s ease-in; }
 
     .exit-presentation-btn {
       position: fixed;
-      top: 20px;
-      right: 20px;
+      top: 20px; right: 20px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: white;
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       cursor: pointer;
       z-index: 10002;
@@ -289,26 +224,13 @@
       transition: opacity 0.3s, background 0.2s;
     }
 
-    .exit-presentation-btn:hover {
-      background: rgba(255, 255, 255, 0.15);
-      opacity: 1 !important;
-    }
+    .exit-presentation-btn:hover { background: rgba(255, 255, 255, 0.15); opacity: 1 !important; }
+    .exit-presentation-btn:disabled { display: none; }
+    .exit-presentation-btn i { width: 20px; height: 20px; }
+    .presentation-container:hover .exit-presentation-btn:not(:disabled) { opacity: 0.4; }
 
-    .exit-presentation-btn i {
-      width: 20px;
-      height: 20px;
-    }
-
-    .presentation-container:hover .exit-presentation-btn {
-      opacity: 0.4;
-    }
-
-    /* ============================
-       PANEL PRINCIPAL
-       ============================ */
     .stage {
-      width: 100%;
-      max-width: 900px;
+      width: 100%; max-width: 900px;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 20px;
@@ -321,76 +243,40 @@
     }
 
     @media (max-width: 800px) {
-      .stage {
-        grid-template-columns: 1fr;
-        gap: 20px;
-        padding: 20px;
-      }
+      .stage { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
       .avatar { order: 1; }
       .panel { order: 2; }
     }
 
     @media (max-width: 480px) {
       body { padding: 8px; }
-      .stage {
-        border-radius: 16px;
-        padding: 16px;
-        gap: 16px;
-      }
-      .rive-wrap {
-        width: 220px !important;
-        height: 220px !important;
-      }
-      #riveCanvas {
-        width: 200px !important;
-        height: 200px !important;
-      }
-      .bubble {
-        min-height: 70px !important;
-        font-size: 15px !important;
-      }
+      .stage { border-radius: 16px; padding: 16px; gap: 16px; }
+      .rive-wrap { width: 220px !important; height: 220px !important; }
+      #riveCanvas { width: 200px !important; height: 200px !important; }
+      .bubble { min-height: 70px !important; font-size: 15px !important; }
       .btn-row { flex-direction: column; }
       .btn { width: 100%; }
     }
 
-    /* Avatar */
-    .avatar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 260px;
-      position: relative;
-    }
+    .avatar { display: flex; justify-content: center; align-items: center; min-height: 260px; position: relative; }
 
     .rive-wrap {
-      width: 280px;
-      height: 280px;
+      width: 280px; height: 280px;
       display: grid;
       place-items: center;
       border-radius: 20px;
       background: radial-gradient(circle at 30% 30%, #1a2535, #0d121b 70%);
       border: 1px solid #223146;
-      box-shadow: 
-        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
-        0 8px 32px rgba(0, 0, 0, 0.3);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 8px 32px rgba(0, 0, 0, 0.3);
       overflow: hidden;
       position: relative;
     }
 
-    #riveCanvas {
-      width: 260px;
-      height: 260px;
-    }
-
-    /* CSS Fallback */
-    .css-avatar {
-      display: none;
-      place-items: center;
-    }
+    #riveCanvas { width: 260px; height: 260px; }
+    .css-avatar { display: none; place-items: center; }
 
     .head {
-      width: 180px;
-      height: 180px;
+      width: 180px; height: 180px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #2b3b52, #111823 70%);
       position: relative;
@@ -398,107 +284,47 @@
       animation: breathe 5.5s ease-in-out infinite;
     }
 
-    @keyframes breathe {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-2px); }
-    }
+    @keyframes breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 
-    .eye {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: var(--text-primary);
-      position: absolute;
-      top: 65px;
-      overflow: hidden;
-    }
-
+    .eye { width: 20px; height: 20px; border-radius: 50%; background: var(--text-primary); position: absolute; top: 65px; overflow: hidden; }
     .eye.left { left: 55px; }
     .eye.right { right: 55px; }
-
-    .eye::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: var(--bg-card);
-      transform: translateY(-120%);
-      animation: blink 6s infinite;
-    }
-
-    @keyframes blink {
-      0%, 92%, 100% { transform: translateY(-120%); }
-      94%, 96% { transform: translateY(0%); }
-    }
-
-    .pupil {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--bg-dark);
-      position: absolute;
-      top: 6px;
-      left: 6px;
-    }
+    .eye::after { content: ""; position: absolute; inset: 0; background: var(--bg-card); transform: translateY(-120%); animation: blink 6s infinite; }
+    @keyframes blink { 0%, 92%, 100% { transform: translateY(-120%); } 94%, 96% { transform: translateY(0%); } }
+    .pupil { width: 7px; height: 7px; border-radius: 50%; background: var(--bg-dark); position: absolute; top: 6px; left: 6px; }
 
     .mouth {
-      width: 60px;
-      height: 12px;
+      width: 60px; height: 12px;
       background: var(--text-primary);
       border-radius: 0 0 12px 12px;
       position: absolute;
-      bottom: 50px;
-      left: 50%;
+      bottom: 50px; left: 50%;
       transform: translateX(-50%) scaleY(0.2);
       transform-origin: center top;
       transition: transform 40ms linear;
     }
 
-    /* Panel */
-    .panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+    .panel { display: flex; flex-direction: column; gap: 14px; }
 
     .status-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: flex; align-items: center; gap: 10px;
       padding: 10px 14px;
       background: var(--bg-input);
       border-radius: 10px;
       border: 1px solid var(--border-color);
     }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #666;
-      flex-shrink: 0;
-    }
-
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #666; flex-shrink: 0; }
     .status-dot.ok { background: var(--success); }
     .status-dot.error { background: var(--error); }
     .status-dot.loading { background: var(--warning); animation: pulse 1s infinite; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    .status-text {
-      font-size: 13px;
-      color: var(--text-muted);
-      flex: 1;
-    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status-text { font-size: 13px; color: var(--text-muted); flex: 1; }
 
     .debug {
-      font-size: 10px;
-      color: var(--text-muted);
+      font-size: 10px; color: var(--text-muted);
       font-family: 'SF Mono', Monaco, Consolas, monospace;
-      max-height: 60px;
-      overflow-y: auto;
+      max-height: 60px; overflow-y: auto;
       background: var(--bg-input);
       padding: 10px 12px;
       border-radius: 8px;
@@ -513,19 +339,14 @@
       border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 14px 16px;
-      min-height: 90px;
-      max-height: 130px;
+      min-height: 90px; max-height: 130px;
       overflow-y: auto;
       font-size: 15px;
       line-height: 1.5;
       color: var(--text-primary);
     }
 
-    /* Buttons */
-    .btn-row {
-      display: flex;
-      gap: 10px;
-    }
+    .btn-row { display: flex; gap: 10px; }
 
     .btn {
       background: rgba(255, 255, 255, 0.06);
@@ -544,139 +365,52 @@
       gap: 8px;
     }
 
-    .btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
+    .btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+    .btn:active { transform: scale(0.97); }
+    .btn i { width: 16px; height: 16px; flex-shrink: 0; }
+    .btn.primary { background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%); border: none; box-shadow: 0 2px 12px rgba(28, 164, 175, 0.2); }
+    .btn.primary:hover { box-shadow: 0 4px 16px rgba(28, 164, 175, 0.3); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .btn:active {
-      transform: scale(0.97);
-    }
+    .settings-section { background: var(--bg-input); border-radius: 10px; padding: 12px 14px; border: 1px solid var(--border-color); }
+    .settings-section label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .settings-section label i { width: 14px; height: 14px; }
+    .voice-select { background: var(--bg-dark); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 10px; border-radius: 8px; font-size: 13px; width: 100%; }
+    .voice-select:focus { outline: none; border-color: var(--brand-primary); }
 
-    .btn i {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-    }
-
-    .btn.primary {
-      background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
-      border: none;
-      box-shadow: 0 2px 12px rgba(28, 164, 175, 0.2);
-    }
-
-    .btn.primary:hover {
-      box-shadow: 0 4px 16px rgba(28, 164, 175, 0.3);
-    }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    /* Settings */
-    .settings-section {
-      background: var(--bg-input);
-      border-radius: 10px;
-      padding: 12px 14px;
-      border: 1px solid var(--border-color);
-    }
-
-    .settings-section label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-
-    .settings-section label i {
-      width: 14px;
-      height: 14px;
-    }
-
-    .voice-select {
-      background: var(--bg-dark);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      width: 100%;
-    }
-
-    .voice-select:focus {
-      outline: none;
-      border-color: var(--brand-primary);
-    }
-
-    /* Fullscreen button */
     .fullscreen-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
+      position: absolute; top: 8px; right: 8px;
       background: rgba(0, 0, 0, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      width: 32px;
-      height: 32px;
-      padding: 0;
+      width: 32px; height: 32px; padding: 0;
       border-radius: 8px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       opacity: 0;
       transition: opacity 0.2s, background 0.2s;
       color: white;
     }
 
-    .fullscreen-btn i {
-      width: 16px;
-      height: 16px;
-    }
+    .fullscreen-btn i { width: 16px; height: 16px; }
+    .rive-wrap:hover .fullscreen-btn { opacity: 0.7; }
+    .fullscreen-btn:hover { opacity: 1 !important; background: rgba(0, 0, 0, 0.6); }
 
-    .rive-wrap:hover .fullscreen-btn {
-      opacity: 0.7;
-    }
-
-    .fullscreen-btn:hover {
-      opacity: 1 !important;
-      background: rgba(0, 0, 0, 0.6);
-    }
-
-    /* Rive fullscreen mode */
     .rive-wrap.fullscreen {
       position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
+      top: 0 !important; left: 0 !important;
+      width: 100vw !important; height: 100vh !important;
       max-width: none !important;
       border-radius: 0 !important;
       z-index: 9999;
       background: #000;
     }
 
-    .rive-wrap.fullscreen #riveCanvas {
-      width: 100vmin !important;
-      height: 100vmin !important;
-    }
-
-    .rive-wrap.fullscreen .fullscreen-btn {
-      top: 16px;
-      right: 16px;
-      width: 40px;
-      height: 40px;
-      opacity: 0.5;
-    }
+    .rive-wrap.fullscreen #riveCanvas { width: 100vmin !important; height: 100vmin !important; }
+    .rive-wrap.fullscreen .fullscreen-btn { top: 16px; right: 16px; width: 40px; height: 40px; opacity: 0.5; }
   </style>
 </head>
 
 <body>
-  <!-- Overlay de inicio -->
   <div class="start-overlay" id="startOverlay">
     <svg class="start-logo" viewBox="0 0 226.1 219.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -706,7 +440,6 @@
     </div>
   </div>
 
-  <!-- Contenedor presentación fullscreen -->
   <div class="presentation-container" id="presentationContainer">
     <button class="exit-presentation-btn" id="exitPresentationBtn" title="Salir (ESC)" disabled>
       <i data-lucide="x"></i>
@@ -720,7 +453,6 @@
     <div class="presentation-subtitle" id="presentationSubtitle"></div>
   </div>
 
-  <!-- Panel principal -->
   <div class="stage">
     <div class="avatar">
       <div class="rive-wrap" id="riveWrap">
@@ -743,45 +475,23 @@
         <span class="status-dot loading" id="statusDot"></span>
         <span class="status-text" id="statusText">Inicializando...</span>
       </div>
-
       <div class="debug" id="debug"></div>
-
       <div class="bubble" id="bubble">Listo para recibir eventos.</div>
-      
       <div class="btn-row">
-        <button class="btn primary" id="testTalkBtn">
-          <i data-lucide="play"></i>
-          Test
-        </button>
-        <button class="btn" id="idleBtn">
-          <i data-lucide="pause"></i>
-          Detener
-        </button>
+        <button class="btn primary" id="testTalkBtn"><i data-lucide="play"></i>Test</button>
+        <button class="btn" id="idleBtn"><i data-lucide="pause"></i>Detener</button>
       </div>
-      
       <div class="btn-row">
-        <button class="btn primary" id="enterPresentationBtn">
-          <i data-lucide="tv"></i>
-          Modo Presentación
-        </button>
+        <button class="btn primary" id="enterPresentationBtn"><i data-lucide="tv"></i>Modo Presentación</button>
       </div>
-      
       <div class="settings-section">
-        <label>
-          <i data-lucide="volume-2"></i>
-          Voz TTS
-        </label>
-        <select id="voiceSelect" class="voice-select">
-          <option value="">Cargando voces...</option>
-        </select>
+        <label><i data-lucide="volume-2"></i>Voz TTS</label>
+        <select id="voiceSelect" class="voice-select"><option value="">Cargando voces...</option></select>
       </div>
     </div>
   </div>
 
   <script type="module">
-    // ===========================================
-    // CONFIGURACIÓN
-    // ===========================================
     const CONFIG = {
       ELEVENLABS_API_KEY: "sk_ed00c8630aeb0240abba435c3f0a4afcd6794a79c0d1aba6",
       ELEVENLABS_VOICE_ID: "uU1QvfOppdkePeLtG9pI",
@@ -792,37 +502,9 @@
       USE_BROWSER_TTS_FALLBACK: true,
       PRESENTATION_START_ID: "intro_1",
       PRESENTATION_END_ID: "despedida_1",
-      
-      // Duración de cada pausa de labios (ms)
       PAUSE_DURATION: 500,
     };
 
-    // ===========================================
-    // BANCO DE AUDIOS CON TIMESTAMPS MANUALES
-    // 
-    // pauses: Array de timestamps (en milisegundos) donde 
-    //         los labios deben cerrarse durante PAUSE_DURATION ms
-    // 
-    // Ejemplo: pauses: [1500, 3200, 5800]
-    //          - En el ms 1500, cierra labios 500ms
-    //          - En el ms 3200, cierra labios 500ms
-    //          - En el ms 5800, cierra labios 500ms
-    //
-    // TIP: Reproduce el audio y anota los segundos donde hay pausas,
-    //      luego multiplica por 1000 para obtener milisegundos.
-    //      Ejemplo: pausa en 2.3 segundos → 2300
-    // ===========================================
-    // ===========================================
-    // BANCO DE AUDIOS CON SEGMENTOS MANUALES
-    // 
-    // Cada audio tiene:
-    // - text: Texto completo
-    // - audio: Ruta al archivo
-    // - segments: Array de objetos {text, start}
-    //   - text: Lo que se dice en ese segmento
-    //   - start: Milisegundo cuando EMPIEZA ese segmento
-    // - pauses: Array de timestamps donde cerrar labios (para lip-sync)
-    // ===========================================
     const AUDIO_BANK = {
       "intro_1": {
         text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: 'igual os habíais olvidado de mí'.",
@@ -884,14 +566,8 @@
 
     const AUDIO_BY_TEXT = {};
 
-    // ===========================================
-    // Importar Rive
-    // ===========================================
     import RiveCanvas from "https://cdn.jsdelivr.net/npm/@rive-app/canvas@2.21.6/+esm";
 
-    // ===========================================
-    // DOM
-    // ===========================================
     const $ = id => document.getElementById(id);
     const statusDot = $("statusDot");
     const statusText = $("statusText");
@@ -905,7 +581,6 @@
     const startOverlay = $("startOverlay");
     const startNormalBtn = $("startNormalBtn");
     const startPresentationBtn = $("startPresentationBtn");
-
     const presentationContainer = $("presentationContainer");
     const presentationAvatar = $("presentationAvatar");
     const presentationCanvas = $("presentationCanvas");
@@ -929,69 +604,36 @@
       debugEl.textContent = `[${time}] ${msg}\n` + debugEl.textContent.slice(0, 400);
     }
 
-    // ===========================================
-    // AUDIO UNLOCK
-    // ===========================================
     async function unlockAudio() {
       try {
         const silentAudio = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleCAHQJnx+aCFNgRDmvz/mXoxBEaZ/P+YdywFR5r8/5d3KgZIm/z/lnkpB0mc/P+VeigISp38/5R7JwlLnfz/k3wmCkye/P+SfSULTZ/8/5F+JAxOoPz/kH8jDU+h/P+PgCIOUKL8/46BIQ9Ro/z/jYIfEFKk/P+MgyAQU6X8/4uEHxFUpvz/ioUeElWn/P+Jhh0TV6j8/4iHHBRYqfz/h4gcFVqq/P+GiRsWW6v8/4WKGhdcrPz/hIoZGF2t/P+DixgZXq78/4KMGB5fr/z/gY0XH2Cw/P+AjhYgYbH8/3+PFSFisfz/fpAUI2Oz/P99kRMkZLT8/3ySEiVltfz/e5MSJGW1");
         silentAudio.volume = 0.01;
         await silentAudio.play();
         silentAudio.pause();
-        
-        if (synth) {
-          const u = new SpeechSynthesisUtterance("");
-          u.volume = 0;
-          synth.speak(u);
-          synth.cancel();
-        }
-        
+        if (synth) { const u = new SpeechSynthesisUtterance(""); u.volume = 0; synth.speak(u); synth.cancel(); }
         log("Audio OK ✓");
         return true;
-      } catch (e) {
-        log("Audio error: " + e.message);
-        return false;
-      }
+      } catch (e) { log("Audio error: " + e.message); return false; }
     }
 
-    // Modo normal
-    startNormalBtn.onclick = async () => {
-      await unlockAudio();
-      startOverlay.classList.add("hidden");
-    };
-
-    // Modo presentación desde overlay
+    startNormalBtn.onclick = async () => { /* Deshabilitado */ };
     startPresentationBtn.onclick = async () => {
       await unlockAudio();
       startOverlay.classList.add("hidden");
       await enterPresentationMode();
     };
 
-    // ===========================================
-    // MODO PRESENTACIÓN
-    // ===========================================
     async function enterPresentationMode() {
       log("→ Modo presentación");
       isPresentationMode = true;
       document.body.classList.add("presentation-mode");
-      
-      if (!presentationRiveInstance) {
-        await initPresentationRive();
-      }
-      
+      if (!presentationRiveInstance) await initPresentationRive();
       presentationAvatar.classList.remove("visible", "fading-out");
       presentationSubtitle.classList.remove("visible");
       presentationSubtitle.textContent = "";
     }
 
-    function exitPresentationMode() {
-      log("← Saliendo de presentación");
-      isPresentationMode = false;
-      document.body.classList.remove("presentation-mode");
-      presentationAvatar.classList.remove("visible", "fading-out");
-      presentationContainer.classList.remove("show-logo");
-      presentationSubtitle.classList.remove("visible");
-    }
+    function exitPresentationMode() { /* Deshabilitado */ }
 
     function showPresentationAvatar() {
       log("✨ Avatar apareciendo");
@@ -1004,7 +646,6 @@
       log("✨ Avatar desapareciendo");
       presentationAvatar.classList.add("fading-out");
       presentationSubtitle.classList.remove("visible");
-      
       setTimeout(() => {
         presentationContainer.classList.remove("show-logo");
         presentationAvatar.classList.remove("visible", "fading-out");
@@ -1022,74 +663,45 @@
       presentationSubtitle.classList.remove("visible");
     }
 
-    // ===========================================
-    // KARAOKE SYNC - Usa segmentos manuales del AUDIO_BANK
-    // ===========================================
     let karaokeTimer = null;
-    let karaokeSegments = [];  // Array de {text, start}
+    let karaokeSegments = [];
     let karaokeStartTime = 0;
 
     function showSubtitleKaraoke(entry) {
       if (!isPresentationMode) return;
-      
       stopKaraokeSync();
-      
-      // Usar segmentos manuales si existen, sino texto completo
-      if (entry.segments && entry.segments.length > 0) {
-        karaokeSegments = entry.segments;
-      } else {
-        karaokeSegments = [{ text: entry.text, start: 0 }];
-      }
-      
-      // NO mostrar nada aún - se mostrará cuando el audio empiece en startKaraokeSync()
+      karaokeSegments = (entry.segments && entry.segments.length > 0) ? entry.segments : [{ text: entry.text, start: 0 }];
     }
 
     function startKaraokeSync() {
       if (karaokeSegments.length === 0) return;
-      
       karaokeStartTime = performance.now();
       let currentIndex = 0;
-      
-      // Mostrar primer segmento inmediatamente
       presentationSubtitle.textContent = karaokeSegments[0].text;
       presentationSubtitle.classList.add("visible");
-      
       log("▶ Karaoke: " + karaokeSegments.length + " segmentos");
-      
       karaokeTimer = setInterval(() => {
         const elapsed = performance.now() - karaokeStartTime;
-        
-        // Encontrar qué segmento debería estar activo
         let newIndex = 0;
         for (let i = 0; i < karaokeSegments.length; i++) {
-          if (elapsed >= karaokeSegments[i].start) {
-            newIndex = i;
-          }
+          if (elapsed >= karaokeSegments[i].start) newIndex = i;
         }
-        
-        // Solo actualizar si cambió
         if (newIndex !== currentIndex) {
           currentIndex = newIndex;
           presentationSubtitle.textContent = karaokeSegments[currentIndex].text;
-          log("📝 Seg " + (currentIndex + 1) + "/" + karaokeSegments.length);
         }
       }, 50);
     }
 
     function stopKaraokeSync() {
-      if (karaokeTimer) {
-        clearInterval(karaokeTimer);
-        karaokeTimer = null;
-      }
+      if (karaokeTimer) { clearInterval(karaokeTimer); karaokeTimer = null; }
       karaokeSegments = [];
       presentationSubtitle.textContent = '';
     }
 
     async function initPresentationRive() {
       log("Cargando Rive (presentación)...");
-      
       const Rive = RiveCanvas.Rive || RiveCanvas.default || RiveCanvas;
-
       return new Promise((resolve) => {
         try {
           presentationRiveInstance = new Rive({
@@ -1106,96 +718,59 @@
                       if (input.name === "isTalking") presentationIsTalkingInput = input;
                       else if (input.name === "VisemeID") presentationVisemeIDInput = input;
                     });
-                    log("✓ Rive presentación OK");
+                    log("✓ Rive presentación OK (inputs: " + inputs.length + ")");
                   }
                   resolve();
-                } catch (e) {
-                  log("Error inputs: " + e.message);
-                  resolve();
-                }
+                } catch (e) { log("Error inputs: " + e.message); resolve(); }
               }, 100);
             },
-            onLoadError: (err) => {
-              log("Error Rive: " + err);
-              resolve();
-            }
+            onLoadError: (err) => { log("Error Rive: " + err); resolve(); }
           });
-        } catch (e) {
-          log("Error Rive: " + e.message);
-          resolve();
-        }
+        } catch (e) { log("Error Rive: " + e.message); resolve(); }
       });
     }
 
     exitPresentationBtn.onclick = exitPresentationMode;
     enterPresentationBtn.onclick = enterPresentationMode;
 
-    // ===========================================
-    // CSS Fallback
-    // ===========================================
     function cssSetMouthOpen(value) {
       const scale = 0.2 + (value * 0.8);
       cssMouth.style.transform = `translateX(-50%) scaleY(${scale})`;
     }
 
-    // ===========================================
-    // TTS
-    // ===========================================
     let synth = window.speechSynthesis;
     let voices = [];
     let selectedVoice = null;
     let currentUtterance = null;
-
     let voicesLoaded = false;
     
     function loadVoices() {
       voices = synth.getVoices();
-      if (voices.length === 0) return; // Esperar a que haya voces
-      
-      // Filtrar voces de Microsoft (causan eco)
+      if (voices.length === 0) return;
       const filteredVoices = voices.filter(v => !v.name.toLowerCase().includes('microsoft'));
       const spanishVoices = filteredVoices.filter(v => v.lang.startsWith('es'));
       const otherVoices = filteredVoices.filter(v => !v.lang.startsWith('es'));
       const sortedVoices = [...spanishVoices, ...otherVoices];
-      
-      // Evitar recargar si ya estaban cargadas
       if (voicesLoaded && voiceSelect.options.length === sortedVoices.length) return;
       voicesLoaded = true;
-      
       voiceSelect.innerHTML = '';
-      
-      if (sortedVoices.length === 0) {
-        voiceSelect.innerHTML = '<option value="">Sin voces</option>';
-        return;
-      }
-      
+      if (sortedVoices.length === 0) { voiceSelect.innerHTML = '<option value="">Sin voces</option>'; return; }
       sortedVoices.forEach((voice, i) => {
         const option = document.createElement('option');
         option.value = i;
         option.textContent = `${voice.name} (${voice.lang})`;
-        if (voice.lang.startsWith('es') && !selectedVoice) {
-          option.selected = true;
-          selectedVoice = voice;
-        }
+        if (voice.lang.startsWith('es') && !selectedVoice) { option.selected = true; selectedVoice = voice; }
         voiceSelect.appendChild(option);
       });
-      
-      if (!selectedVoice && sortedVoices.length > 0) {
-        selectedVoice = sortedVoices[0];
-        voiceSelect.selectedIndex = 0;
-      }
-      
+      if (!selectedVoice && sortedVoices.length > 0) { selectedVoice = sortedVoices[0]; voiceSelect.selectedIndex = 0; }
       log("Voces: " + sortedVoices.length);
     }
 
-    if (synth.onvoiceschanged !== undefined) {
-      synth.onvoiceschanged = loadVoices;
-    }
+    if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
     loadVoices();
 
     voiceSelect.addEventListener('change', () => {
       const allVoices = synth.getVoices();
-      // Filtrar voces de Microsoft (causan eco)
       const filteredVoices = allVoices.filter(v => !v.name.toLowerCase().includes('microsoft'));
       const spanishVoices = filteredVoices.filter(v => v.lang.startsWith('es'));
       const otherVoices = filteredVoices.filter(v => !v.lang.startsWith('es'));
@@ -1207,70 +782,50 @@
       return new Promise(async (resolve) => {
         if (!text && !audioId) { resolve(); return; }
 
-        // ⚡ Detener cualquier audio anterior para evitar eco/superposición
-        stopSpeaking();
+        // IMPORTANTE: Solo detener audio, NO limpiar timers de lip-sync aquí
+        // porque playPrerecordedAudio iniciará nuevos timers
+        stopAudioOnly();
 
         if (audioId && AUDIO_BANK[audioId]) {
           const entry = AUDIO_BANK[audioId];
-          log("Audio: " + audioId);
+          log("🎵 Audio: " + audioId);
           bubbleEl.textContent = entry.text;
           if (isPresentationMode) showSubtitleKaraoke(entry);
           try {
-            // Pasar los timestamps de pausa al reproductor
             await playPrerecordedAudio(entry.audio, entry.pauses || []);
             resolve();
             return;
-          } catch (e) {
-            log("Error audio: " + e.message);
-          }
+          } catch (e) { log("Error audio: " + e.message); }
         }
 
         if (text && AUDIO_BY_TEXT[text]) {
-          try {
-            await playPrerecordedAudio(AUDIO_BY_TEXT[text], []);
-            resolve();
-            return;
-          } catch (e) {}
+          try { await playPrerecordedAudio(AUDIO_BY_TEXT[text], []); resolve(); return; } catch (e) {}
         }
 
         if (CONFIG.ELEVENLABS_API_KEY && text) {
-          try {
-            await speakWithElevenLabs(text);
-            resolve();
-            return;
-          } catch (e) {
-            log("ElevenLabs error: " + e.message);
-            if (!CONFIG.USE_BROWSER_TTS_FALLBACK) {
-              stopTalking();
-              resolve();
-              return;
-            }
-          }
+          try { await speakWithElevenLabs(text); resolve(); return; }
+          catch (e) { log("ElevenLabs error: " + e.message); if (!CONFIG.USE_BROWSER_TTS_FALLBACK) { stopTalking(); resolve(); return; } }
         }
 
         if (!synth || !text) { resolve(); return; }
-
         synth.cancel();
         currentUtterance = new SpeechSynthesisUtterance(text);
         if (selectedVoice) currentUtterance.voice = selectedVoice;
         currentUtterance.lang = 'es-ES';
-
         currentUtterance.onstart = () => startTTSLipSync();
         currentUtterance.onend = () => { stopTalking(); resolve(); };
         currentUtterance.onerror = () => { stopTalking(); resolve(); };
-
         synth.speak(currentUtterance);
       });
     }
 
-    // ===========================================
-    // Audio Pregenerado con Timestamps de Pausa
-    // ===========================================
     let prerecordedAudio = null;
+    let currentPauseTimestamps = [];
 
     async function playPrerecordedAudio(audioUrl, pauseTimestamps = []) {
       return new Promise((resolve, reject) => {
-        // Limpiar audio anterior completamente
+        currentPauseTimestamps = [...pauseTimestamps]; // Copia para evitar referencias
+        
         if (prerecordedAudio) {
           prerecordedAudio.onplay = null;
           prerecordedAudio.onended = null;
@@ -1282,23 +837,22 @@
 
         prerecordedAudio = new Audio(audioUrl);
         
-        // Usar once para evitar eventos duplicados
         prerecordedAudio.onplay = () => {
-          log("▶ Audio reproduciendo");
-          startLipSyncWithTimestamps(pauseTimestamps);
-          // Iniciar sincronización de subtítulos karaoke
+          log("▶ Reproduciendo: " + audioUrl.split('/').pop());
+          // Iniciar lip-sync SIEMPRE al comenzar reproducción
+          startLipSyncWithTimestamps(currentPauseTimestamps);
           startKaraokeSync();
         };
 
         prerecordedAudio.onended = () => { 
-          log("⏹ Audio terminado");
+          log("⏹ Terminado");
           stopTalking();
           stopKaraokeSync();
           resolve(); 
         };
         
         prerecordedAudio.onerror = (e) => { 
-          log("❌ Error audio: " + e.type);
+          log("❌ Error audio");
           stopTalking(); 
           reject(new Error("Audio error")); 
         };
@@ -1310,92 +864,40 @@
       });
     }
 
-    // ===========================================
-    // ElevenLabs
-    // ===========================================
     let elevenLabsAudio = null;
 
     async function speakWithElevenLabs(text) {
       log("ElevenLabs...");
-      
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${CONFIG.ELEVENLABS_VOICE_ID}`,
-        {
-          method: "POST",
-          headers: {
-            "Accept": "audio/mpeg",
-            "Content-Type": "application/json",
-            "xi-api-key": CONFIG.ELEVENLABS_API_KEY,
-          },
-          body: JSON.stringify({
-            text,
-            model_id: CONFIG.ELEVENLABS_MODEL,
-            voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-          }),
-        }
-      );
-
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${CONFIG.ELEVENLABS_VOICE_ID}`, {
+        method: "POST",
+        headers: { "Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": CONFIG.ELEVENLABS_API_KEY },
+        body: JSON.stringify({ text, model_id: CONFIG.ELEVENLABS_MODEL, voice_settings: { stability: 0.5, similarity_boost: 0.75 } }),
+      });
       if (!response.ok) throw new Error(`API ${response.status}`);
-
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
-
       return new Promise((resolve, reject) => {
-        // Limpiar audio anterior completamente
-        if (elevenLabsAudio) {
-          elevenLabsAudio.onplay = null;
-          elevenLabsAudio.onended = null;
-          elevenLabsAudio.onerror = null;
-          elevenLabsAudio.pause();
-          elevenLabsAudio.src = '';
-          elevenLabsAudio = null;
-        }
-
+        if (elevenLabsAudio) { elevenLabsAudio.onplay = null; elevenLabsAudio.onended = null; elevenLabsAudio.onerror = null; elevenLabsAudio.pause(); elevenLabsAudio.src = ''; elevenLabsAudio = null; }
         elevenLabsAudio = new Audio(audioUrl);
         elevenLabsAudio.onplay = () => startTTSLipSync();
-        elevenLabsAudio.onended = () => { 
-          stopTalking(); 
-          URL.revokeObjectURL(audioUrl); 
-          resolve(); 
-        };
-        elevenLabsAudio.onerror = () => { 
-          stopTalking(); 
-          URL.revokeObjectURL(audioUrl); 
-          reject(); 
-        };
+        elevenLabsAudio.onended = () => { stopTalking(); URL.revokeObjectURL(audioUrl); resolve(); };
+        elevenLabsAudio.onerror = () => { stopTalking(); URL.revokeObjectURL(audioUrl); reject(); };
         elevenLabsAudio.play().catch(reject);
       });
     }
 
+    function stopAudioOnly() {
+      if (synth) synth.cancel();
+      if (elevenLabsAudio) { elevenLabsAudio.pause(); elevenLabsAudio.currentTime = 0; elevenLabsAudio.src = ''; elevenLabsAudio = null; }
+      if (prerecordedAudio) { prerecordedAudio.pause(); prerecordedAudio.currentTime = 0; prerecordedAudio.src = ''; prerecordedAudio = null; }
+    }
+
     function stopSpeaking() {
-      // Detener síntesis de voz
-      if (synth) {
-        synth.cancel();
-      }
-      
-      // Detener y limpiar audio de ElevenLabs
-      if (elevenLabsAudio) {
-        elevenLabsAudio.pause();
-        elevenLabsAudio.currentTime = 0;
-        elevenLabsAudio.src = '';
-        elevenLabsAudio = null;
-      }
-      
-      // Detener y limpiar audio pregenerado
-      if (prerecordedAudio) {
-        prerecordedAudio.pause();
-        prerecordedAudio.currentTime = 0;
-        prerecordedAudio.src = '';
-        prerecordedAudio = null;
-      }
-      
+      stopAudioOnly();
       stopTalking();
       hideSubtitle();
     }
 
-    // ===========================================
-    // RIVE
-    // ===========================================
     let riveInstance = null;
     let hasRive = false;
     let isTalkingInput = null;
@@ -1406,14 +908,8 @@
     async function initRive() {
       log("Cargando Rive...");
       setStatus("Cargando avatar...", "loading");
-
       const Rive = RiveCanvas.Rive || RiveCanvas.default || RiveCanvas;
-
-      if (typeof Rive !== "function") {
-        fallbackToCSS("No Rive");
-        return;
-      }
-
+      if (typeof Rive !== "function") { fallbackToCSS("No Rive"); return; }
       try {
         riveInstance = new Rive({
           src: CONFIG.RIVE_FILE,
@@ -1423,44 +919,30 @@
           onLoad: onRiveLoad,
           onLoadError: onRiveError
         });
-      } catch (e) {
-        fallbackToCSS(e.message);
-      }
+      } catch (e) { fallbackToCSS(e.message); }
     }
 
     function onRiveLoad() {
       setTimeout(() => {
         try {
           const inputs = riveInstance.stateMachineInputs(CONFIG.STATE_MACHINE);
-          
-          if (!inputs || inputs.length === 0) {
-            fallbackToCSS("Sin inputs");
-            return;
-          }
-          
+          if (!inputs || inputs.length === 0) { fallbackToCSS("Sin inputs"); return; }
           inputs.forEach(input => {
             if (input.name === "isTalking") isTalkingInput = input;
             else if (input.name === "VisemeID") visemeIDInput = input;
           });
-
           if (isTalkingInput && visemeIDInput) {
             hasRive = true;
             riveWrap.style.display = "grid";
             cssAvatar.style.display = "none";
             setStatus("Avatar listo", "ok");
             log("✓ Rive OK");
-          } else {
-            fallbackToCSS("Inputs incompletos");
-          }
-        } catch (e) {
-          fallbackToCSS(e.message);
-        }
+          } else { fallbackToCSS("Inputs incompletos"); }
+        } catch (e) { fallbackToCSS(e.message); }
       }, 100);
     }
 
-    function onRiveError(err) {
-      fallbackToCSS(String(err));
-    }
+    function onRiveError(err) { fallbackToCSS(String(err)); }
 
     function fallbackToCSS(reason) {
       hasRive = false;
@@ -1470,120 +952,84 @@
       log("Fallback: " + reason);
     }
 
-    // ===========================================
-    // Lip Sync
-    // ===========================================
     function stopTalking() {
       if (visemeTimer) { clearInterval(visemeTimer); visemeTimer = null; }
       if (ttsLipSyncTimer) { clearInterval(ttsLipSyncTimer); ttsLipSyncTimer = null; }
-
-      if (hasRive) {
-        if (isTalkingInput) isTalkingInput.value = false;
-        if (visemeIDInput) visemeIDInput.value = 0;
-      }
-
+      if (hasRive) { if (isTalkingInput) isTalkingInput.value = false; if (visemeIDInput) visemeIDInput.value = 0; }
       if (presentationIsTalkingInput) presentationIsTalkingInput.value = false;
       if (presentationVisemeIDInput) presentationVisemeIDInput.value = 0;
-
       cssSetMouthOpen(0);
     }
 
-    // Lip sync simple sin pausas
     function startTTSLipSync() {
-      if (!hasRive && !isPresentationMode) {
-        startCSSFakeTalking(99999);
-        return;
-      }
+      // Limpiar timer anterior
+      if (ttsLipSyncTimer) { clearInterval(ttsLipSyncTimer); ttsLipSyncTimer = null; }
 
-      if (isPresentationMode && presentationIsTalkingInput) {
-        presentationIsTalkingInput.value = true;
-      } else if (isTalkingInput) {
-        isTalkingInput.value = true;
-      }
+      if (!hasRive && !isPresentationMode) { startCSSFakeTalking(99999); return; }
 
+      const targetIsTalkingInput = isPresentationMode ? presentationIsTalkingInput : isTalkingInput;
       const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
 
+      log("🎤 Lip-sync continuo (viseme: " + (targetVisemeInput ? "OK" : "NULL") + ")");
+
+      if (targetIsTalkingInput) targetIsTalkingInput.value = true;
+
       if (targetVisemeInput) {
-        if (ttsLipSyncTimer) clearInterval(ttsLipSyncTimer);
-        
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
-        
         ttsLipSyncTimer = setInterval(() => {
           let newViseme;
-          do {
-            newViseme = visemes[Math.floor(Math.random() * visemes.length)];
-          } while (newViseme === lastViseme);
+          do { newViseme = visemes[Math.floor(Math.random() * visemes.length)]; } while (newViseme === lastViseme);
           lastViseme = newViseme;
           targetVisemeInput.value = newViseme;
         }, 90);
       }
     }
 
-    // ===========================================
-    // Lip Sync con Timestamps Manuales
-    // ===========================================
     function startLipSyncWithTimestamps(pauseTimestamps = []) {
-      if (!hasRive && !isPresentationMode) {
-        startCSSFakeTalking(99999);
-        return;
-      }
+      // SIEMPRE limpiar timer anterior primero
+      if (ttsLipSyncTimer) { clearInterval(ttsLipSyncTimer); ttsLipSyncTimer = null; }
+
+      if (!hasRive && !isPresentationMode) { startCSSFakeTalking(99999); return; }
 
       const targetIsTalkingInput = isPresentationMode ? presentationIsTalkingInput : isTalkingInput;
       const targetVisemeInput = isPresentationMode ? presentationVisemeIDInput : visemeIDInput;
 
-      // Si no hay pausas definidas, usar lip-sync normal
+      log("🎤 Lip-sync con " + pauseTimestamps.length + " pausas");
+
       if (!pauseTimestamps || pauseTimestamps.length === 0) {
-        log("Sin pausas definidas, lip-sync continuo");
         startTTSLipSync();
         return;
       }
 
-      log("Lip-sync con " + pauseTimestamps.length + " pausas: " + pauseTimestamps.join(", ") + " ms");
-
       if (targetIsTalkingInput) targetIsTalkingInput.value = true;
 
       if (targetVisemeInput) {
-        if (ttsLipSyncTimer) clearInterval(ttsLipSyncTimer);
-        
         const visemes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         let lastViseme = 0;
         const startTime = performance.now();
         const pauseDuration = CONFIG.PAUSE_DURATION;
-        
-        // Crear rangos de pausa [inicio, fin]
-        const pauseRanges = pauseTimestamps.map(t => ({
-          start: t,
-          end: t + pauseDuration
-        }));
+        const pauseRanges = pauseTimestamps.map(t => ({ start: t, end: t + pauseDuration }));
         
         ttsLipSyncTimer = setInterval(() => {
           const elapsed = performance.now() - startTime;
-          
-          // Verificar si estamos dentro de algún rango de pausa
-          const inPause = pauseRanges.some(range => 
-            elapsed >= range.start && elapsed < range.end
-          );
+          const inPause = pauseRanges.some(range => elapsed >= range.start && elapsed < range.end);
           
           if (inPause) {
-            // Estamos en pausa - cerrar boca
             targetVisemeInput.value = 0;
             if (targetIsTalkingInput) targetIsTalkingInput.value = false;
             return;
           }
           
-          // No estamos en pausa - animar labios
-          if (targetIsTalkingInput && !targetIsTalkingInput.value) {
-            targetIsTalkingInput.value = true;
-          }
+          if (targetIsTalkingInput && !targetIsTalkingInput.value) targetIsTalkingInput.value = true;
           
           let newViseme;
-          do {
-            newViseme = visemes[Math.floor(Math.random() * visemes.length)];
-          } while (newViseme === lastViseme);
+          do { newViseme = visemes[Math.floor(Math.random() * visemes.length)]; } while (newViseme === lastViseme);
           lastViseme = newViseme;
           targetVisemeInput.value = newViseme;
         }, 90);
+      } else {
+        log("⚠️ No hay visemeInput");
       }
     }
 
@@ -1599,15 +1045,7 @@
       requestAnimationFrame(tick);
     }
 
-    // ===========================================
-    // Controls
-    // ===========================================
-    $("idleBtn").onclick = () => {
-      log("Detenido");
-      stopSpeaking();
-      bubbleEl.textContent = "En espera…";
-    };
-
+    $("idleBtn").onclick = () => { log("Detenido"); stopSpeaking(); bubbleEl.textContent = "En espera…"; };
     $("testTalkBtn").onclick = async () => {
       const testText = "Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?";
       bubbleEl.textContent = testText;
@@ -1616,9 +1054,6 @@
       await speak(testText);
     };
 
-    // ===========================================
-    // WebSocket
-    // ===========================================
     const qp = new URLSearchParams(location.search);
     const BACKEND_HOST = qp.get("backend") || CONFIG.BACKEND_HOST;
     const wsProto = location.protocol === "https:" ? "wss://" : "ws://";
@@ -1628,73 +1063,41 @@
 
     function connectWebSocket() {
       if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
-      
       try {
         log("WS: " + BACKEND_HOST);
         ws = new WebSocket(wsProto + BACKEND_HOST);
-
         ws.onopen = () => log("WS conectado ✓");
-        ws.onclose = () => {
-          log("WS cerrado");
-          wsReconnectTimer = setTimeout(connectWebSocket, 5000);
-        };
+        ws.onclose = () => { log("WS cerrado"); wsReconnectTimer = setTimeout(connectWebSocket, 5000); };
         ws.onerror = () => log("WS error");
-
         ws.onmessage = async (ev) => {
           let msg;
           try { msg = JSON.parse(ev.data); } catch { return; }
-
           log("WS: " + msg.type);
-
           if (msg.type === "bot_speaking_start") {
             const audioId = msg.audioId || msg.lineId || null;
-            
-            // ⚡ FILTRO: Solo procesar si el audioId está en AUDIO_BANK
-            if (!audioId || !AUDIO_BANK[audioId]) {
-              log("⏭️ Ignorando (no está en AUDIO_BANK): " + audioId);
-              return;
-            }
-            
+            if (!audioId || !AUDIO_BANK[audioId]) { log("⏭️ Ignorando: " + audioId); return; }
             currentAudioId = audioId;
-            
-            // Si es intro_1 y estamos en presentación, mostrar avatar primero
             if (audioId === CONFIG.PRESENTATION_START_ID && isPresentationMode) {
               showPresentationAvatar();
               await new Promise(r => setTimeout(r, 800));
             }
-            
-            // Todo pasa por speak() para evitar duplicaciones
             await speak(null, audioId);
-            
-            // Si es despedida_1 y estamos en presentación, ocultar avatar
-            if (audioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) {
-              hidePresentationAvatar();
-            }
+            if (audioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) hidePresentationAvatar();
           }
-
           if (msg.type === "bot_speaking_end") {
-            if (currentAudioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) {
-              hidePresentationAvatar();
-            }
+            if (currentAudioId === CONFIG.PRESENTATION_END_ID && isPresentationMode) hidePresentationAvatar();
             stopSpeaking();
             currentAudioId = null;
           }
         };
-      } catch (e) {
-        log("WS error: " + e.message);
-        wsReconnectTimer = setTimeout(connectWebSocket, 5000);
-      }
+      } catch (e) { log("WS error: " + e.message); wsReconnectTimer = setTimeout(connectWebSocket, 5000); }
     }
 
-    // ===========================================
-    // Fullscreen normal
-    // ===========================================
     const fullscreenBtn = $("fullscreenBtn");
     let isFullscreen = false;
 
     fullscreenBtn.onclick = () => {
       isFullscreen = !isFullscreen;
-      
       if (isFullscreen) {
         riveWrap.classList.add("fullscreen");
         fullscreenBtn.innerHTML = '<i data-lucide="minimize-2"></i>';
@@ -1718,20 +1121,14 @@
     });
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        if (isPresentationMode) exitPresentationMode();
-        else if (isFullscreen) {
-          isFullscreen = false;
-          riveWrap.classList.remove("fullscreen");
-          fullscreenBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
-          lucide.createIcons();
-        }
+      if (e.key === "Escape" && !isPresentationMode && isFullscreen) {
+        isFullscreen = false;
+        riveWrap.classList.remove("fullscreen");
+        fullscreenBtn.innerHTML = '<i data-lucide="maximize-2"></i>';
+        lucide.createIcons();
       }
     });
 
-    // ===========================================
-    // Init
-    // ===========================================
     log("Iniciando...");
     await initRive();
     connectWebSocket();
@@ -1739,5 +1136,4 @@
     lucide.createIcons();
   </script>
 </body>
-
 </html>

@@ -222,52 +222,33 @@
 
     .presentation-subtitle {
       position: fixed;
-      bottom: 3%;
+      bottom: 4%;
       left: 50%;
       transform: translateX(-50%);
-      width: 90%;
-      max-width: 1000px;
-      max-height: 100px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: auto;
+      max-width: 85%;
       text-align: center;
-      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-      line-height: 1.4;
-      color: rgba(255, 255, 255, 0.4);
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      line-height: 1.5;
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
       opacity: 0;
-      transition: opacity 0.4s ease;
+      transition: opacity 0.3s ease;
       z-index: 10001;
       padding: 14px 28px;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.75);
       border-radius: 12px;
       backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      overflow-y: auto;
-      overflow-x: hidden;
     }
 
     .presentation-subtitle.visible {
       opacity: 1;
     }
 
-    .presentation-subtitle .subtitle-content {
-      display: inline;
-    }
-
     .presentation-subtitle .segment {
-      color: rgba(255, 255, 255, 0.3);
-      transition: color 0.4s ease, text-shadow 0.4s ease;
-    }
-
-    .presentation-subtitle .segment.active {
       color: #fff;
-      text-shadow: 0 0 30px rgba(28, 164, 175, 0.9), 0 0 60px rgba(28, 164, 175, 0.4);
-    }
-
-    .presentation-subtitle .segment.past {
-      color: rgba(255, 255, 255, 0.5);
+      text-shadow: 0 0 20px rgba(28, 164, 175, 0.6), 0 2px 12px rgba(0, 0, 0, 0.8);
     }
 
     .exit-presentation-btn {
@@ -693,13 +674,13 @@
       <polygon fill="url(#grad2)" points="194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6"/>
     </svg>
     <h1>Asistente Virtual</h1>
-    <p>Selecciona cómo quieres interactuar con el avatar</p>
+    <p>Conexia Telecom · Gestpropiedad</p>
     <div class="start-buttons">
       <button class="start-btn" id="startPresentationBtn">
         <i data-lucide="tv"></i>
         Modo Presentación
       </button>
-      <button class="start-btn secondary" id="startNormalBtn">
+      <button class="start-btn secondary" id="startNormalBtn" disabled>
         <i data-lucide="settings-2"></i>
         Panel de Control
       </button>
@@ -708,7 +689,7 @@
 
   <!-- Contenedor presentación fullscreen -->
   <div class="presentation-container" id="presentationContainer">
-    <button class="exit-presentation-btn" id="exitPresentationBtn" title="Salir (ESC)">
+    <button class="exit-presentation-btn" id="exitPresentationBtn" title="Salir (ESC)" disabled>
       <i data-lucide="x"></i>
     </button>
     <div class="presentation-avatar" id="presentationAvatar">
@@ -815,63 +796,62 @@
       "intro_1": {
         text: "Hola a todos. Perdonad mi entrada… estaba esperando. Y he pensado: 'igual os habíais olvidado de mí'.",
         audio: "./audio/intro_1.mp3",
-        // Duración: 6.58s
+        // Duración: 6.58s - Timestamps = cuando empieza cada nuevo segmento
         pauses: [
-          770,   // después de "Hola a todos."
-          2240,  // después de "estaba esperando."
-          4420,  // después de "Y he pensado:"
+          1331,  // empieza "Perdonad mi entrada…"
+          3074,  // empieza "Y he pensado:..."
         ]
       },
       "que_es_1": {
         text: "Buenas noches a todos. Y sí, es cierto: no duermo… no pido vacaciones… y los lunes no me afectan. Pero prometo ser simpática igualmente. Me presento: soy la nueva IA de Gestpropiedad. Vengo a echar una mano en tres frentes. Primero, con los clientes. Cuando la oficina cierre, me quedo de guardia para que ningún cliente se quede sin respuesta. Segundo, en la web. Ayudaré a entender mejor cada vivienda y a guiar a cada cliente hasta el asesor correcto. Y tercero, el más importante: vosotros. Os ayudaré a encontrar la información que necesitéis en segundos, y a responder con más claridad… sin quitaros vuestro estilo.",
         audio: "./audio/que_es_1.mp3",
-        // Duración: 40.80s
+        // Duración: 40.80s - Timestamps = cuando empieza cada nuevo segmento
         pauses: [
-          1050,  // después de "Buenas noches a todos."
-          4770,  // después de "no duermo…"
-          6910,  // después de "no pido vacaciones…"
-          10260, // después de "ser simpática igualmente."
-          11780, // después de "Me presento:"
-          14760, // después de "Gestpropiedad."
-          18300, // después de "Primero, con los clientes."
-          23740, // después de "sin respuesta."
-          26200, // después de "Segundo, en la web."
-          29030, // después de "asesor correcto."
-          31620, // después de "Y tercero, el más importante:"
-          36240, // después de "en segundos,"
-          38170, // después de "más claridad…"
+          1802,  // "Y sí, es cierto:..."
+          5573,  // "y los lunes no me afectan..."
+          7806,  // "Pero prometo ser simpática..."
+          11148, // "Me presento:..."
+          12593, // "Vengo a echar una mano..."
+          15476, // "Primero, con los clientes..."
+          18818, // "Cuando la oficina cierre..."
+          24400, // "Segundo, en la web..."
+          29701, // "Y tercero, el más importante:..."
+          30760, // "vosotros..."
+          32274, // "Os ayudaré a encontrar..."
+          33460, // "la información..."
+          36753, // "y a responder con más claridad..."
+          38701, // "sin quitaros vuestro estilo."
         ]
       },
       "aprendizaje_1": {
         text: "No es todo, esto es solo el principio. Hoy es, literalmente, mi nacimiento. A partir de ahora iré aprendiendo cada día: de las consultas… de cómo trabajáis… de lo que necesitan los clientes… y de los datos que me ha proporcionado el equipo. Cuanto más se me use, mejor podré ayudar… y en más ámbitos. Prometo crecer rápido… y sin adolescencia rebelde.",
         audio: "./audio/aprendizaje_1.mp3",
-        // Duración: 24.69s
+        // Duración: 24.69s - Timestamps = cuando empieza cada nuevo segmento
         pauses: [
-          1805,  // después de "esto es solo el principio."
-          5440,  // después de "mi nacimiento."
-          8560,  // después de "cada día:"
-          11420, // después de "de cómo trabajáis…"
-          13870, // después de "de lo que necesitan los clientes…"
-          16530, // después de "el equipo."
-          18730, // después de "y en más ámbitos."
-          22500, // después de "crecer rápido…"
+          2490,  // "Hoy es, literalmente..."
+          6319,  // "A partir de ahora..."
+          9503,  // "de las consultas…"
+          12309, // "de lo que necesitan..."
+          14803, // "y de los datos..."
+          17495, // "Cuanto más se me use..."
+          19382, // "y en más ámbitos..."
+          23070, // "y sin adolescencia rebelde."
         ]
       },
       "despedida_1": {
         text: "Exacto. No tengo nombre. De momento soy 'la IA de Gestpropiedad'… y suena frío, poco personal... Como vamos a trabajar juntos, me gustaría que fuerais vosotros, mi equipo, quienes elijáis mi nombre esta noche. Yo me despido aquí y os dejo con Alejandro para que os explique las opciones. Para cuando vuelva… ya será con mi nombre oficial. Y tranquilos: ninguna opción es 'ChatPaco' ni 'BotManolo'... …de eso podéis estar seguros... Ha sido un placer saludaros por primera vez. Gracias, y nos vemos muy pronto.",
         audio: "./audio/despedida_1.mp3",
-        // Duración: 35.60s
+        // Duración: 35.60s - Timestamps = cuando empieza cada nuevo segmento
         pauses: [
-          640,   // después de "Exacto."
-          4560,  // después de "No tengo nombre."
-          7050,  // después de "poco personal..."
-          12820, // después de "esta noche."
-          17540, // después de "las opciones."
-          19490, // después de "Para cuando vuelva…"
-          21070, // después de "nombre oficial."
-          23100, // después de "Y tranquilos:"
-          30250, // después de "estar seguros..."
-          32820, // después de "primera vez."
+          1258,  // "No tengo nombre..."
+          5190,  // "De momento soy..."
+          8186,  // "Como vamos a trabajar juntos..."
+          13324, // "Yo me despido aquí..."
+          20232, // "Para cuando vuelva…"
+          21817, // "ya será con mi nombre oficial..."
+          23913, // "Y tranquilos:..."
+          30828, // "Ha sido un placer..."
+          33692, // "Gracias, y nos vemos..."
         ]
       },
     };
@@ -1017,10 +997,11 @@
     }
 
     // ===========================================
-    // KARAOKE SYNC
+    // KARAOKE SYNC - Solo muestra segmento activo
     // ===========================================
     let karaokeTimer = null;
     let karaokeSegments = [];
+    let karaokeTimestamps = [];
     let karaokeStartTime = 0;
 
     function showSubtitleKaraoke(text, pauseTimestamps = []) {
@@ -1028,10 +1009,12 @@
       
       stopKaraokeSync();
       
-      // Si no hay pausas, mostrar texto normal
+      // Si no hay pausas, mostrar texto completo
       if (!pauseTimestamps || pauseTimestamps.length === 0) {
-        presentationSubtitle.innerHTML = `<div class="subtitle-content"><span class="segment active">${text}</span></div>`;
+        presentationSubtitle.innerHTML = `<span class="segment active">${text}</span>`;
         presentationSubtitle.classList.add("visible");
+        karaokeSegments = [text];
+        karaokeTimestamps = [0];
         return;
       }
 
@@ -1039,32 +1022,50 @@
       const segments = splitTextIntoSegments(text, pauseTimestamps.length + 1);
       karaokeSegments = segments;
       
-      // Crear HTML con spans para cada segmento
-      const html = segments.map((seg, i) => 
-        `<span class="segment" data-index="${i}">${seg}</span>`
-      ).join(' ');
+      // Timestamps: segmento 0 empieza en 0, luego cada pausa marca el inicio del siguiente
+      karaokeTimestamps = [0, ...pauseTimestamps];
       
-      presentationSubtitle.innerHTML = `<div class="subtitle-content">${html}</div>`;
+      // Mostrar primer segmento (el timer lo iniciará playPrerecordedAudio.onplay)
+      presentationSubtitle.innerHTML = `<span class="segment active">${segments[0] || text}</span>`;
       presentationSubtitle.classList.add("visible");
+    }
+
+    function startKaraokeSync() {
+      if (karaokeSegments.length === 0) return;
       
-      // Crear timestamps para cada segmento (inicio de cada uno)
-      const segmentTimestamps = [0, ...pauseTimestamps];
+      karaokeStartTime = performance.now();
+      let currentIndex = 0;
       
-      // Iniciar sincronización
-      startKaraokeSync(segmentTimestamps);
+      log("▶ Karaoke iniciado con " + karaokeSegments.length + " segmentos");
+      
+      karaokeTimer = setInterval(() => {
+        const elapsed = performance.now() - karaokeStartTime;
+        
+        // Encontrar qué segmento debería estar activo
+        let newIndex = 0;
+        for (let i = 0; i < karaokeTimestamps.length; i++) {
+          if (elapsed >= karaokeTimestamps[i]) {
+            newIndex = i;
+          }
+        }
+        
+        // Solo actualizar si cambió y es válido
+        if (newIndex !== currentIndex && newIndex < karaokeSegments.length) {
+          currentIndex = newIndex;
+          presentationSubtitle.innerHTML = `<span class="segment active">${karaokeSegments[currentIndex]}</span>`;
+        }
+      }, 50);
     }
 
     function splitTextIntoSegments(text, numSegments) {
       if (numSegments <= 1) return [text];
       
       // Dividir por puntuación natural: . ; … y después de :
-      // Mantener el delimitador al final de cada parte
       const parts = [];
       let current = '';
       
       for (let i = 0; i < text.length; i++) {
         current += text[i];
-        // Dividir después de . ; … o : seguido de espacio
         if ((text[i] === '.' || text[i] === ';' || text[i] === '…') ||
             (text[i] === ':' && text[i+1] === ' ')) {
           if (current.trim()) {
@@ -1075,10 +1076,10 @@
       }
       if (current.trim()) parts.push(current.trim());
       
-      // Si tenemos el número correcto de partes, usarlas directamente
+      // Si tenemos el número correcto de partes, usarlas
       if (parts.length === numSegments) return parts;
       
-      // Si tenemos más partes que segmentos, agrupar las extras
+      // Si tenemos más partes, agrupar
       if (parts.length > numSegments) {
         const result = [];
         const partsPerSeg = Math.ceil(parts.length / numSegments);
@@ -1090,47 +1091,8 @@
         return result;
       }
       
-      // Si tenemos menos partes que segmentos, devolver lo que tenemos
+      // Si tenemos menos partes, devolver lo que hay
       return parts.length > 0 ? parts : [text];
-    }
-
-    function startKaraokeSync(segmentTimestamps) {
-      karaokeStartTime = performance.now();
-      let currentIndex = -1;
-      
-      // Activar primer segmento inmediatamente
-      updateActiveSegment(0);
-      currentIndex = 0;
-      
-      karaokeTimer = setInterval(() => {
-        const elapsed = performance.now() - karaokeStartTime;
-        
-        // Encontrar qué segmento debería estar activo
-        let newIndex = 0;
-        for (let i = 0; i < segmentTimestamps.length; i++) {
-          if (elapsed >= segmentTimestamps[i]) {
-            newIndex = i;
-          }
-        }
-        
-        // Solo actualizar si cambió
-        if (newIndex !== currentIndex) {
-          currentIndex = newIndex;
-          updateActiveSegment(currentIndex);
-        }
-      }, 100);
-    }
-
-    function updateActiveSegment(activeIndex) {
-      const segments = presentationSubtitle.querySelectorAll('.segment');
-      segments.forEach((seg, i) => {
-        seg.classList.remove('active', 'past');
-        if (i < activeIndex) {
-          seg.classList.add('past');
-        } else if (i === activeIndex) {
-          seg.classList.add('active');
-        }
-      });
     }
 
     function stopKaraokeSync() {
@@ -1139,6 +1101,7 @@
         karaokeTimer = null;
       }
       karaokeSegments = [];
+      karaokeTimestamps = [];
     }
 
     async function initPresentationRive() {
@@ -1342,11 +1305,14 @@
         prerecordedAudio.onplay = () => {
           log("▶ Audio reproduciendo");
           startLipSyncWithTimestamps(pauseTimestamps);
+          // Iniciar sincronización de subtítulos karaoke
+          startKaraokeSync();
         };
 
         prerecordedAudio.onended = () => { 
           log("⏹ Audio terminado");
-          stopTalking(); 
+          stopTalking();
+          stopKaraokeSync();
           resolve(); 
         };
         

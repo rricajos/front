@@ -1051,13 +1051,21 @@
     let selectedVoice = null;
     let currentUtterance = null;
 
+    let voicesLoaded = false;
+    
     function loadVoices() {
       voices = synth.getVoices();
+      if (voices.length === 0) return; // Esperar a que haya voces
+      
       // Filtrar voces de Microsoft (causan eco)
       const filteredVoices = voices.filter(v => !v.name.toLowerCase().includes('microsoft'));
       const spanishVoices = filteredVoices.filter(v => v.lang.startsWith('es'));
       const otherVoices = filteredVoices.filter(v => !v.lang.startsWith('es'));
       const sortedVoices = [...spanishVoices, ...otherVoices];
+      
+      // Evitar recargar si ya estaban cargadas
+      if (voicesLoaded && voiceSelect.options.length === sortedVoices.length) return;
+      voicesLoaded = true;
       
       voiceSelect.innerHTML = '';
       
@@ -1092,8 +1100,10 @@
 
     voiceSelect.addEventListener('change', () => {
       const allVoices = synth.getVoices();
-      const spanishVoices = allVoices.filter(v => v.lang.startsWith('es'));
-      const otherVoices = allVoices.filter(v => !v.lang.startsWith('es'));
+      // Filtrar voces de Microsoft (causan eco)
+      const filteredVoices = allVoices.filter(v => !v.name.toLowerCase().includes('microsoft'));
+      const spanishVoices = filteredVoices.filter(v => v.lang.startsWith('es'));
+      const otherVoices = filteredVoices.filter(v => !v.lang.startsWith('es'));
       const sortedVoices = [...spanishVoices, ...otherVoices];
       selectedVoice = sortedVoices[voiceSelect.value] || null;
     });
@@ -1101,6 +1111,9 @@
     function speak(text, audioId = null) {
       return new Promise(async (resolve) => {
         if (!text && !audioId) { resolve(); return; }
+
+        // ⚡ Detener cualquier audio anterior para evitar eco/superposición
+        stopSpeaking();
 
         if (audioId && AUDIO_BANK[audioId]) {
           const entry = AUDIO_BANK[audioId];
@@ -1162,16 +1175,21 @@
 
     async function playPrerecordedAudio(audioUrl, pauseTimestamps = []) {
       return new Promise((resolve, reject) => {
+        // Limpiar audio anterior completamente
         if (prerecordedAudio) {
+          prerecordedAudio.onplay = null;
+          prerecordedAudio.onended = null;
+          prerecordedAudio.onerror = null;
           prerecordedAudio.pause();
+          prerecordedAudio.src = '';
           prerecordedAudio = null;
         }
 
         prerecordedAudio = new Audio(audioUrl);
         
+        // Usar once para evitar eventos duplicados
         prerecordedAudio.onplay = () => {
           log("▶ Audio reproduciendo");
-          // Iniciar lip-sync con los timestamps de pausa
           startLipSyncWithTimestamps(pauseTimestamps);
         };
 
@@ -1181,12 +1199,16 @@
           resolve(); 
         };
         
-        prerecordedAudio.onerror = () => { 
+        prerecordedAudio.onerror = (e) => { 
+          log("❌ Error audio: " + e.type);
           stopTalking(); 
           reject(new Error("Audio error")); 
         };
         
-        prerecordedAudio.play().catch(reject);
+        prerecordedAudio.play().catch((e) => {
+          log("❌ Error play: " + e.message);
+          reject(e);
+        });
       });
     }
 
@@ -1221,20 +1243,54 @@
       const audioUrl = URL.createObjectURL(audioBlob);
 
       return new Promise((resolve, reject) => {
-        if (elevenLabsAudio) elevenLabsAudio.pause();
+        // Limpiar audio anterior completamente
+        if (elevenLabsAudio) {
+          elevenLabsAudio.onplay = null;
+          elevenLabsAudio.onended = null;
+          elevenLabsAudio.onerror = null;
+          elevenLabsAudio.pause();
+          elevenLabsAudio.src = '';
+          elevenLabsAudio = null;
+        }
 
         elevenLabsAudio = new Audio(audioUrl);
         elevenLabsAudio.onplay = () => startTTSLipSync();
-        elevenLabsAudio.onended = () => { stopTalking(); URL.revokeObjectURL(audioUrl); resolve(); };
-        elevenLabsAudio.onerror = () => { stopTalking(); URL.revokeObjectURL(audioUrl); reject(); };
+        elevenLabsAudio.onended = () => { 
+          stopTalking(); 
+          URL.revokeObjectURL(audioUrl); 
+          resolve(); 
+        };
+        elevenLabsAudio.onerror = () => { 
+          stopTalking(); 
+          URL.revokeObjectURL(audioUrl); 
+          reject(); 
+        };
         elevenLabsAudio.play().catch(reject);
       });
     }
 
     function stopSpeaking() {
-      if (synth) synth.cancel();
-      if (elevenLabsAudio) { elevenLabsAudio.pause(); elevenLabsAudio = null; }
-      if (prerecordedAudio) { prerecordedAudio.pause(); prerecordedAudio = null; }
+      // Detener síntesis de voz
+      if (synth) {
+        synth.cancel();
+      }
+      
+      // Detener y limpiar audio de ElevenLabs
+      if (elevenLabsAudio) {
+        elevenLabsAudio.pause();
+        elevenLabsAudio.currentTime = 0;
+        elevenLabsAudio.src = '';
+        elevenLabsAudio = null;
+      }
+      
+      // Detener y limpiar audio pregenerado
+      if (prerecordedAudio) {
+        prerecordedAudio.pause();
+        prerecordedAudio.currentTime = 0;
+        prerecordedAudio.src = '';
+        prerecordedAudio = null;
+      }
+      
       stopTalking();
       hideSubtitle();
     }

@@ -30,6 +30,11 @@ export class AvatarApplication {
     // Settings adapter (opcional)
     this.settings = options.settings || null;
     
+    // External services (optional)
+    this.toast = options.toast || null;
+    this.wakeLock = options.wakeLock || null;
+    this.externalEventBus = options.eventBus || null;
+    
     // Core
     this.eventBus = new EventBus();
     this.logger = new Logger(document.getElementById("debug"));
@@ -416,6 +421,9 @@ export class AvatarApplication {
     this.ui.enterPresentationMode();
     this.telemetry.track(TelemetryEventType.PRESENTATION_START);
     
+    // Activar wake lock para evitar que se apague la pantalla
+    this.wakeLock?.acquire();
+    
     // Inicializar Rive de presentación si no está listo
     if (!this.presentationRive.isReady) {
       await this.presentationRive.initialize();
@@ -434,6 +442,9 @@ export class AvatarApplication {
     this.karaoke.stop();
     this.stop();
     this.telemetry.track(TelemetryEventType.PRESENTATION_END);
+    
+    // Liberar wake lock
+    this.wakeLock?.release();
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -506,6 +517,62 @@ export class AvatarApplication {
     return Object.keys(this.audioBank);
   }
 
+  /**
+   * Establece el volumen de reproducción
+   * @param {number} volume - Volumen entre 0 y 1
+   */
+  setVolume(volume) {
+    const clampedVolume = Math.max(0, Math.min(1, volume));
+    this.audio.setVolume?.(clampedVolume);
+    this.speech.setVolume?.(clampedVolume);
+    this._volume = clampedVolume;
+  }
+
+  /**
+   * Obtiene el volumen actual
+   * @returns {number}
+   */
+  getVolume() {
+    return this._volume ?? 1;
+  }
+
+  /**
+   * Toggle play/pause
+   */
+  togglePlay() {
+    if (this.isSpeaking) {
+      this.stop();
+      this.toast?.info('Reproducción pausada');
+    } else {
+      // Reproducir audio de test o el primero del banco
+      const ids = this.getAudioIds();
+      if (ids.length > 0) {
+        this.playAudio(ids[0]);
+      } else {
+        this._testSpeak();
+      }
+    }
+  }
+
+  /**
+   * Toggle fullscreen
+   */
+  toggleFullscreen() {
+    if (this.isPresentationMode) return; // En presentación, ESC sale
+    
+    const newFullscreen = !this.isFullscreen;
+    this.state.update({ isFullscreen: newFullscreen });
+    this.ui.setFullscreen(newFullscreen);
+    
+    const btn = document.getElementById("fullscreenBtn");
+    if (btn) {
+      btn.innerHTML = newFullscreen 
+        ? '<i data-lucide="minimize-2"></i>' 
+        : '<i data-lucide="maximize-2"></i>';
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════════════
   // Destroy (Cleanup)
   // ═══════════════════════════════════════════════════════════════════════
@@ -522,19 +589,22 @@ export class AvatarApplication {
     // 1. Detener todo lo que esté en curso
     this.stop();
     
-    // 2. Limpiar event listeners del EventBus
+    // 2. Liberar wake lock
+    this.wakeLock?.release();
+    
+    // 3. Limpiar event listeners del EventBus
     this._eventCleanups.forEach(unsub => {
       try { unsub(); } catch (e) {}
     });
     this._eventCleanups = [];
     
-    // 3. Limpiar event listeners del DOM
+    // 4. Limpiar event listeners del DOM
     this._domCleanups.forEach(cleanup => {
       try { cleanup(); } catch (e) {}
     });
     this._domCleanups = [];
     
-    // 4. Destruir adaptadores
+    // 5. Destruir adaptadores
     this.webSocket.disconnect();
     this.panelAvatar.destroy();
     this.presentationRive.destroy();
@@ -543,7 +613,7 @@ export class AvatarApplication {
     this.speech.destroy();
     this.telemetry.destroy();
     
-    // 5. Resetear estado
+    // 6. Resetear estado
     this.state.reset();
     
     this.logger.log("✓ Aplicación destruida");

@@ -10,3 +10,6 @@ export { KaraokeAdapter } from './karaoke-adapter.js';
 export { UIAdapter } from './ui-adapter.js';
 export { TelemetryAdapter, TelemetryEventType, withTelemetry } from './telemetry-adapter.js';
 export { SettingsAdapter } from './settings-adapter.js';
+export { ToastAdapter, ToastType, toast } from './toast-adapter.js';
+export { KeyboardAdapter } from './keyboard-adapter.js';
+export { WakeLockAdapter } from './wakelock-adapter.js';

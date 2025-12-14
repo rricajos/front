@@ -29,6 +29,24 @@
 </head>
 
 <body>
+  <!-- App Loader -->
+  <div class="app-loader" id="appLoader">
+    <svg class="loader-logo" viewBox="0 0 226.1 219.1" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="loaderGrad1" x1="56" y1="178.7" x2="56" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#1ca4af"/><stop offset="1" stop-color="#1c3768"/>
+        </linearGradient>
+        <linearGradient id="loaderGrad2" x1="139.2" y1="53.5" x2="232.6" y2="215.2" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#1ca4af"/><stop offset="1" stop-color="#1c3768"/>
+        </linearGradient>
+      </defs>
+      <polygon fill="url(#loaderGrad1)" points="0 0 73.6 111 26.2 178.7 65.6 178.7 111.9 109.9 41.8 0 0 0"/>
+      <polygon fill="url(#loaderGrad2)" points="194.6 45.6 150.2 111 226 219 186.7 219 111.9 109.9 152.9 45.6 194.6 45.6"/>
+    </svg>
+    <div class="loader-spinner"></div>
+    <p class="loader-text">Cargando avatar...</p>
+  </div>
+
   <!-- Settings Button -->
   <button class="settings-btn" id="settingsBtn" title="Ajustes">
     <i data-lucide="settings"></i>

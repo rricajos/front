@@ -11,6 +11,26 @@ export class AudioAdapter {
     this.onError = null;
     this._destroyed = false;
     this._cleanupFunctions = [];
+    this._volume = 1;
+  }
+
+  /**
+   * Establece el volumen
+   * @param {number} volume - Entre 0 y 1
+   */
+  setVolume(volume) {
+    this._volume = Math.max(0, Math.min(1, volume));
+    if (this.currentAudio) {
+      this.currentAudio.volume = this._volume;
+    }
+  }
+
+  /**
+   * Obtiene el volumen actual
+   * @returns {number}
+   */
+  getVolume() {
+    return this._volume;
   }
 
   /**
@@ -25,6 +45,7 @@ export class AudioAdapter {
     
     return new Promise((resolve, reject) => {
       const audio = new Audio();
+      audio.volume = this._volume;
       this.currentAudio = audio;
 
       const cleanup = () => {

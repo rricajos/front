@@ -10,6 +10,7 @@ const DefaultSettings = {
   subtitlesEnabled: true,
   soundEnabled: true,
   debugPanel: true,
+  volume: 100,             // 0-100
 };
 
 /**
@@ -23,6 +24,7 @@ export class SettingsAdapter {
     this._panelElement = null;
     this._overlayElement = null;
     this._deferredPrompt = null;
+    this._toast = null; // Referencia a ToastAdapter
     
     // Detectar si está instalado como PWA
     this._isInstalled = window.matchMedia('(display-mode: standalone)').matches
@@ -39,6 +41,26 @@ export class SettingsAdapter {
       this._isInstalled = e.matches;
       this._updateInstallUI();
     });
+  }
+
+  /**
+   * Inyecta el adaptador de toast
+   * @param {ToastAdapter} toast
+   */
+  setToast(toast) {
+    this._toast = toast;
+  }
+
+  /**
+   * Muestra un mensaje (toast si disponible, si no alert)
+   * @private
+   */
+  _notify(message, type = 'info') {
+    if (this._toast) {
+      this._toast[type]?.(message) || this._toast.info(message);
+    } else {
+      alert(message);
+    }
   }
 
   /**
@@ -187,6 +209,26 @@ export class SettingsAdapter {
   }
 
   /**
+   * Actualiza el icono de volumen según el nivel
+   * @private
+   */
+  _updateVolumeIcon(volume, iconElement) {
+    if (!iconElement) return;
+    
+    let iconName = 'volume-2';
+    if (volume === 0) {
+      iconName = 'volume-x';
+    } else if (volume < 50) {
+      iconName = 'volume-1';
+    }
+    
+    iconElement.setAttribute('data-lucide', iconName);
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  }
+
+  /**
    * Abre el panel de ajustes
    */
   openPanel() {
@@ -288,6 +330,15 @@ export class SettingsAdapter {
             </label>
           </div>
           
+          <div class="settings-item volume-item">
+            <label>Volumen</label>
+            <div class="volume-control">
+              <i data-lucide="volume-2" id="volumeIcon"></i>
+              <input type="range" min="0" max="100" value="${this._settings.volume}" class="volume-slider" id="volumeSlider">
+              <span class="volume-value" id="volumeValue">${this._settings.volume}%</span>
+            </div>
+          </div>
+          
           <div class="settings-item">
             <label for="debugToggle">Panel de debug</label>
             <label class="toggle">
@@ -385,12 +436,24 @@ export class SettingsAdapter {
       this.set('debugPanel', e.target.checked);
     });
 
+    // Volume slider
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeValue = document.getElementById('volumeValue');
+    const volumeIcon = document.getElementById('volumeIcon');
+    
+    volumeSlider?.addEventListener('input', (e) => {
+      const value = parseInt(e.target.value, 10);
+      if (volumeValue) volumeValue.textContent = `${value}%`;
+      this._updateVolumeIcon(value, volumeIcon);
+      this.set('volume', value);
+    });
+
     // Clear cache
     document.getElementById('clearCacheBtn')?.addEventListener('click', () => {
       if (navigator.serviceWorker?.controller) {
         navigator.serviceWorker.controller.postMessage('clearCache');
       }
-      alert('Cache limpiado. Recarga la página.');
+      this._notify('Cache limpiado. Recarga la página para aplicar.', 'success');
     });
 
     // Install/Uninstall PWA
@@ -471,7 +534,7 @@ export class SettingsAdapter {
    */
   async installPWA() {
     if (!this._deferredPrompt) {
-      alert('La instalación no está disponible en este navegador.');
+      this._notify('La instalación no está disponible en este navegador.', 'warning');
       return false;
     }
 

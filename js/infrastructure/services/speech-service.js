@@ -189,6 +189,24 @@ export class SpeechService {
   }
 
   /**
+   * Establece el volumen para ambos adaptadores
+   * @param {number} volume - Entre 0 y 1
+   */
+  setVolume(volume) {
+    this._volume = Math.max(0, Math.min(1, volume));
+    this.browserTTS.setVolume?.(this._volume);
+    this.elevenLabs.setVolume?.(this._volume);
+  }
+
+  /**
+   * Obtiene el volumen actual
+   * @returns {number}
+   */
+  getVolume() {
+    return this._volume ?? 1;
+  }
+
+  /**
    * Destruye el servicio
    */
   destroy() {

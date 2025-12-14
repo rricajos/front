@@ -9,11 +9,31 @@ export class TTSAdapter {
     this.voices = [];
     this.selectedVoice = null;
     this.currentUtterance = null;
+    this._volume = 1;
     
     // Callbacks
     this.onStart = null;
     this.onEnd = null;
     this.onError = null;
+  }
+
+  /**
+   * Establece el volumen
+   * @param {number} volume - Entre 0 y 1
+   */
+  setVolume(volume) {
+    this._volume = Math.max(0, Math.min(1, volume));
+    if (this.currentUtterance) {
+      this.currentUtterance.volume = this._volume;
+    }
+  }
+
+  /**
+   * Obtiene el volumen actual
+   * @returns {number}
+   */
+  getVolume() {
+    return this._volume;
   }
 
   /**
@@ -81,6 +101,7 @@ export class TTSAdapter {
       this.currentUtterance.lang = 'es-ES';
       this.currentUtterance.rate = 1.0;
       this.currentUtterance.pitch = 1.0;
+      this.currentUtterance.volume = this._volume;
       
       this.currentUtterance.onstart = () => {
         this.logger.log("🔊 TTS: reproduciendo");

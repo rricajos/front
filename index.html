@@ -146,24 +146,18 @@
       </div>
       
       <div class="voice-settings">
-        <label><i data-lucide="mic"></i>Proveedor</label>
-        <select id="ttsProviderSelectPanel" class="voice-select">
-          <option value="elevenlabs">☁️ ElevenLabs (IA)</option>
-          <option value="browser">🔊 Navegador (Local)</option>
-        </select>
-        
-        <div id="elevenLabsVoicePanel" class="voice-picker">
-          <label><i data-lucide="cloud"></i>Voz ElevenLabs</label>
-          <select id="elevenLabsVoiceSelectPanel" class="voice-select" disabled>
-            <option value="">Cargando...</option>
+        <div class="voice-picker">
+          <label><i data-lucide="mic"></i>Proveedor</label>
+          <select id="ttsProviderSelectPanel" class="voice-select">
+            <option value="elevenlabs">☁️ ElevenLabs (IA)</option>
+            <option value="browser">🔊 Navegador (Local)</option>
           </select>
-          <span class="voice-hint" id="elevenLabsHint"></span>
         </div>
         
-        <div class="voice-picker">
-          <label><i data-lucide="volume-2"></i>Voz Navegador</label>
-          <select id="voiceSelect" class="voice-select">
-            <option value="">Cargando voces...</option>
+        <div class="voice-picker" id="voicePickerPanel">
+          <label><i data-lucide="volume-2"></i>Voz</label>
+          <select id="voiceSelectPanel" class="voice-select" disabled>
+            <option value="">Cargando...</option>
           </select>
         </div>
       </div>

@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import RiveCanvas from "https://cdn.jsdelivr.net/npm/@rive-app/canvas@2.21.6/+esm";
-import { loadConfig, validateConfig } from './domain/index.js';
+import { loadConfig, validateConfig, audioBankLoader } from './domain/index.js';
 import { AvatarApplication } from './application/index.js';
 
 // Bootstrap
@@ -16,13 +16,24 @@ import { AvatarApplication } from './application/index.js';
     const { warnings } = validateConfig(config);
     warnings.forEach(w => console.warn('[Config]', w));
     
-    // 3. Inicializar aplicación
-    const app = new AvatarApplication(RiveCanvas, config);
+    // 3. Intentar cargar AudioBank dinámico (fallback a estático)
+    let audioBank = null;
+    try {
+      audioBank = await audioBankLoader.load('./audio-bank.json');
+    } catch (e) {
+      console.warn('[AudioBank] Usando banco estático:', e.message);
+    }
+    
+    // 4. Inicializar aplicación
+    const app = new AvatarApplication(RiveCanvas, config, {
+      audioBank, // null = usar estático
+    });
     await app.initialize();
     
-    // 4. Exponer globalmente para debug (solo en desarrollo)
+    // 5. Exponer globalmente para debug (solo en desarrollo)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       window.avatarApp = app;
+      window.audioBankLoader = audioBankLoader;
       console.log('[Avatar] App expuesta en window.avatarApp');
     }
     

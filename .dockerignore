@@ -1,0 +1,34 @@
+# Git
+.git
+.gitignore
+
+# Docs
+README.md
+ANALYSIS.md
+*.md
+
+# Config local (se monta como volumen)
+config.local.json
+config.local.example.json
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Node (si se usa para desarrollo)
+node_modules/
+package-lock.json

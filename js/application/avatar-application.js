@@ -2,7 +2,7 @@
 // APPLICATION - Avatar Application (Orquestador principal)
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { AudioBank, EventBus, Logger, StateManager } from '../domain/index.js';
+import { AudioBank as StaticAudioBank, EventBus, Logger, StateManager } from '../domain/index.js';
 import {
   RiveAdapter,
   CSSAvatarAdapter,
@@ -12,20 +12,33 @@ import {
   WebSocketAdapter,
   KaraokeAdapter,
   UIAdapter,
+  TelemetryAdapter,
+  TelemetryEventType,
   AvatarService,
   SpeechService,
 } from '../infrastructure/index.js';
 
 export class AvatarApplication {
-  constructor(RiveCanvas, config) {
+  constructor(RiveCanvas, config, options = {}) {
     // Guardar config inyectada
     this.config = config;
     this._destroyed = false;
+    
+    // AudioBank: dinámico (si se pasa) o estático
+    this.audioBank = options.audioBank || StaticAudioBank;
     
     // Core
     this.eventBus = new EventBus();
     this.logger = new Logger(document.getElementById("debug"));
     this.ui = new UIAdapter();
+    
+    // Telemetría (opcional)
+    this.telemetry = new TelemetryAdapter({
+      endpoint: config.TELEMETRY_ENDPOINT || null,
+      appName: 'gespropiedad-avatar',
+      appVersion: '2.0.0',
+      debug: config.TELEMETRY_DEBUG || false,
+    });
     
     // State Manager (estado inmutable)
     this.state = new StateManager(this.eventBus);
@@ -95,10 +108,13 @@ export class AvatarApplication {
     
     // Log de configuración (sin secretos)
     this.logger.log("Config: ElevenLabs=" + (this.config.ELEVENLABS_API_KEY ? "✓" : "✗") + 
-                    ", Backend=" + (this.config.BACKEND_HOST || "N/A"));
+                    ", Backend=" + (this.config.BACKEND_HOST || "N/A") +
+                    ", AudioBank=" + (this.audioBank === StaticAudioBank ? "estático" : "dinámico"));
     
     // Initialize panel avatar
-    await this.panelAvatar.initialize();
+    await this.telemetry.measure('avatar_init', async () => {
+      await this.panelAvatar.initialize();
+    });
     this.state.update({ avatarReady: true });
 
     // Load TTS voices
@@ -114,6 +130,7 @@ export class AvatarApplication {
     lucide.createIcons();
     
     this.logger.log("✓ Aplicación lista");
+    this.logger.log(`AudioBank: ${Object.keys(this.audioBank).length} entradas`);
   }
 
   _setupVoices() {
@@ -143,13 +160,14 @@ export class AvatarApplication {
       
       // Si hay audioId, verificar que esté en el banco
       if (audioId) {
-        if (!AudioBank[audioId]) {
+        if (!this.audioBank[audioId]) {
           this.logger.log("⏭️ Ignorando: " + audioId);
           return;
         }
         
         this.state.update({ currentAudioId: audioId });
         this.logger.log("🎬 " + audioId);
+        this.telemetry.track(TelemetryEventType.AUDIO_PLAY_START, { audioId });
         
         if (audioId === this.config.PRESENTATION_START_ID && this.isPresentationMode) {
           this.ui.showAvatar();
@@ -165,6 +183,7 @@ export class AvatarApplication {
       // Si hay texto, usar TTS
       else if (text) {
         this.ui.setBubble(text);
+        this.telemetry.track(TelemetryEventType.TTS_REQUEST, { length: text.length });
         await this.speak(text);
       }
     });
@@ -183,11 +202,13 @@ export class AvatarApplication {
     
     const unsub3 = this.eventBus.on('ws:connected', () => {
       this.state.update({ isConnected: true });
+      this.telemetry.track(TelemetryEventType.WS_CONNECTED);
     });
     this._eventCleanups.push(unsub3);
     
     const unsub4 = this.eventBus.on('ws:disconnected', () => {
       this.state.update({ isConnected: false });
+      this.telemetry.track(TelemetryEventType.WS_DISCONNECTED);
     });
     this._eventCleanups.push(unsub4);
   }
@@ -318,8 +339,8 @@ export class AvatarApplication {
 
     try {
       // Audio pregrabado del banco
-      if (audioId && AudioBank[audioId]) {
-        const entry = AudioBank[audioId];
+      if (audioId && this.audioBank[audioId]) {
+        const entry = this.audioBank[audioId];
         this.ui.setBubble(entry.text);
         
         this.audio.onPlay = () => {
@@ -335,6 +356,7 @@ export class AvatarApplication {
           avatar.stopLipSync();
           this.karaoke.stop();
           this.state.update({ isSpeaking: false });
+          this.telemetry.track(TelemetryEventType.AUDIO_PLAY_END, { audioId });
         };
 
         await this.audio.play(entry.audio);
@@ -351,6 +373,14 @@ export class AvatarApplication {
           if (this._destroyed) return;
           avatar.stopLipSync();
           this.state.update({ isSpeaking: false });
+          
+          // Track qué TTS se usó
+          const adapter = this.speech.lastUsedAdapter;
+          if (adapter === 'browser') {
+            this.telemetry.track(TelemetryEventType.TTS_FALLBACK);
+          } else {
+            this.telemetry.track(TelemetryEventType.TTS_SUCCESS);
+          }
         };
         
         await this.speech.speak(text);
@@ -358,6 +388,7 @@ export class AvatarApplication {
     } catch (e) {
       this.logger.error("Error en speak: " + e.message);
       this.state.update({ isSpeaking: false });
+      this.telemetry.trackError(e, { context: 'speak', audioId, textLength: text?.length });
     }
   }
 
@@ -380,6 +411,7 @@ export class AvatarApplication {
     this.logger.log("→ Modo presentación");
     this.state.update({ isPresentationMode: true });
     this.ui.enterPresentationMode();
+    this.telemetry.track(TelemetryEventType.PRESENTATION_START);
     
     // Inicializar Rive de presentación si no está listo
     if (!this.presentationRive.isReady) {
@@ -387,7 +419,7 @@ export class AvatarApplication {
     }
     
     // Precargar todos los audios del banco
-    const audioUrls = Object.values(AudioBank).map(entry => entry.audio);
+    const audioUrls = Object.values(this.audioBank).map(entry => entry.audio);
     await this.audio.preload(audioUrls);
   }
 
@@ -398,6 +430,7 @@ export class AvatarApplication {
     this.ui.exitPresentationMode();
     this.karaoke.stop();
     this.stop();
+    this.telemetry.track(TelemetryEventType.PRESENTATION_END);
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -454,6 +487,22 @@ export class AvatarApplication {
     return this.state.onChange(callback);
   }
 
+  /**
+   * Obtiene métricas de telemetría
+   * @returns {object}
+   */
+  getMetrics() {
+    return this.telemetry.getMetrics();
+  }
+
+  /**
+   * Obtiene las entradas del AudioBank
+   * @returns {string[]}
+   */
+  getAudioIds() {
+    return Object.keys(this.audioBank);
+  }
+
   // ═══════════════════════════════════════════════════════════════════════
   // Destroy (Cleanup)
   // ═══════════════════════════════════════════════════════════════════════
@@ -488,11 +537,10 @@ export class AvatarApplication {
     this.presentationRive.destroy();
     this.audio.destroy();
     this.karaoke.destroy();
+    this.speech.destroy();
+    this.telemetry.destroy();
     
-    // 5. Limpiar speech (TTS)
-    this.speech.stop();
-    
-    // 6. Resetear estado
+    // 5. Resetear estado
     this.state.reset();
     
     this.logger.log("✓ Aplicación destruida");

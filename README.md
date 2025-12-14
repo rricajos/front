@@ -78,6 +78,48 @@ Si no hay backend, puedes usar el botón "Test" para probar el avatar con TTS lo
 - Los mensajes WebSocket son validados contra un esquema
 - Los audioIds son sanitizados antes de usarse
 
+## 🐳 Docker
+
+### Build y run
+```bash
+# Build
+docker build -t gespropiedad-avatar .
+
+# Run (monta config.local.json)
+docker run -d \
+  -p 8080:80 \
+  -v $(pwd)/config.local.json:/usr/share/nginx/html/config.local.json:ro \
+  --name avatar \
+  gespropiedad-avatar
+
+# Acceder en http://localhost:8080
+```
+
+### Con docker-compose
+```bash
+# Levantar
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+
+# Detener
+docker-compose down
+```
+
+### Estructura de archivos necesarios
+```
+avatar-app/
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
+├── config.local.json      # ⚠️ API keys (NO incluir en imagen)
+├── avatar.riv             # Incluido en imagen
+├── gestpropiedad.jpg      # Incluido en imagen
+└── audio/                 # Incluido en imagen
+    └── *.mp3
+```
+
 ## 🛠️ Desarrollo
 
 ```bash
@@ -124,8 +166,37 @@ console.log(app.audio.getCacheStats());
 console.log(app.speech.getElevenLabsStats());
 app.speech.resetElevenLabsCircuit(); // Reset manual
 
+// Telemetría
+console.log(app.getMetrics());
+
+// AudioBank dinámico
+console.log(app.getAudioIds());
+
+// Recargar AudioBank (desde audioBankLoader global)
+await window.audioBankLoader.load('./audio-bank.json');
+
 // Destruir la app (libera todos los recursos)
 app.destroy();
+```
+
+## 🏗️ Inyección de Dependencias
+
+```javascript
+// Uso del DI Container (para tests o configuración avanzada)
+import { setupContainer } from './js/application/index.js';
+
+const container = setupContainer(config, RiveCanvas);
+
+// Resolver servicios
+const logger = container.resolve('logger');
+const speech = container.resolve('speech');
+
+// Crear scope para tests
+const testContainer = container.createScope();
+testContainer.constant('logger', mockLogger);
+
+// Limpiar
+container.destroy();
 ```
 
 ## 📊 Arquitectura

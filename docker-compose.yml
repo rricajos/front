@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  avatar:
+    build: .
+    container_name: gespropiedad-avatar
+    ports:
+      - "8080:80"
+    volumes:
+      # Montar config local (con API keys) desde fuera del contenedor
+      - ./config.local.json:/usr/share/nginx/html/config.local.json:ro
+      # Opcional: montar audios si están fuera
+      # - ./audio:/usr/share/nginx/html/audio:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.avatar.rule=Host(`avatar.gespropiedad.com`)"
+      - "traefik.http.routers.avatar.tls=true"
+      - "traefik.http.routers.avatar.tls.certresolver=letsencrypt"
+
+# Para desarrollo local sin Traefik:
+# docker-compose up -d
+# Acceder en http://localhost:8080

@@ -9,6 +9,7 @@ export class UIAdapter {
       statusDot: document.getElementById("statusDot"),
       statusText: document.getElementById("statusText"),
       bubble: document.getElementById("bubble"),
+      textInput: document.getElementById("textInput"),
       voiceSelect: document.getElementById("voiceSelect"),
       debug: document.getElementById("debug"),
       
@@ -54,17 +55,35 @@ export class UIAdapter {
   }
 
   // ═══════════════════════════════════════════════════════════════════════
-  // Bubble
+  // Bubble / Text Input
   // ═══════════════════════════════════════════════════════════════════════
   
   /**
-   * Actualiza el texto del bubble
+   * Actualiza el texto del bubble o textInput
    * @param {string} text
    */
   setBubble(text) {
+    // Soportar tanto el bubble antiguo como el nuevo textInput
+    if (this.elements.textInput) {
+      this.elements.textInput.value = text;
+    }
     if (this.elements.bubble) {
       this.elements.bubble.textContent = text;
     }
+  }
+
+  /**
+   * Obtiene el texto actual del input
+   * @returns {string}
+   */
+  getBubbleText() {
+    if (this.elements.textInput) {
+      return this.elements.textInput.value;
+    }
+    if (this.elements.bubble) {
+      return this.elements.bubble.textContent;
+    }
+    return '';
   }
 
   // ═══════════════════════════════════════════════════════════════════════

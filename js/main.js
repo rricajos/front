@@ -247,7 +247,10 @@ function showLoaderError(message) {
     // 16. Inicializar panel de voz
     initVoicePanel(app, settings, toast);
     
-    // 17. Exponer globalmente para debug (solo en desarrollo)
+    // 17. Inicializar controles de reproducción
+    initPlaybackControls(app, toast);
+    
+    // 18. Exponer globalmente para debug (solo en desarrollo)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       window.avatarApp = app;
       window.settings = settings;
@@ -493,4 +496,112 @@ function initVoicePanel(app, settings, toast) {
   
   loadElevenLabsVoices();
   loadBrowserVoices();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Playback Controls (Play/Pause, Replay)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function initPlaybackControls(app, toast) {
+  const playPauseBtn = document.getElementById('playPauseBtn');
+  const replayBtn = document.getElementById('replayBtn');
+  const textInput = document.getElementById('textInput');
+  
+  let lastText = textInput?.value || '';
+  
+  // Actualizar estado del botón play/pause
+  const updatePlayPauseButton = (isPlaying) => {
+    if (!playPauseBtn) return;
+    
+    const icon = playPauseBtn.querySelector('i');
+    const span = playPauseBtn.querySelector('span');
+    
+    if (isPlaying) {
+      if (icon) icon.setAttribute('data-lucide', 'pause');
+      if (span) span.textContent = 'Pausar';
+      playPauseBtn.classList.add('playing');
+    } else {
+      if (icon) icon.setAttribute('data-lucide', 'play');
+      if (span) span.textContent = 'Reproducir';
+      playPauseBtn.classList.remove('playing');
+    }
+    
+    // Refrescar iconos
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  };
+  
+  // Escuchar cambios de estado de la app
+  const checkSpeakingState = () => {
+    updatePlayPauseButton(app.isSpeaking);
+  };
+  
+  // Polling simple para detectar cambios (el speech service no tiene eventos públicos)
+  let stateCheckInterval = setInterval(checkSpeakingState, 200);
+  
+  // Play/Pause
+  playPauseBtn?.addEventListener('click', async () => {
+    if (app.isSpeaking) {
+      // Pausar (detener)
+      app.stop();
+      updatePlayPauseButton(false);
+      toast.info('Reproducción detenida');
+    } else {
+      // Reproducir
+      const text = textInput?.value?.trim();
+      if (!text) {
+        toast.warning('Escribe un texto para reproducir');
+        textInput?.focus();
+        return;
+      }
+      
+      lastText = text;
+      updatePlayPauseButton(true);
+      
+      try {
+        await app.speak(null, text);
+      } catch (e) {
+        toast.error('Error al reproducir');
+      }
+      
+      updatePlayPauseButton(false);
+    }
+  });
+  
+  // Replay (reiniciar con el último texto)
+  replayBtn?.addEventListener('click', async () => {
+    const text = textInput?.value?.trim() || lastText;
+    if (!text) {
+      toast.warning('No hay texto para reiniciar');
+      return;
+    }
+    
+    // Detener si está hablando
+    if (app.isSpeaking) {
+      app.stop();
+    }
+    
+    lastText = text;
+    updatePlayPauseButton(true);
+    
+    try {
+      await app.speak(null, text);
+    } catch (e) {
+      toast.error('Error al reproducir');
+    }
+    
+    updatePlayPauseButton(false);
+  });
+  
+  // Atajo de teclado: Ctrl+Enter para reproducir
+  textInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      playPauseBtn?.click();
+    }
+  });
+  
+  // Limpiar interval al cerrar (aunque en SPA no se cierra)
+  window.addEventListener('beforeunload', () => {
+    clearInterval(stateCheckInterval);
+  });
 }

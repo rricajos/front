@@ -251,10 +251,10 @@ export class AvatarApplication {
     });
 
     // Panel buttons
-    addDOMListener("testTalkBtn", "click", () => this._testSpeak());
-    addDOMListener("idleBtn", "click", () => this.stop());
     addDOMListener("enterPresentationBtn", "click", () => this.enterPresentationMode());
     addDOMListener("exitPresentationBtn", "click", () => this.exitPresentationMode());
+
+    // Play/Pause y Replay se manejan externamente en main.js
 
     // Voice select
     addDOMListener("voiceSelect", "change", (e) => {

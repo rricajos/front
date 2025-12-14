@@ -88,6 +88,7 @@ export class ElevenLabsAdapter {
   async loadVoices() {
     if (!this.config.ELEVENLABS_API_KEY) {
       this.logger.warn("ElevenLabs: No hay API key para cargar voces");
+      this._loadError = 'no_api_key';
       return [];
     }
 
@@ -99,19 +100,42 @@ export class ElevenLabsAdapter {
       });
 
       if (!response.ok) {
+        // Guardar tipo de error para UI
+        if (response.status === 401) {
+          this._loadError = 'invalid_api_key';
+          this.logger.warn("ElevenLabs: API key inválida");
+        } else if (response.status === 403) {
+          this._loadError = 'no_credits';
+          this.logger.warn("ElevenLabs: Sin créditos o acceso denegado");
+        } else {
+          this._loadError = 'api_error';
+          this.logger.warn(`ElevenLabs: Error API ${response.status}`);
+        }
         throw new Error(`HTTP ${response.status}`);
       }
 
       const data = await response.json();
       this._voices = data.voices || [];
+      this._loadError = null;
       
       this.logger.log(`ElevenLabs: ${this._voices.length} voces cargadas`);
       
       return this._voices;
     } catch (e) {
+      if (!this._loadError) {
+        this._loadError = 'network_error';
+      }
       this.logger.warn("ElevenLabs: Error cargando voces - " + e.message);
       return [];
     }
+  }
+
+  /**
+   * Obtiene el último error de carga
+   * @returns {string|null} - 'no_api_key' | 'invalid_api_key' | 'no_credits' | 'api_error' | 'network_error' | null
+   */
+  getLoadError() {
+    return this._loadError || null;
   }
 
   /**

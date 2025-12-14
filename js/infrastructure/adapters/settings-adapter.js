@@ -601,7 +601,7 @@ export class SettingsAdapter {
     if (!select) return;
 
     if (!this._speechService?.elevenLabs) {
-      select.innerHTML = '<option value="">No disponible</option>';
+      select.innerHTML = '<option value="">No configurado</option>';
       return;
     }
 
@@ -609,7 +609,16 @@ export class SettingsAdapter {
       const voices = await this._speechService.elevenLabs.loadVoices();
       
       if (voices.length === 0) {
-        select.innerHTML = '<option value="">Sin voces disponibles</option>';
+        // Mostrar mensaje según el tipo de error
+        const error = this._speechService.elevenLabs.getLoadError?.();
+        const errorMessages = {
+          'no_api_key': 'Sin API key configurada',
+          'invalid_api_key': 'API key inválida',
+          'no_credits': 'Sin créditos disponibles',
+          'api_error': 'Error de API',
+          'network_error': 'Error de conexión',
+        };
+        select.innerHTML = `<option value="">${errorMessages[error] || 'Sin voces disponibles'}</option>`;
         return;
       }
 

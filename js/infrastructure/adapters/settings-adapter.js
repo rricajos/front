@@ -385,6 +385,7 @@ export class SettingsAdapter {
             <select class="voice-select" id="elevenLabsVoiceSelect" disabled>
               <option value="">Cargando...</option>
             </select>
+            <span class="voice-hint"></span>
           </div>
           
           <div class="settings-item voice-item" id="browserVoiceItem">
@@ -560,19 +561,30 @@ export class SettingsAdapter {
    */
   _updateVoiceSelectorsVisibility(provider) {
     const elevenLabsItem = document.getElementById('elevenLabsVoiceItem');
+    const elevenLabsSelect = document.getElementById('elevenLabsVoiceSelect');
     const browserItem = document.getElementById('browserVoiceItem');
     const browserBadge = browserItem?.querySelector('.voice-badge');
     
     if (provider === 'elevenlabs') {
       // ElevenLabs principal, navegador como respaldo
-      if (elevenLabsItem) elevenLabsItem.style.display = '';
+      if (elevenLabsItem) {
+        elevenLabsItem.classList.remove('disabled');
+        const hint = elevenLabsItem.querySelector('.voice-hint');
+        if (hint) hint.textContent = '';
+      }
+      if (elevenLabsSelect) elevenLabsSelect.disabled = false;
       if (browserBadge) {
         browserBadge.textContent = 'Respaldo';
         browserBadge.className = 'voice-badge fallback';
       }
     } else {
-      // Solo navegador
-      if (elevenLabsItem) elevenLabsItem.style.display = 'none';
+      // Navegador principal - deshabilitar ElevenLabs pero no ocultar
+      if (elevenLabsItem) {
+        elevenLabsItem.classList.add('disabled');
+        const hint = elevenLabsItem.querySelector('.voice-hint');
+        if (hint) hint.textContent = 'No se requiere';
+      }
+      if (elevenLabsSelect) elevenLabsSelect.disabled = true;
       if (browserBadge) {
         browserBadge.textContent = 'Principal';
         browserBadge.className = 'voice-badge primary';
@@ -634,7 +646,9 @@ export class SettingsAdapter {
         return `<option value="${voice.voice_id}" ${selected}>${voice.name}${category}</option>`;
       }).join('');
       
-      select.disabled = false;
+      // Solo habilitar si ElevenLabs es el proveedor seleccionado
+      const currentProvider = this._settings.ttsProvider || 'elevenlabs';
+      select.disabled = (currentProvider !== 'elevenlabs');
       
     } catch (e) {
       select.innerHTML = '<option value="">Error al cargar</option>';

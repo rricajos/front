@@ -326,6 +326,27 @@ body.presentation-mode .presentation-container { display: flex; }
   height: 12px;
 }
 
+.voice-picker.disabled label {
+  opacity: 0.5;
+}
+
+.voice-picker.disabled .voice-select {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.voice-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+  display: block;
+}
+
+.voice-hint:empty {
+  display: none;
+}
+
 .voice-picker.hidden {
   display: none;
 }
@@ -861,6 +882,25 @@ body.presentation-mode .settings-btn {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.settings-item.voice-item.disabled {
+  opacity: 0.5;
+}
+
+.settings-item.voice-item.disabled .voice-select {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.settings-item .voice-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.settings-item .voice-hint:empty {
+  display: none;
 }
 
 .label-icon {

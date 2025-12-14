@@ -333,28 +333,44 @@ function initVoicePanel(app, settings, toast) {
   const ttsStatusText = document.getElementById('ttsStatusText');
   
   // Función para actualizar el estado del TTS
-  const updateTTSStatus = async () => {
+  const updateTTSStatus = () => {
     const provider = settings.get('ttsProvider') || 'elevenlabs';
     
     if (provider === 'elevenlabs') {
-      if (!app.speech.elevenLabs?.isConfigured) {
+      const elevenLabs = app.speech.elevenLabs;
+      
+      if (!elevenLabs?.isConfigured) {
         setTTSStatus('error', '☁️ ElevenLabs: No configurado');
+        return;
+      }
+      
+      // Verificar si hay voces cargadas
+      const voices = elevenLabs.getVoices?.() || [];
+      const error = elevenLabs.getLoadError?.();
+      
+      if (voices.length > 0) {
+        setTTSStatus('ok', '☁️ ElevenLabs: Conectado');
+      } else if (error === 'no_credits') {
+        setTTSStatus('error', '☁️ ElevenLabs: Sin créditos');
+      } else if (error === 'invalid_api_key') {
+        setTTSStatus('error', '☁️ ElevenLabs: API key inválida');
+      } else if (error === 'no_api_key') {
+        setTTSStatus('error', '☁️ ElevenLabs: Sin API key');
+      } else if (error) {
+        setTTSStatus('error', '☁️ ElevenLabs: Error de conexión');
       } else {
-        // Intentar cargar voces para verificar estado
-        const error = app.speech.elevenLabs?.getLoadError?.();
-        if (error === 'no_credits') {
-          setTTSStatus('error', '☁️ ElevenLabs: Sin créditos');
-        } else if (error === 'invalid_api_key') {
-          setTTSStatus('error', '☁️ ElevenLabs: API key inválida');
-        } else if (error) {
-          setTTSStatus('error', '☁️ ElevenLabs: Error');
-        } else {
-          setTTSStatus('ok', '☁️ ElevenLabs: Conectado');
-        }
+        // Aún cargando o sin intentar
+        setTTSStatus('loading', '☁️ ElevenLabs: Verificando...');
       }
     } else {
+      // Proveedor navegador
       if (app.speech.browserTTS?.isAvailable) {
-        setTTSStatus('ok', '🔊 Navegador: Listo');
+        const voices = app.speech.browserTTS?.voices || [];
+        if (voices.length > 0) {
+          setTTSStatus('ok', '🔊 Navegador: Listo');
+        } else {
+          setTTSStatus('loading', '🔊 Navegador: Cargando voces...');
+        }
       } else {
         setTTSStatus('error', '🔊 Navegador: No disponible');
       }
@@ -370,10 +386,32 @@ function initVoicePanel(app, settings, toast) {
     }
   };
   
-  // Función para actualizar visibilidad del selector ElevenLabs
+  // Función para actualizar estado del selector ElevenLabs según proveedor
   const updateElevenLabsVisibility = (provider) => {
-    if (elevenLabsVoicePanel) {
-      elevenLabsVoicePanel.style.display = provider === 'elevenlabs' ? '' : 'none';
+    const hint = document.getElementById('elevenLabsHint');
+    
+    if (provider === 'elevenlabs') {
+      // ElevenLabs activo
+      if (elevenLabsVoicePanel) {
+        elevenLabsVoicePanel.classList.remove('disabled');
+      }
+      if (elevenLabsVoiceSelect) {
+        elevenLabsVoiceSelect.disabled = false;
+      }
+      if (hint) {
+        hint.textContent = '';
+      }
+    } else {
+      // Navegador seleccionado - deshabilitar ElevenLabs pero no ocultar
+      if (elevenLabsVoicePanel) {
+        elevenLabsVoicePanel.classList.add('disabled');
+      }
+      if (elevenLabsVoiceSelect) {
+        elevenLabsVoiceSelect.disabled = true;
+      }
+      if (hint) {
+        hint.textContent = 'No se requiere (usando navegador)';
+      }
     }
   };
   
@@ -408,7 +446,9 @@ function initVoicePanel(app, settings, toast) {
         return `<option value="${voice.voice_id}" ${selected}>${voice.name}${category}</option>`;
       }).join('');
       
-      elevenLabsVoiceSelect.disabled = false;
+      // Solo habilitar si ElevenLabs es el proveedor seleccionado
+      const currentProvider = settings.get('ttsProvider') || 'elevenlabs';
+      elevenLabsVoiceSelect.disabled = (currentProvider !== 'elevenlabs');
       
     } catch (e) {
       elevenLabsVoiceSelect.innerHTML = '<option value="">Error</option>';
@@ -420,7 +460,10 @@ function initVoicePanel(app, settings, toast) {
   
   // Cargar voces del navegador
   const loadBrowserVoices = () => {
-    if (!browserVoiceSelect || !app.speech.browserTTS) return;
+    if (!browserVoiceSelect || !app.speech.browserTTS) {
+      updateTTSStatus();
+      return;
+    }
     
     const loadVoices = () => {
       app.speech.browserTTS.loadVoices();
@@ -428,6 +471,7 @@ function initVoicePanel(app, settings, toast) {
       
       if (voices.length === 0) {
         browserVoiceSelect.innerHTML = '<option value="">Sin voces</option>';
+        updateTTSStatus();
         return;
       }
       
@@ -438,6 +482,9 @@ function initVoicePanel(app, settings, toast) {
         const lang = voice.lang ? ` [${voice.lang}]` : '';
         return `<option value="${voice.name}" ${selected}>${voice.name}${lang}</option>`;
       }).join('');
+      
+      // Actualizar estado TTS después de cargar voces
+      updateTTSStatus();
     };
     
     if (window.speechSynthesis?.getVoices().length > 0) {
@@ -494,6 +541,10 @@ function initVoicePanel(app, settings, toast) {
   if (providerSelect) providerSelect.value = currentProvider;
   updateElevenLabsVisibility(currentProvider);
   
+  // Mostrar estado inicial mientras carga
+  setTTSStatus('loading', 'TTS: Cargando...');
+  
+  // Cargar voces (updateTTSStatus se llama al finalizar cada una)
   loadElevenLabsVoices();
   loadBrowserVoices();
 }
@@ -558,7 +609,7 @@ function initPlaybackControls(app, toast) {
       updatePlayPauseButton(true);
       
       try {
-        await app.speak(null, text);
+        await app.speak(text);  // Solo texto, sin audioId
       } catch (e) {
         toast.error('Error al reproducir');
       }
@@ -584,7 +635,7 @@ function initPlaybackControls(app, toast) {
     updatePlayPauseButton(true);
     
     try {
-      await app.speak(null, text);
+      await app.speak(text);  // Solo texto, sin audioId
     } catch (e) {
       toast.error('Error al reproducir');
     }

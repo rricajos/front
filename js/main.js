@@ -250,7 +250,10 @@ function showLoaderError(message) {
     // 17. Inicializar controles de reproducción
     initPlaybackControls(app, toast);
     
-    // 18. Exponer globalmente para debug (solo en desarrollo)
+    // 18. Inicializar controles móviles
+    initMobileSettings(settings, toast);
+    
+    // 19. Exponer globalmente para debug (solo en desarrollo)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       window.avatarApp = app;
       window.settings = settings;
@@ -620,4 +623,84 @@ function initPlaybackControls(app, toast) {
   window.addEventListener('beforeunload', () => {
     clearInterval(stateCheckInterval);
   });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Mobile Settings
+// ═══════════════════════════════════════════════════════════════════════════
+
+function initMobileSettings(settings, toast) {
+  const subtitlesToggle = document.getElementById('mobileSubtitlesToggle');
+  const soundToggle = document.getElementById('mobileSoundToggle');
+  const volumeSlider = document.getElementById('mobileVolumeSlider');
+  const volumeValue = document.getElementById('mobileVolumeValue');
+  const themeBtns = document.querySelectorAll('.theme-btn-mobile');
+  
+  // Inicializar valores
+  if (subtitlesToggle) subtitlesToggle.checked = settings.get('subtitlesEnabled');
+  if (soundToggle) soundToggle.checked = settings.get('soundEnabled');
+  if (volumeSlider) {
+    volumeSlider.value = settings.get('volume');
+    if (volumeValue) volumeValue.textContent = `${settings.get('volume')}%`;
+  }
+  
+  // Marcar tema activo
+  const currentTheme = settings.get('theme') || 'system';
+  themeBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+  });
+  
+  // Event listeners
+  subtitlesToggle?.addEventListener('change', (e) => {
+    settings.set('subtitlesEnabled', e.target.checked);
+    toast.info(e.target.checked ? 'Subtítulos activados' : 'Subtítulos desactivados');
+  });
+  
+  soundToggle?.addEventListener('change', (e) => {
+    settings.set('soundEnabled', e.target.checked);
+    toast.info(e.target.checked ? 'Sonido activado' : 'Sonido silenciado');
+  });
+  
+  volumeSlider?.addEventListener('input', (e) => {
+    const vol = parseInt(e.target.value);
+    settings.set('volume', vol);
+    if (volumeValue) volumeValue.textContent = `${vol}%`;
+  });
+  
+  themeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.dataset.theme;
+      settings.set('theme', theme);
+      
+      // Actualizar clase activa
+      themeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      toast.info(`Tema: ${theme === 'dark' ? 'Oscuro' : theme === 'light' ? 'Claro' : 'Sistema'}`);
+    });
+  });
+  
+  // Sincronizar con cambios desde el modal de settings
+  settings.onChange(({ key, newValue }) => {
+    if (key === 'subtitlesEnabled' && subtitlesToggle) {
+      subtitlesToggle.checked = newValue;
+    }
+    if (key === 'soundEnabled' && soundToggle) {
+      soundToggle.checked = newValue;
+    }
+    if (key === 'volume' && volumeSlider) {
+      volumeSlider.value = newValue;
+      if (volumeValue) volumeValue.textContent = `${newValue}%`;
+    }
+    if (key === 'theme') {
+      themeBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === newValue);
+      });
+    }
+  });
+  
+  // Inicializar iconos lucide
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 }

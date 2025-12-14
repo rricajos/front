@@ -164,6 +164,44 @@
     </div>
   </div>
 
+  <!-- Ajustes Móvil (visible solo en móvil) -->
+  <div class="mobile-settings" id="mobileSettings">
+    <h3><i data-lucide="settings"></i>Ajustes</h3>
+    
+    <div class="mobile-settings-grid">
+      <div class="mobile-setting-item">
+        <label><i data-lucide="type"></i>Subtítulos</label>
+        <label class="toggle">
+          <input type="checkbox" id="mobileSubtitlesToggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="mobile-setting-item">
+        <label><i data-lucide="volume-2"></i>Sonido</label>
+        <label class="toggle">
+          <input type="checkbox" id="mobileSoundToggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="mobile-setting-item">
+        <label><i data-lucide="sun"></i>Tema</label>
+        <div class="theme-toggle-mobile">
+          <button class="theme-btn-mobile" data-theme="dark" title="Oscuro"><i data-lucide="moon"></i></button>
+          <button class="theme-btn-mobile" data-theme="light" title="Claro"><i data-lucide="sun"></i></button>
+          <button class="theme-btn-mobile active" data-theme="system" title="Sistema"><i data-lucide="monitor"></i></button>
+        </div>
+      </div>
+      
+      <div class="mobile-setting-item volume-control">
+        <label><i data-lucide="volume-1"></i>Volumen</label>
+        <input type="range" id="mobileVolumeSlider" min="0" max="100" value="80" class="volume-slider">
+        <span class="volume-value" id="mobileVolumeValue">80%</span>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>

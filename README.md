@@ -80,44 +80,29 @@ Si no hay backend, puedes usar el botón "Test" para probar el avatar con TTS lo
 
 ## 🐳 Docker
 
-### Build y run
 ```bash
 # Build
 docker build -t gespropiedad-avatar .
 
-# Run (monta config.local.json)
-docker run -d \
-  -p 8080:80 \
-  -v $(pwd)/config.local.json:/usr/share/nginx/html/config.local.json:ro \
-  --name avatar \
-  gespropiedad-avatar
+# Run
+docker run -d -p 8080:80 --name avatar gespropiedad-avatar
 
 # Acceder en http://localhost:8080
 ```
 
-### Con docker-compose
-```bash
-# Levantar
-docker-compose up -d
-
-# Ver logs
-docker-compose logs -f
-
-# Detener
-docker-compose down
-```
-
-### Estructura de archivos necesarios
+### Estructura necesaria antes del build
 ```
 avatar-app/
 ├── Dockerfile
-├── docker-compose.yml
-├── nginx.conf
-├── config.local.json      # ⚠️ API keys (NO incluir en imagen)
-├── avatar.riv             # Incluido en imagen
-├── gestpropiedad.jpg      # Incluido en imagen
-└── audio/                 # Incluido en imagen
-    └── *.mp3
+├── config.local.json      # Con API keys
+├── avatar.riv
+├── gestpropiedad.jpg
+├── audio/
+│   ├── intro_1.mp3
+│   ├── que_es_1.mp3
+│   ├── aprendizaje_1.mp3
+│   └── despedida_1.mp3
+└── ... (resto de archivos)
 ```
 
 ## 🛠️ Desarrollo

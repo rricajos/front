@@ -5,16 +5,14 @@
 # Docs
 README.md
 ANALYSIS.md
-*.md
 
-# Config local (se monta como volumen)
-config.local.json
-config.local.example.json
-
-# Docker
+# Docker files (no necesarios en la imagen)
 Dockerfile
 docker-compose.yml
 .dockerignore
+
+# Ejemplo de config (el real sí se incluye)
+config.local.example.json
 
 # IDE
 .idea/
@@ -28,7 +26,3 @@ Thumbs.db
 
 # Logs
 *.log
-
-# Node (si se usa para desarrollo)
-node_modules/
-package-lock.json

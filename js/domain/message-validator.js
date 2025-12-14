@@ -22,9 +22,9 @@ const MessageSchemas = {
 };
 
 /**
- * Tipos de mensajes permitidos
+ * Tipos de mensajes del sistema permitidos
  */
-const AllowedMessageTypes = new Set([
+const SystemMessageTypes = new Set([
   'bot_speaking_start',
   'bot_speaking_end',
   'bot_message',
@@ -67,12 +67,26 @@ export function validateMessage(data) {
     return { valid: false, error: 'Falta campo type' };
   }
 
-  // 6. Validar tipo permitido
-  if (!AllowedMessageTypes.has(message.type)) {
+  // 6. Validar tipo: sistema O audioId válido
+  const isSystemType = SystemMessageTypes.has(message.type);
+  const isAudioIdType = isValidAudioId(message.type);
+  
+  if (!isSystemType && !isAudioIdType) {
     return { valid: false, error: `Tipo no permitido: ${message.type}` };
   }
 
-  // 7. Validar contra esquema si existe
+  // 7. Si es audioId como type, normalizar a bot_speaking_start
+  if (isAudioIdType && !isSystemType) {
+    message = {
+      type: 'bot_speaking_start',
+      audioId: message.type,
+      ...message,
+    };
+    // Sobrescribir type después del spread
+    message.type = 'bot_speaking_start';
+  }
+
+  // 8. Validar contra esquema si existe
   const schema = MessageSchemas[message.type];
   if (schema) {
     const schemaError = validateSchema(message, schema);
@@ -81,7 +95,7 @@ export function validateMessage(data) {
     }
   }
 
-  // 8. Sanitizar campos string
+  // 9. Sanitizar campos string
   const sanitized = sanitizeMessage(message);
 
   return { valid: true, message: sanitized };

@@ -1,0 +1,500 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// APPLICATION - Avatar Application (Orquestador principal)
+// ═══════════════════════════════════════════════════════════════════════════
+
+import { AudioBank, EventBus, Logger, StateManager } from '../domain/index.js';
+import {
+  RiveAdapter,
+  CSSAvatarAdapter,
+  CachedAudioAdapter,
+  TTSAdapter,
+  ElevenLabsAdapter,
+  WebSocketAdapter,
+  KaraokeAdapter,
+  UIAdapter,
+  AvatarService,
+  SpeechService,
+} from '../infrastructure/index.js';
+
+export class AvatarApplication {
+  constructor(RiveCanvas, config) {
+    // Guardar config inyectada
+    this.config = config;
+    this._destroyed = false;
+    
+    // Core
+    this.eventBus = new EventBus();
+    this.logger = new Logger(document.getElementById("debug"));
+    this.ui = new UIAdapter();
+    
+    // State Manager (estado inmutable)
+    this.state = new StateManager(this.eventBus);
+    
+    // Panel Avatar (Rive + CSS fallback)
+    const panelRive = new RiveAdapter(
+      document.getElementById("riveCanvas"), 
+      config, 
+      this.logger,
+      RiveCanvas
+    );
+    const panelCSS = new CSSAvatarAdapter(
+      document.getElementById("cssMouth")
+    );
+    this.panelAvatar = new AvatarService(panelRive, panelCSS, this.ui, this.logger);
+    
+    // Presentation Avatar (solo Rive)
+    this.presentationRive = new RiveAdapter(
+      document.getElementById("presentationCanvas"), 
+      config, 
+      this.logger,
+      RiveCanvas
+    );
+    
+    // Audio (con cache)
+    this.audio = new CachedAudioAdapter(this.logger);
+    
+    // Speech Service (ElevenLabs + Browser TTS fallback)
+    const browserTTS = new TTSAdapter(this.logger);
+    const elevenLabs = new ElevenLabsAdapter(config, this.logger);
+    this.speech = new SpeechService(elevenLabs, browserTTS, config, this.logger);
+    
+    // Karaoke
+    this.karaoke = new KaraokeAdapter(
+      document.getElementById("presentationSubtitle"),
+      config
+    );
+    
+    // WebSocket
+    const backendHost = new URLSearchParams(location.search).get("backend") || config.BACKEND_HOST;
+    this.webSocket = new WebSocketAdapter(backendHost, this.logger, this.eventBus);
+
+    // Event cleanup functions
+    this._eventCleanups = [];
+    this._domCleanups = [];
+    
+    this._setupEventListeners();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Getters (desde StateManager)
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  get isPresentationMode() { return this.state.get('isPresentationMode'); }
+  get currentAudioId() { return this.state.get('currentAudioId'); }
+  get isFullscreen() { return this.state.get('isFullscreen'); }
+  get isSpeaking() { return this.state.get('isSpeaking'); }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Initialization
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  async initialize() {
+    if (this._destroyed) return;
+    
+    this.logger.log("Iniciando aplicación...");
+    
+    // Log de configuración (sin secretos)
+    this.logger.log("Config: ElevenLabs=" + (this.config.ELEVENLABS_API_KEY ? "✓" : "✗") + 
+                    ", Backend=" + (this.config.BACKEND_HOST || "N/A"));
+    
+    // Initialize panel avatar
+    await this.panelAvatar.initialize();
+    this.state.update({ avatarReady: true });
+
+    // Load TTS voices
+    this._setupVoices();
+    
+    // Connect WebSocket
+    this.webSocket.connect();
+    
+    // Setup event handlers
+    this._setupWebSocketEvents();
+    
+    this.ui.setBubble("En espera…");
+    lucide.createIcons();
+    
+    this.logger.log("✓ Aplicación lista");
+  }
+
+  _setupVoices() {
+    const loadVoices = () => {
+      if (this._destroyed) return;
+      const voices = this.speech.loadVoices();
+      if (voices.length > 0) {
+        const sorted = this.speech.sortedVoices;
+        this.ui.populateVoices(sorted);
+        this.logger.log("Voces cargadas: " + sorted.length);
+      }
+    };
+    
+    if (window.speechSynthesis?.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+      this._domCleanups.push(() => {
+        window.speechSynthesis.onvoiceschanged = null;
+      });
+    }
+    loadVoices();
+  }
+
+  _setupWebSocketEvents() {
+    // Guardar unsubscribe functions
+    const unsub1 = this.eventBus.on('speak:start', async ({ audioId, text }) => {
+      if (this._destroyed) return;
+      
+      // Si hay audioId, verificar que esté en el banco
+      if (audioId) {
+        if (!AudioBank[audioId]) {
+          this.logger.log("⏭️ Ignorando: " + audioId);
+          return;
+        }
+        
+        this.state.update({ currentAudioId: audioId });
+        this.logger.log("🎬 " + audioId);
+        
+        if (audioId === this.config.PRESENTATION_START_ID && this.isPresentationMode) {
+          this.ui.showAvatar();
+          await this._delay(800);
+        }
+        
+        await this.speak(null, audioId);
+        
+        if (audioId === this.config.PRESENTATION_END_ID && this.isPresentationMode) {
+          this.ui.hideAvatar();
+        }
+      } 
+      // Si hay texto, usar TTS
+      else if (text) {
+        this.ui.setBubble(text);
+        await this.speak(text);
+      }
+    });
+    this._eventCleanups.push(unsub1);
+
+    const unsub2 = this.eventBus.on('speak:end', () => {
+      if (this._destroyed) return;
+      
+      if (this.currentAudioId === this.config.PRESENTATION_END_ID && this.isPresentationMode) {
+        this.ui.hideAvatar();
+      }
+      this.stop();
+      this.state.update({ currentAudioId: null });
+    });
+    this._eventCleanups.push(unsub2);
+    
+    const unsub3 = this.eventBus.on('ws:connected', () => {
+      this.state.update({ isConnected: true });
+    });
+    this._eventCleanups.push(unsub3);
+    
+    const unsub4 = this.eventBus.on('ws:disconnected', () => {
+      this.state.update({ isConnected: false });
+    });
+    this._eventCleanups.push(unsub4);
+  }
+
+  _setupEventListeners() {
+    // Helper para registrar DOM event listeners con cleanup
+    const addDOMListener = (elementId, event, handler) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.addEventListener(event, handler);
+        this._domCleanups.push(() => element.removeEventListener(event, handler));
+      }
+    };
+
+    // Overlay buttons
+    addDOMListener("startNormalBtn", "click", async () => {
+      await this._unlockAudio();
+      this.ui.hideOverlay();
+    });
+
+    addDOMListener("startPresentationBtn", "click", async () => {
+      await this._unlockAudio();
+      this.ui.hideOverlay();
+      await this.enterPresentationMode();
+    });
+
+    // Panel buttons
+    addDOMListener("testTalkBtn", "click", () => this._testSpeak());
+    addDOMListener("idleBtn", "click", () => this.stop());
+    addDOMListener("enterPresentationBtn", "click", () => this.enterPresentationMode());
+    addDOMListener("exitPresentationBtn", "click", () => this.exitPresentationMode());
+
+    // Voice select
+    addDOMListener("voiceSelect", "change", (e) => {
+      const voices = this.speech.voices;
+      this.speech.setVoice(voices[e.target.value]);
+    });
+
+    // Fullscreen
+    this._setupFullscreen();
+
+    // Keyboard (con debounce)
+    let escapeTimeout;
+    const handleKeydown = (e) => {
+      if (e.key === "Escape") {
+        clearTimeout(escapeTimeout);
+        escapeTimeout = setTimeout(() => {
+          if (this._destroyed) return;
+          if (this.isPresentationMode) {
+            this.exitPresentationMode();
+          } else if (this.isFullscreen) {
+            this._exitFullscreen();
+          }
+        }, 100);
+      }
+    };
+    document.addEventListener("keydown", handleKeydown);
+    this._domCleanups.push(() => {
+      clearTimeout(escapeTimeout);
+      document.removeEventListener("keydown", handleKeydown);
+    });
+  }
+
+  _setupFullscreen() {
+    const btn = document.getElementById("fullscreenBtn");
+    if (!btn) return;
+    
+    const handleClick = () => {
+      if (this._destroyed) return;
+      const newFullscreen = !this.isFullscreen;
+      this.state.update({ isFullscreen: newFullscreen });
+      this.ui.setFullscreen(newFullscreen);
+      btn.innerHTML = newFullscreen 
+        ? '<i data-lucide="minimize-2"></i>' 
+        : '<i data-lucide="maximize-2"></i>';
+      lucide.createIcons();
+    };
+    
+    btn.addEventListener("click", handleClick);
+    this._domCleanups.push(() => btn.removeEventListener("click", handleClick));
+
+    const handleFullscreenChange = () => {
+      if (this._destroyed) return;
+      if (!document.fullscreenElement && this.isFullscreen) {
+        this._exitFullscreen();
+      }
+    };
+    
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    this._domCleanups.push(() => document.removeEventListener("fullscreenchange", handleFullscreenChange));
+  }
+
+  _exitFullscreen() {
+    this.state.update({ isFullscreen: false });
+    this.ui.setFullscreen(false);
+    const btn = document.getElementById("fullscreenBtn");
+    if (btn) {
+      btn.innerHTML = '<i data-lucide="maximize-2"></i>';
+      lucide.createIcons();
+    }
+  }
+
+  async _unlockAudio() {
+    if (this._destroyed) return;
+    await this.audio.unlock();
+    this.speech.unlock();
+    this.logger.log("Audio desbloqueado ✓");
+  }
+
+  async _testSpeak() {
+    if (this._destroyed) return;
+    const text = "Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?";
+    this.ui.setBubble(text);
+    if (this.isPresentationMode) this.karaoke.showStatic(text);
+    await this.speak(text);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // USE CASE: Speak
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  async speak(text, audioId = null) {
+    if (this._destroyed) return;
+    if (this.isSpeaking) this.stop();
+    this.state.update({ isSpeaking: true });
+
+    const avatar = this._getActiveAvatar();
+
+    try {
+      // Audio pregrabado del banco
+      if (audioId && AudioBank[audioId]) {
+        const entry = AudioBank[audioId];
+        this.ui.setBubble(entry.text);
+        
+        this.audio.onPlay = () => {
+          if (this._destroyed) return;
+          avatar.startLipSync(entry.pauses || []);
+          if (this.isPresentationMode) {
+            this.karaoke.start(entry.segments);
+          }
+        };
+        
+        this.audio.onEnded = () => {
+          if (this._destroyed) return;
+          avatar.stopLipSync();
+          this.karaoke.stop();
+          this.state.update({ isSpeaking: false });
+        };
+
+        await this.audio.play(entry.audio);
+        return;
+      }
+
+      // TTS (ElevenLabs con fallback a navegador)
+      if (text) {
+        this.speech.onStart = () => {
+          if (this._destroyed) return;
+          avatar.startLipSync([]);
+        };
+        this.speech.onEnd = () => {
+          if (this._destroyed) return;
+          avatar.stopLipSync();
+          this.state.update({ isSpeaking: false });
+        };
+        
+        await this.speech.speak(text);
+      }
+    } catch (e) {
+      this.logger.error("Error en speak: " + e.message);
+      this.state.update({ isSpeaking: false });
+    }
+  }
+
+  stop() {
+    if (this._destroyed) return;
+    this.audio.stop();
+    this.speech.stop();
+    this._getActiveAvatar()?.stopLipSync();
+    this.karaoke.stop();
+    this.state.update({ isSpeaking: false });
+    this.ui.setBubble("En espera…");
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // USE CASE: Presentation Mode
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  async enterPresentationMode() {
+    if (this._destroyed) return;
+    this.logger.log("→ Modo presentación");
+    this.state.update({ isPresentationMode: true });
+    this.ui.enterPresentationMode();
+    
+    // Inicializar Rive de presentación si no está listo
+    if (!this.presentationRive.isReady) {
+      await this.presentationRive.initialize();
+    }
+    
+    // Precargar todos los audios del banco
+    const audioUrls = Object.values(AudioBank).map(entry => entry.audio);
+    await this.audio.preload(audioUrls);
+  }
+
+  exitPresentationMode() {
+    if (this._destroyed) return;
+    this.logger.log("← Saliendo de presentación");
+    this.state.update({ isPresentationMode: false });
+    this.ui.exitPresentationMode();
+    this.karaoke.stop();
+    this.stop();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  _getActiveAvatar() {
+    if (this._destroyed) return null;
+    if (this.isPresentationMode) {
+      return this.presentationRive;
+    }
+    return this.panelAvatar;
+  }
+
+  _delay(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Public API
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  /**
+   * Reproduce un audio del banco
+   * @param {string} audioId - ID del audio en el banco
+   */
+  async playAudio(audioId) {
+    await this.speak(null, audioId);
+  }
+
+  /**
+   * Reproduce texto usando TTS
+   * @param {string} text - Texto a sintetizar
+   */
+  async sayText(text) {
+    this.ui.setBubble(text);
+    await this.speak(text);
+  }
+
+  /**
+   * Obtiene el estado actual (solo lectura)
+   * @returns {Readonly<object>}
+   */
+  getState() {
+    return this.state.state;
+  }
+
+  /**
+   * Suscribirse a cambios de estado
+   * @param {Function} callback
+   * @returns {Function} - Unsubscribe function
+   */
+  onStateChange(callback) {
+    return this.state.onChange(callback);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Destroy (Cleanup)
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  /**
+   * Destruye la aplicación y libera todos los recursos
+   */
+  destroy() {
+    if (this._destroyed) return;
+    this._destroyed = true;
+    
+    this.logger.log("Destruyendo aplicación...");
+    
+    // 1. Detener todo lo que esté en curso
+    this.stop();
+    
+    // 2. Limpiar event listeners del EventBus
+    this._eventCleanups.forEach(unsub => {
+      try { unsub(); } catch (e) {}
+    });
+    this._eventCleanups = [];
+    
+    // 3. Limpiar event listeners del DOM
+    this._domCleanups.forEach(cleanup => {
+      try { cleanup(); } catch (e) {}
+    });
+    this._domCleanups = [];
+    
+    // 4. Destruir adaptadores
+    this.webSocket.disconnect();
+    this.panelAvatar.destroy();
+    this.presentationRive.destroy();
+    this.audio.destroy();
+    this.karaoke.destroy();
+    
+    // 5. Limpiar speech (TTS)
+    this.speech.stop();
+    
+    // 6. Resetear estado
+    this.state.reset();
+    
+    this.logger.log("✓ Aplicación destruida");
+  }
+}

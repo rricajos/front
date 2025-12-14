@@ -309,6 +309,11 @@ export class SettingsAdapter {
             </button>
           </div>
           
+          <div class="install-help" id="installHelp">
+            <i data-lucide="info"></i>
+            <span>Para instalar necesitas: HTTPS y navegador compatible (Chrome, Edge, Safari)</span>
+          </div>
+          
           <div class="settings-item">
             <label>Versión</label>
             <span class="settings-value">2.0.0</span>
@@ -417,28 +422,32 @@ export class SettingsAdapter {
     const settingsItem = document.getElementById('installSettingsItem');
     const settingsBtn = document.getElementById('settingsInstallBtn');
     const settingsLabel = document.getElementById('installLabel');
+    const installHelp = document.getElementById('installHelp');
     
     if (settingsItem && settingsBtn && settingsLabel) {
       settingsItem.style.display = 'flex';
       
       if (this._isInstalled) {
         // App instalada - mostrar opción de desinstalar
-        settingsLabel.textContent = 'App instalada';
+        settingsLabel.textContent = 'App instalada ✓';
         settingsBtn.innerHTML = '<i data-lucide="external-link"></i><span>Cómo desinstalar</span>';
         settingsBtn.className = 'uninstall-btn';
         settingsBtn.disabled = false;
+        if (installHelp) installHelp.style.display = 'none';
       } else if (this.canInstall) {
         // Se puede instalar
         settingsLabel.textContent = 'Instalar como app';
         settingsBtn.innerHTML = '<i data-lucide="download"></i><span>Instalar</span>';
         settingsBtn.className = 'install-btn';
         settingsBtn.disabled = false;
+        if (installHelp) installHelp.style.display = 'none';
       } else {
         // No se puede instalar aún (esperando prompt o navegador no compatible)
         settingsLabel.textContent = 'Instalar como app';
         settingsBtn.innerHTML = '<i data-lucide="download"></i><span>No disponible</span>';
         settingsBtn.className = 'install-btn disabled-btn';
         settingsBtn.disabled = true;
+        if (installHelp) installHelp.style.display = 'flex';
       }
       
       // Reinicializar iconos

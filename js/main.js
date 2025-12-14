@@ -150,7 +150,20 @@ function showLoaderError(message) {
     });
     await app.initialize();
     
-    // 10. Conectar settings con la app
+    // 10. Conectar speechService con settings para selector de voces
+    settings.setSpeechService(app.speech);
+    
+    // 11. Aplicar configuración de voces guardada
+    if (settings.get('elevenLabsVoiceId')) {
+      app.speech.elevenLabs?.setVoice(settings.get('elevenLabsVoiceId'));
+    }
+    if (settings.get('browserVoiceName')) {
+      const voices = app.speech.browserTTS?.voices || [];
+      const voice = voices.find(v => v.name === settings.get('browserVoiceName'));
+      if (voice) app.speech.browserTTS?.setVoice(voice);
+    }
+    
+    // 12. Conectar settings con la app
     settings.onChange(({ key, newValue }) => {
       if (key === 'subtitlesEnabled') {
         const subtitle = document.getElementById('presentationSubtitle');
@@ -166,7 +179,7 @@ function showLoaderError(message) {
       }
     });
     
-    // 11. Conectar keyboard shortcuts
+    // 13. Conectar keyboard shortcuts
     eventBus.on('shortcut:toggle-play', () => app.togglePlay?.());
     eventBus.on('shortcut:toggle-fullscreen', () => app.toggleFullscreen?.());
     eventBus.on('shortcut:toggle-settings', () => settings.togglePanel());
@@ -190,12 +203,18 @@ function showLoaderError(message) {
       }
     });
     eventBus.on('shortcut:next-audio', () => {
-      // TODO: Implementar navegación de audios
-      toast.info('Siguiente audio (no implementado)');
+      const id = app.nextAudio();
+      if (id) {
+        const entry = app.audioBank[id];
+        toast.info(`▶ ${entry?.title || id}`);
+      }
     });
     eventBus.on('shortcut:prev-audio', () => {
-      // TODO: Implementar navegación de audios
-      toast.info('Audio anterior (no implementado)');
+      const id = app.prevAudio();
+      if (id) {
+        const entry = app.audioBank[id];
+        toast.info(`◀ ${entry?.title || id}`);
+      }
     });
     eventBus.on('shortcut:volume-up', () => {
       const current = settings.get('volume');
@@ -213,13 +232,13 @@ function showLoaderError(message) {
       showShortcutsHelp(keyboard);
     });
     
-    // 12. Ocultar loader y mostrar app
+    // 14. Ocultar loader y mostrar app
     hideLoader();
     
-    // 13. Aplicar volumen inicial
+    // 15. Aplicar volumen inicial
     app.setVolume(settings.get('volume') / 100);
     
-    // 14. Exponer globalmente para debug (solo en desarrollo)
+    // 16. Exponer globalmente para debug (solo en desarrollo)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       window.avatarApp = app;
       window.settings = settings;

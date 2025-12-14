@@ -9,8 +9,10 @@ const DefaultSettings = {
   theme: 'dark',           // 'dark' | 'light' | 'system'
   subtitlesEnabled: true,
   soundEnabled: true,
-  debugPanel: true,
+  debugPanel: false,       // Desactivado por defecto
   volume: 100,             // 0-100
+  elevenLabsVoiceId: null, // null = usar el de config
+  browserVoiceName: null,  // null = auto-seleccionar español
 };
 
 /**
@@ -49,6 +51,14 @@ export class SettingsAdapter {
    */
   setToast(toast) {
     this._toast = toast;
+  }
+
+  /**
+   * Inyecta el servicio de voz para configurar voces
+   * @param {SpeechService} speechService
+   */
+  setSpeechService(speechService) {
+    this._speechService = speechService;
   }
 
   /**
@@ -348,6 +358,38 @@ export class SettingsAdapter {
           </div>
         </div>
 
+        <!-- Voces -->
+        <div class="settings-section">
+          <h3>Voces</h3>
+          
+          <div class="settings-item voice-item">
+            <label>
+              <i data-lucide="cloud" class="label-icon"></i>
+              ElevenLabs
+              <span class="voice-badge primary">Principal</span>
+            </label>
+            <select class="voice-select" id="elevenLabsVoiceSelect" disabled>
+              <option value="">Cargando...</option>
+            </select>
+          </div>
+          
+          <div class="settings-item voice-item">
+            <label>
+              <i data-lucide="speaker" class="label-icon"></i>
+              Navegador
+              <span class="voice-badge fallback">Respaldo</span>
+            </label>
+            <select class="voice-select" id="browserVoiceSelect">
+              <option value="">Cargando...</option>
+            </select>
+          </div>
+          
+          <div class="voice-help">
+            <i data-lucide="info"></i>
+            <span>ElevenLabs ofrece voces de alta calidad. Si no está disponible, se usará la voz del navegador como respaldo.</span>
+          </div>
+        </div>
+
         <!-- PWA -->
         <div class="settings-section">
           <h3>Aplicación</h3>
@@ -464,6 +506,132 @@ export class SettingsAdapter {
         this.installPWA();
       }
     });
+
+    // Voice selectors
+    document.getElementById('elevenLabsVoiceSelect')?.addEventListener('change', (e) => {
+      const voiceId = e.target.value;
+      this.set('elevenLabsVoiceId', voiceId);
+      this._speechService?.elevenLabs?.setVoice(voiceId);
+      this._notify('Voz de ElevenLabs actualizada', 'success');
+    });
+
+    document.getElementById('browserVoiceSelect')?.addEventListener('change', (e) => {
+      const voiceName = e.target.value;
+      this.set('browserVoiceName', voiceName);
+      
+      // Encontrar y establecer la voz
+      const voices = this._speechService?.browserTTS?.voices || [];
+      const voice = voices.find(v => v.name === voiceName);
+      if (voice) {
+        this._speechService?.browserTTS?.setVoice(voice);
+      }
+      this._notify('Voz de respaldo actualizada', 'success');
+    });
+
+    // Cargar voces
+    this._loadVoices();
+  }
+
+  /**
+   * Carga las voces disponibles en los selectores
+   * @private
+   */
+  async _loadVoices() {
+    // Cargar voces de ElevenLabs
+    await this._loadElevenLabsVoices();
+    
+    // Cargar voces del navegador
+    this._loadBrowserVoices();
+  }
+
+  /**
+   * Carga las voces de ElevenLabs
+   * @private
+   */
+  async _loadElevenLabsVoices() {
+    const select = document.getElementById('elevenLabsVoiceSelect');
+    if (!select) return;
+
+    if (!this._speechService?.elevenLabs) {
+      select.innerHTML = '<option value="">No disponible</option>';
+      return;
+    }
+
+    try {
+      const voices = await this._speechService.elevenLabs.loadVoices();
+      
+      if (voices.length === 0) {
+        select.innerHTML = '<option value="">Sin voces disponibles</option>';
+        return;
+      }
+
+      // Ordenar por nombre
+      const sortedVoices = [...voices].sort((a, b) => a.name.localeCompare(b.name));
+      
+      // Generar opciones
+      const currentVoiceId = this._settings.elevenLabsVoiceId || this._speechService.elevenLabs.getSelectedVoiceId();
+      
+      select.innerHTML = sortedVoices.map(voice => {
+        const selected = voice.voice_id === currentVoiceId ? 'selected' : '';
+        const category = voice.category ? ` (${voice.category})` : '';
+        return `<option value="${voice.voice_id}" ${selected}>${voice.name}${category}</option>`;
+      }).join('');
+      
+      select.disabled = false;
+      
+    } catch (e) {
+      select.innerHTML = '<option value="">Error al cargar</option>';
+    }
+  }
+
+  /**
+   * Carga las voces del navegador
+   * @private
+   */
+  _loadBrowserVoices() {
+    const select = document.getElementById('browserVoiceSelect');
+    if (!select) return;
+
+    const loadVoicesIntoSelect = () => {
+      const tts = this._speechService?.browserTTS;
+      if (!tts) {
+        select.innerHTML = '<option value="">No disponible</option>';
+        return;
+      }
+
+      // Cargar voces
+      tts.loadVoices();
+      const voices = tts.getSortedVoices?.() || tts.voices || [];
+
+      if (voices.length === 0) {
+        select.innerHTML = '<option value="">Sin voces disponibles</option>';
+        return;
+      }
+
+      // Generar opciones
+      const currentVoiceName = this._settings.browserVoiceName || tts.selectedVoice?.name;
+      
+      select.innerHTML = voices.map(voice => {
+        const selected = voice.name === currentVoiceName ? 'selected' : '';
+        const lang = voice.lang ? ` [${voice.lang}]` : '';
+        return `<option value="${voice.name}" ${selected}>${voice.name}${lang}</option>`;
+      }).join('');
+      
+      select.disabled = false;
+    };
+
+    // Las voces pueden tardar en cargar
+    if (window.speechSynthesis) {
+      if (window.speechSynthesis.getVoices().length > 0) {
+        loadVoicesIntoSelect();
+      } else {
+        window.speechSynthesis.addEventListener('voiceschanged', loadVoicesIntoSelect, { once: true });
+        // Fallback si no se dispara el evento
+        setTimeout(loadVoicesIntoSelect, 1000);
+      }
+    } else {
+      select.innerHTML = '<option value="">No soportado</option>';
+    }
   }
 
   /**

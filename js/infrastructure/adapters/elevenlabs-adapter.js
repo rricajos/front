@@ -11,6 +11,9 @@ export class ElevenLabsAdapter {
     this.logger = logger;
     this.currentAudio = null;
     this._destroyed = false;
+    this._volume = 1;
+    this._voices = [];
+    this._selectedVoiceId = config.ELEVENLABS_VOICE_ID || null;
     
     // Circuit Breaker para proteger contra fallos repetidos
     this.circuitBreaker = new CircuitBreaker({
@@ -49,7 +52,7 @@ export class ElevenLabsAdapter {
    * @returns {boolean} - Si ElevenLabs está configurado
    */
   get isConfigured() {
-    return !!(this.config.ELEVENLABS_API_KEY && this.config.ELEVENLABS_VOICE_ID);
+    return !!(this.config.ELEVENLABS_API_KEY && this._selectedVoiceId);
   }
 
   /**
@@ -57,6 +60,91 @@ export class ElevenLabsAdapter {
    */
   get isAvailable() {
     return this.isConfigured && this.circuitBreaker.isAllowed;
+  }
+
+  /**
+   * Establece el volumen
+   * @param {number} volume - Entre 0 y 1
+   */
+  setVolume(volume) {
+    this._volume = Math.max(0, Math.min(1, volume));
+    if (this.currentAudio) {
+      this.currentAudio.volume = this._volume;
+    }
+  }
+
+  /**
+   * Obtiene el volumen actual
+   * @returns {number}
+   */
+  getVolume() {
+    return this._volume;
+  }
+
+  /**
+   * Carga las voces disponibles de ElevenLabs
+   * @returns {Promise<Array>} - Lista de voces
+   */
+  async loadVoices() {
+    if (!this.config.ELEVENLABS_API_KEY) {
+      this.logger.warn("ElevenLabs: No hay API key para cargar voces");
+      return [];
+    }
+
+    try {
+      const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+        headers: {
+          'xi-api-key': this.config.ELEVENLABS_API_KEY,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      this._voices = data.voices || [];
+      
+      this.logger.log(`ElevenLabs: ${this._voices.length} voces cargadas`);
+      
+      return this._voices;
+    } catch (e) {
+      this.logger.warn("ElevenLabs: Error cargando voces - " + e.message);
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene las voces cargadas
+   * @returns {Array}
+   */
+  getVoices() {
+    return this._voices;
+  }
+
+  /**
+   * Establece la voz a usar
+   * @param {string} voiceId
+   */
+  setVoice(voiceId) {
+    this._selectedVoiceId = voiceId;
+    this.logger.log(`ElevenLabs: Voz seleccionada - ${voiceId}`);
+  }
+
+  /**
+   * Obtiene el ID de la voz actual
+   * @returns {string|null}
+   */
+  getSelectedVoiceId() {
+    return this._selectedVoiceId;
+  }
+
+  /**
+   * Obtiene la voz actual
+   * @returns {object|null}
+   */
+  getSelectedVoice() {
+    return this._voices.find(v => v.voice_id === this._selectedVoiceId) || null;
   }
 
   /**
@@ -106,7 +194,7 @@ export class ElevenLabsAdapter {
     
     try {
       const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${this.config.ELEVENLABS_VOICE_ID}`,
+        `https://api.elevenlabs.io/v1/text-to-speech/${this._selectedVoiceId}`,
         {
           method: "POST",
           headers: {
@@ -163,6 +251,7 @@ export class ElevenLabsAdapter {
       this.stop();
       
       this.currentAudio = new Audio(audioUrl);
+      this.currentAudio.volume = this._volume;
       
       this.currentAudio.onplay = () => {
         if (this._destroyed) return;

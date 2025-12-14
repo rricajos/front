@@ -13,3 +13,4 @@ export { SettingsAdapter } from './settings-adapter.js';
 export { ToastAdapter, ToastType, toast } from './toast-adapter.js';
 export { KeyboardAdapter } from './keyboard-adapter.js';
 export { WakeLockAdapter } from './wakelock-adapter.js';
+export { ProgressAdapter } from './progress-adapter.js';

@@ -14,6 +14,7 @@ import {
   UIAdapter,
   TelemetryAdapter,
   TelemetryEventType,
+  ProgressAdapter,
   AvatarService,
   SpeechService,
 } from '../infrastructure/index.js';
@@ -35,10 +36,16 @@ export class AvatarApplication {
     this.wakeLock = options.wakeLock || null;
     this.externalEventBus = options.eventBus || null;
     
+    // Audio navigation
+    this._currentAudioIndex = 0;
+    
     // Core
     this.eventBus = new EventBus();
     this.logger = new Logger(document.getElementById("debug"));
     this.ui = new UIAdapter();
+    
+    // Progress bar para presentación
+    this.progress = new ProgressAdapter();
     
     // Telemetría (opcional)
     this.telemetry = new TelemetryAdapter({
@@ -432,6 +439,18 @@ export class AvatarApplication {
     // Precargar todos los audios del banco
     const audioUrls = Object.values(this.audioBank).map(entry => entry.audio);
     await this.audio.preload(audioUrls);
+    
+    // Configurar progress bar
+    const audioIds = this.getAudioIds();
+    if (audioIds.length > 0) {
+      const items = audioIds.map(id => ({
+        id,
+        title: this.audioBank[id]?.title || id,
+      }));
+      this.progress.setItems(items);
+      this.progress.setCurrent(this._currentAudioIndex);
+      this.progress.show();
+    }
   }
 
   exitPresentationMode() {
@@ -445,6 +464,9 @@ export class AvatarApplication {
     
     // Liberar wake lock
     this.wakeLock?.release();
+    
+    // Ocultar progress bar
+    this.progress.hide();
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -573,6 +595,108 @@ export class AvatarApplication {
     }
   }
 
+  /**
+   * Reproduce el siguiente audio del banco
+   * @returns {string|null} - ID del audio reproducido
+   */
+  nextAudio() {
+    const ids = this.getAudioIds();
+    if (ids.length === 0) {
+      this.toast?.warning('No hay audios disponibles');
+      return null;
+    }
+    
+    this._currentAudioIndex = (this._currentAudioIndex + 1) % ids.length;
+    const audioId = ids[this._currentAudioIndex];
+    
+    // Actualizar progress si está visible
+    this.progress.setCurrent(this._currentAudioIndex);
+    
+    // Mostrar indicador
+    this._showNavIndicator('next', audioId);
+    
+    this.playAudio(audioId);
+    return audioId;
+  }
+
+  /**
+   * Reproduce el audio anterior del banco
+   * @returns {string|null} - ID del audio reproducido
+   */
+  prevAudio() {
+    const ids = this.getAudioIds();
+    if (ids.length === 0) {
+      this.toast?.warning('No hay audios disponibles');
+      return null;
+    }
+    
+    this._currentAudioIndex = (this._currentAudioIndex - 1 + ids.length) % ids.length;
+    const audioId = ids[this._currentAudioIndex];
+    
+    // Actualizar progress si está visible
+    this.progress.setCurrent(this._currentAudioIndex);
+    
+    // Mostrar indicador
+    this._showNavIndicator('prev', audioId);
+    
+    this.playAudio(audioId);
+    return audioId;
+  }
+
+  /**
+   * Obtiene el índice de audio actual
+   * @returns {number}
+   */
+  getCurrentAudioIndex() {
+    return this._currentAudioIndex;
+  }
+
+  /**
+   * Establece el índice de audio actual
+   * @param {number} index
+   */
+  setCurrentAudioIndex(index) {
+    const ids = this.getAudioIds();
+    if (ids.length > 0) {
+      this._currentAudioIndex = Math.max(0, Math.min(index, ids.length - 1));
+      this.progress.setCurrent(this._currentAudioIndex);
+    }
+  }
+
+  /**
+   * Muestra indicador de navegación
+   * @private
+   */
+  _showNavIndicator(direction, audioId) {
+    // Buscar o crear indicador
+    let indicator = document.querySelector(`.audio-nav-indicator.${direction}`);
+    
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.className = `audio-nav-indicator ${direction}`;
+      document.body.appendChild(indicator);
+    }
+    
+    // Obtener título del audio
+    const entry = this.audioBank[audioId];
+    const title = entry?.title || audioId;
+    const icon = direction === 'next' ? 'chevron-right' : 'chevron-left';
+    
+    indicator.innerHTML = `
+      <i data-lucide="${icon}"></i>
+      <span>${title}</span>
+    `;
+    
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    
+    // Mostrar y ocultar
+    indicator.classList.add('visible');
+    clearTimeout(indicator._timeout);
+    indicator._timeout = setTimeout(() => {
+      indicator.classList.remove('visible');
+    }, 1500);
+  }
+
   // ═══════════════════════════════════════════════════════════════════════
   // Destroy (Cleanup)
   // ═══════════════════════════════════════════════════════════════════════
@@ -612,6 +736,7 @@ export class AvatarApplication {
     this.karaoke.destroy();
     this.speech.destroy();
     this.telemetry.destroy();
+    this.progress.destroy();
     
     // 6. Resetear estado
     this.state.reset();

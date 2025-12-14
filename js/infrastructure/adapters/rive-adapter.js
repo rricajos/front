@@ -57,6 +57,10 @@ export class RiveAdapter {
             if (input.name === "isTalking") this.isTalkingInput = input;
             else if (input.name === "VisemeID") this.visemeIDInput = input;
           });
+          
+          // Ocultar skeleton loading
+          this._hideSkeleton();
+          
           this.logger.log("✓ Rive inicializado");
           resolve(true);
         } else {
@@ -68,6 +72,21 @@ export class RiveAdapter {
         resolve(false);
       }
     }, 150);
+  }
+
+  /**
+   * Oculta el skeleton loading del contenedor
+   * @private
+   */
+  _hideSkeleton() {
+    // Buscar skeleton en el contenedor padre del canvas
+    const container = this.canvas?.parentElement;
+    const skeleton = container?.querySelector('.rive-skeleton');
+    if (skeleton) {
+      skeleton.classList.add('hidden');
+      // Remover después de la animación
+      setTimeout(() => skeleton.remove(), 300);
+    }
   }
 
   get isReady() {

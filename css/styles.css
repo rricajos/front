@@ -697,6 +697,107 @@ body.presentation-mode .settings-btn {
   gap: 8px;
 }
 
+.settings-item.voice-item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.settings-item.voice-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+}
+
+.voice-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.voice-badge.primary {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.voice-badge.fallback {
+  background: rgba(156, 163, 175, 0.2);
+  color: #9ca3af;
+}
+
+.voice-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.voice-select:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+}
+
+.voice-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.voice-select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.voice-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(156, 163, 175, 0.1);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+.voice-help i {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.voice-help span {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+[data-theme="light"] .voice-select {
+  background: #ffffff;
+}
+
+[data-theme="light"] .voice-badge.primary {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="light"] .voice-badge.fallback {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
 .settings-item label {
   font-size: 14px;
   color: var(--text-primary);
@@ -1292,4 +1393,159 @@ body.presentation-mode .settings-btn {
 .shortcuts-close:hover {
   background: var(--border-color);
   color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKELETON LOADING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.rive-skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  background: var(--bg-card);
+  transition: opacity 0.3s ease;
+}
+
+.rive-skeleton.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.skeleton-avatar {
+  width: 60%;
+  height: 60%;
+  max-width: 280px;
+  max-height: 280px;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    var(--bg-input) 25%,
+    var(--border-color) 50%,
+    var(--bg-input) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.pres-rive-wrap .rive-skeleton {
+  background: transparent;
+}
+
+.pres-rive-wrap .skeleton-avatar {
+  max-width: 400px;
+  max-height: 400px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.1) 50%,
+    rgba(255,255,255,0.05) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRESENTATION PROGRESS BAR
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.presentation-progress {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 500px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.presentation-progress.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+}
+
+.progress-title {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--brand-primary), #22c55e);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Audio navigation indicators */
+.audio-nav-indicator {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.audio-nav-indicator.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.audio-nav-indicator.prev {
+  left: 20px;
+}
+
+.audio-nav-indicator.next {
+  right: 20px;
+}
+
+.audio-nav-indicator i {
+  width: 20px;
+  height: 20px;
 }

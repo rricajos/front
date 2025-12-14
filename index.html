@@ -77,15 +77,33 @@
   <div class="presentation-container" id="presentationContainer">
     <button class="exit-presentation-btn" id="exitPresentationBtn" title="Salir (ESC)"><i data-lucide="x"></i></button>
     <div class="presentation-avatar" id="presentationAvatar">
-      <div class="pres-rive-wrap"><canvas id="presentationCanvas" width="800" height="800"></canvas></div>
+      <div class="pres-rive-wrap">
+        <div class="rive-skeleton" id="presentationSkeleton">
+          <div class="skeleton-avatar"></div>
+        </div>
+        <canvas id="presentationCanvas" width="800" height="800"></canvas>
+      </div>
     </div>
     <img src="./gestpropiedad.jpg" alt="GestPropiedad" class="presentation-logo">
     <div class="presentation-subtitle" id="presentationSubtitle"></div>
+    <!-- Progress Bar -->
+    <div class="presentation-progress" id="presentationProgress">
+      <div class="progress-info">
+        <span class="progress-text" id="progressText">1 / 4</span>
+        <span class="progress-title" id="progressTitle">Bienvenida</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
   </div>
 
   <div class="stage">
     <div class="avatar">
       <div class="rive-wrap" id="riveWrap">
+        <div class="rive-skeleton" id="panelSkeleton">
+          <div class="skeleton-avatar"></div>
+        </div>
         <button class="fullscreen-btn" id="fullscreenBtn" title="Pantalla completa"><i data-lucide="maximize-2"></i></button>
         <canvas id="riveCanvas" width="600" height="600"></canvas>
       </div>

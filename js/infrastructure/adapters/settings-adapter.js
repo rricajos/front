@@ -11,6 +11,7 @@ const DefaultSettings = {
   soundEnabled: true,
   debugPanel: false,       // Desactivado por defecto
   volume: 100,             // 0-100
+  ttsProvider: 'elevenlabs', // 'elevenlabs' | 'browser'
   elevenLabsVoiceId: null, // null = usar el de config
   browserVoiceName: null,  // null = auto-seleccionar español
 };
@@ -34,6 +35,9 @@ export class SettingsAdapter {
     
     // Aplicar tema inicial
     this._applyTheme(this._settings.theme);
+    
+    // Aplicar visibilidad del debug panel
+    this._toggleDebugPanel(this._settings.debugPanel);
     
     // Escuchar cambios de tema del sistema
     this._setupSystemThemeListener();
@@ -364,19 +368,29 @@ export class SettingsAdapter {
           
           <div class="settings-item voice-item">
             <label>
+              <i data-lucide="mic" class="label-icon"></i>
+              Proveedor TTS
+            </label>
+            <select class="voice-select" id="ttsProviderSelect">
+              <option value="elevenlabs" ${this._settings.ttsProvider === 'elevenlabs' ? 'selected' : ''}>☁️ ElevenLabs (IA)</option>
+              <option value="browser" ${this._settings.ttsProvider === 'browser' ? 'selected' : ''}>🔊 Navegador (Local)</option>
+            </select>
+          </div>
+          
+          <div class="settings-item voice-item" id="elevenLabsVoiceItem">
+            <label>
               <i data-lucide="cloud" class="label-icon"></i>
-              ElevenLabs
-              <span class="voice-badge primary">Principal</span>
+              Voz ElevenLabs
             </label>
             <select class="voice-select" id="elevenLabsVoiceSelect" disabled>
               <option value="">Cargando...</option>
             </select>
           </div>
           
-          <div class="settings-item voice-item">
+          <div class="settings-item voice-item" id="browserVoiceItem">
             <label>
               <i data-lucide="speaker" class="label-icon"></i>
-              Navegador
+              Voz Navegador
               <span class="voice-badge fallback">Respaldo</span>
             </label>
             <select class="voice-select" id="browserVoiceSelect">
@@ -386,7 +400,7 @@ export class SettingsAdapter {
           
           <div class="voice-help">
             <i data-lucide="info"></i>
-            <span>ElevenLabs ofrece voces de alta calidad. Si no está disponible, se usará la voz del navegador como respaldo.</span>
+            <span>ElevenLabs ofrece voces de IA de alta calidad. La voz del navegador se usa como respaldo si ElevenLabs no está disponible.</span>
           </div>
         </div>
 
@@ -508,6 +522,13 @@ export class SettingsAdapter {
     });
 
     // Voice selectors
+    document.getElementById('ttsProviderSelect')?.addEventListener('change', (e) => {
+      const provider = e.target.value;
+      this.set('ttsProvider', provider);
+      this._updateVoiceSelectorsVisibility(provider);
+      this._notify(`Proveedor TTS: ${provider === 'elevenlabs' ? 'ElevenLabs' : 'Navegador'}`, 'success');
+    });
+
     document.getElementById('elevenLabsVoiceSelect')?.addEventListener('change', (e) => {
       const voiceId = e.target.value;
       this.set('elevenLabsVoiceId', voiceId);
@@ -525,11 +546,38 @@ export class SettingsAdapter {
       if (voice) {
         this._speechService?.browserTTS?.setVoice(voice);
       }
-      this._notify('Voz de respaldo actualizada', 'success');
+      this._notify('Voz de navegador actualizada', 'success');
     });
 
-    // Cargar voces
+    // Cargar voces y actualizar visibilidad
     this._loadVoices();
+    this._updateVoiceSelectorsVisibility(this._settings.ttsProvider);
+  }
+
+  /**
+   * Actualiza la visibilidad de los selectores de voces
+   * @private
+   */
+  _updateVoiceSelectorsVisibility(provider) {
+    const elevenLabsItem = document.getElementById('elevenLabsVoiceItem');
+    const browserItem = document.getElementById('browserVoiceItem');
+    const browserBadge = browserItem?.querySelector('.voice-badge');
+    
+    if (provider === 'elevenlabs') {
+      // ElevenLabs principal, navegador como respaldo
+      if (elevenLabsItem) elevenLabsItem.style.display = '';
+      if (browserBadge) {
+        browserBadge.textContent = 'Respaldo';
+        browserBadge.className = 'voice-badge fallback';
+      }
+    } else {
+      // Solo navegador
+      if (elevenLabsItem) elevenLabsItem.style.display = 'none';
+      if (browserBadge) {
+        browserBadge.textContent = 'Principal';
+        browserBadge.className = 'voice-badge primary';
+      }
+    }
   }
 
   /**

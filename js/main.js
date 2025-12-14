@@ -154,6 +154,9 @@ function showLoaderError(message) {
     settings.setSpeechService(app.speech);
     
     // 11. Aplicar configuración de voces guardada
+    if (settings.get('ttsProvider')) {
+      app.speech.setProvider(settings.get('ttsProvider'));
+    }
     if (settings.get('elevenLabsVoiceId')) {
       app.speech.elevenLabs?.setVoice(settings.get('elevenLabsVoiceId'));
     }
@@ -176,6 +179,9 @@ function showLoaderError(message) {
       }
       if (key === 'volume') {
         app.setVolume(newValue / 100);
+      }
+      if (key === 'ttsProvider') {
+        app.speech.setProvider(newValue);
       }
     });
     

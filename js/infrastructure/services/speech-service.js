@@ -17,11 +17,29 @@ export class SpeechService {
     // Estado
     this._isSpeaking = false;
     this._usedAdapter = null; // 'elevenlabs' | 'browser' | null
+    this._preferredProvider = 'elevenlabs'; // 'elevenlabs' | 'browser'
+  }
+
+  /**
+   * Establece el proveedor preferido
+   * @param {'elevenlabs' | 'browser'} provider
+   */
+  setProvider(provider) {
+    this._preferredProvider = provider;
+    this.logger.log(`TTS: Proveedor preferido = ${provider}`);
+  }
+
+  /**
+   * Obtiene el proveedor preferido
+   * @returns {'elevenlabs' | 'browser'}
+   */
+  getProvider() {
+    return this._preferredProvider;
   }
 
   /**
    * Sintetiza y reproduce texto
-   * Intenta ElevenLabs primero, luego fallback a TTS del navegador
+   * Usa el proveedor preferido, con fallback si falla
    * @param {string} text - Texto a hablar
    * @returns {Promise<void>}
    */
@@ -33,6 +51,12 @@ export class SpeechService {
     
     // Propagar callbacks a los adaptadores
     this._setupCallbacks();
+
+    // Si el proveedor preferido es browser, usar directamente
+    if (this._preferredProvider === 'browser') {
+      await this._speakWithBrowser(text);
+      return;
+    }
 
     // Intentar ElevenLabs primero (si está disponible - considera circuit breaker)
     if (this.elevenLabs.isAvailable) {
@@ -54,9 +78,17 @@ export class SpeechService {
     }
 
     // Fallback a TTS del navegador
+    await this._speakWithBrowser(text);
+  }
+
+  /**
+   * Habla usando el TTS del navegador
+   * @private
+   */
+  async _speakWithBrowser(text) {
     if (this.config.USE_BROWSER_TTS_FALLBACK && this.browserTTS.isAvailable) {
       try {
-        this.logger.log("Usando TTS del navegador (fallback)");
+        this.logger.log("Usando TTS del navegador");
         this._usedAdapter = 'browser';
         await this.browserTTS.speak(text);
       } catch (e) {

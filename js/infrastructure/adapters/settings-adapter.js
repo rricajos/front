@@ -419,21 +419,26 @@ export class SettingsAdapter {
     const settingsLabel = document.getElementById('installLabel');
     
     if (settingsItem && settingsBtn && settingsLabel) {
+      settingsItem.style.display = 'flex';
+      
       if (this._isInstalled) {
         // App instalada - mostrar opción de desinstalar
         settingsLabel.textContent = 'App instalada';
-        settingsBtn.innerHTML = '<i data-lucide="trash-2"></i><span>Desinstalar</span>';
+        settingsBtn.innerHTML = '<i data-lucide="external-link"></i><span>Cómo desinstalar</span>';
         settingsBtn.className = 'uninstall-btn';
-        settingsItem.style.display = 'flex';
+        settingsBtn.disabled = false;
       } else if (this.canInstall) {
         // Se puede instalar
-        settingsLabel.textContent = 'Instalar app';
+        settingsLabel.textContent = 'Instalar como app';
         settingsBtn.innerHTML = '<i data-lucide="download"></i><span>Instalar</span>';
         settingsBtn.className = 'install-btn';
-        settingsItem.style.display = 'flex';
+        settingsBtn.disabled = false;
       } else {
-        // No se puede instalar (navegador no compatible o ya instalada)
-        settingsItem.style.display = 'none';
+        // No se puede instalar aún (esperando prompt o navegador no compatible)
+        settingsLabel.textContent = 'Instalar como app';
+        settingsBtn.innerHTML = '<i data-lucide="download"></i><span>No disponible</span>';
+        settingsBtn.className = 'install-btn disabled-btn';
+        settingsBtn.disabled = true;
       }
       
       // Reinicializar iconos

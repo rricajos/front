@@ -71,17 +71,24 @@ body {
 .start-btn.secondary:hover { background: rgba(255, 255, 255, 0.12); box-shadow: none; }
 .start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 .start-btn i { width: 18px; height: 18px; flex-shrink: 0; }
-.start-btn.install { 
-  background: rgba(34, 197, 94, 0.15); 
-  border: 1px solid rgba(34, 197, 94, 0.3); 
-  color: #22c55e;
-  box-shadow: none; 
-}
-.start-btn.install:hover { 
-  background: rgba(34, 197, 94, 0.25); 
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.2); 
-}
 .start-btn.hidden { display: none; }
+
+/* Botón instalar en overlay - separado debajo */
+.start-btn.install-overlay { 
+  margin-top: 24px;
+  background: transparent;
+  border: 1px dashed rgba(34, 197, 94, 0.5);
+  color: #22c55e;
+  box-shadow: none;
+  font-size: 0.85rem;
+  padding: 12px 24px;
+}
+.start-btn.install-overlay:hover { 
+  background: rgba(34, 197, 94, 0.1);
+  border-style: solid;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15); 
+}
+.start-btn.install-overlay.hidden { display: none; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PRESENTATION MODE
@@ -508,9 +515,12 @@ body.presentation-mode .presentation-container { display: flex; }
   background: rgba(0, 0, 0, 0.08);
 }
 
-[data-theme="light"] .start-btn.install {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.3);
+[data-theme="light"] .start-btn.install-overlay {
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+[data-theme="light"] .start-btn.install-overlay:hover {
+  background: rgba(34, 197, 94, 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -855,6 +865,17 @@ body.presentation-mode .settings-btn {
 .uninstall-btn i {
   width: 16px;
   height: 16px;
+}
+
+/* Disabled button */
+.disabled-btn {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.disabled-btn:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 [data-theme="light"] .uninstall-btn {

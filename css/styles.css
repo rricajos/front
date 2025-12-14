@@ -189,20 +189,20 @@ body.presentation-mode .presentation-container { display: flex; }
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .stage {
-  width: 100%; max-width: 900px;
+  width: 100%; max-width: 950px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, .35);
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 24px; padding: 28px;
-  align-items: center;
+  align-items: stretch;
 }
 
 @media (max-width: 800px) {
   .stage { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
-  .avatar { order: 1; }
-  .panel { order: 2; }
+  .avatar-column { order: 1; }
+  .voice-column { order: 2; }
 }
 
 @media (max-width: 480px) {
@@ -213,6 +213,121 @@ body.presentation-mode .presentation-container { display: flex; }
   .bubble { min-height: 70px !important; font-size: 15px !important; }
   .btn-row { flex-direction: column; }
   .btn { width: 100%; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AVATAR COLUMN (Left)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.avatar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.avatar-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.avatar-actions {
+  margin-top: auto;
+}
+
+.btn.full-width {
+  width: 100%;
+  flex: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VOICE COLUMN (Right)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.voice-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tts-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.tts-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #666;
+  flex-shrink: 0;
+}
+
+.tts-status-dot.ok { background: var(--success); }
+.tts-status-dot.error { background: var(--error); }
+.tts-status-dot.loading { background: var(--warning); animation: pulse 1s infinite; }
+.tts-status-dot.speaking { background: var(--brand-primary); animation: pulse 0.5s infinite; }
+
+.tts-status-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.voice-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--bg-input);
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+}
+
+.voice-settings > label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.voice-settings > label i {
+  width: 14px;
+  height: 14px;
+}
+
+.voice-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.voice-picker label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.voice-picker label i {
+  width: 12px;
+  height: 12px;
+}
+
+.voice-picker.hidden {
+  display: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -262,10 +377,8 @@ body.presentation-mode .presentation-container { display: flex; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PANEL
+   STATUS BAR & DEBUG
    ═══════════════════════════════════════════════════════════════════════════ */
-
-.panel { display: flex; flex-direction: column; gap: 14px; }
 
 .status-bar {
   display: flex; align-items: center; gap: 10px;
@@ -292,6 +405,10 @@ body.presentation-mode .presentation-container { display: flex; }
   line-height: 1.4;
   border: 1px solid var(--border-color);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUBBLE & BUTTONS
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 .bubble {
   background: var(--bg-input);

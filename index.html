@@ -99,40 +99,72 @@
   </div>
 
   <div class="stage">
-    <div class="avatar">
-      <div class="rive-wrap" id="riveWrap">
-        <div class="rive-skeleton" id="panelSkeleton">
-          <div class="skeleton-avatar"></div>
+    <!-- Columna Izquierda: Avatar -->
+    <div class="avatar-column">
+      <div class="avatar-status">
+        <div class="status-bar">
+          <span class="status-dot loading" id="statusDot"></span>
+          <span class="status-text" id="statusText">Inicializando...</span>
         </div>
-        <button class="fullscreen-btn" id="fullscreenBtn" title="Pantalla completa"><i data-lucide="maximize-2"></i></button>
-        <canvas id="riveCanvas" width="600" height="600"></canvas>
+        <div class="debug" id="debug"></div>
       </div>
-      <div class="css-avatar" id="cssAvatar">
-        <div class="head">
-          <div class="eye left"><div class="pupil"></div></div>
-          <div class="eye right"><div class="pupil"></div></div>
-          <div class="mouth" id="cssMouth"></div>
+      
+      <div class="avatar">
+        <div class="rive-wrap" id="riveWrap">
+          <div class="rive-skeleton" id="panelSkeleton">
+            <div class="skeleton-avatar"></div>
+          </div>
+          <button class="fullscreen-btn" id="fullscreenBtn" title="Pantalla completa"><i data-lucide="maximize-2"></i></button>
+          <canvas id="riveCanvas" width="600" height="600"></canvas>
         </div>
+        <div class="css-avatar" id="cssAvatar">
+          <div class="head">
+            <div class="eye left"><div class="pupil"></div></div>
+            <div class="eye right"><div class="pupil"></div></div>
+            <div class="mouth" id="cssMouth"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="avatar-actions">
+        <button class="btn primary full-width" id="enterPresentationBtn"><i data-lucide="tv"></i>Modo Presentación</button>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="status-bar">
-        <span class="status-dot loading" id="statusDot"></span>
-        <span class="status-text" id="statusText">Inicializando...</span>
+    <!-- Columna Derecha: Voz -->
+    <div class="voice-column">
+      <div class="tts-status">
+        <span class="tts-status-dot" id="ttsStatusDot"></span>
+        <span class="tts-status-text" id="ttsStatusText">TTS: Cargando...</span>
       </div>
-      <div class="debug" id="debug"></div>
+      
       <div class="bubble" id="bubble">Listo para recibir eventos.</div>
+      
       <div class="btn-row">
         <button class="btn primary" id="testTalkBtn"><i data-lucide="play"></i>Test</button>
         <button class="btn" id="idleBtn"><i data-lucide="pause"></i>Detener</button>
       </div>
-      <div class="btn-row">
-        <button class="btn primary" id="enterPresentationBtn"><i data-lucide="tv"></i>Modo Presentación</button>
-      </div>
-      <div class="settings-section">
-        <label><i data-lucide="volume-2"></i>Voz TTS</label>
-        <select id="voiceSelect" class="voice-select"><option value="">Cargando voces...</option></select>
+      
+      <div class="voice-settings">
+        <label><i data-lucide="mic"></i>Proveedor</label>
+        <select id="ttsProviderSelectPanel" class="voice-select">
+          <option value="elevenlabs">☁️ ElevenLabs (IA)</option>
+          <option value="browser">🔊 Navegador (Local)</option>
+        </select>
+        
+        <div id="elevenLabsVoicePanel" class="voice-picker">
+          <label><i data-lucide="cloud"></i>Voz ElevenLabs</label>
+          <select id="elevenLabsVoiceSelectPanel" class="voice-select" disabled>
+            <option value="">Cargando...</option>
+          </select>
+        </div>
+        
+        <div class="voice-picker">
+          <label><i data-lucide="volume-2"></i>Voz Navegador</label>
+          <select id="voiceSelect" class="voice-select">
+            <option value="">Cargando voces...</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>

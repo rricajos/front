@@ -244,7 +244,10 @@ function showLoaderError(message) {
     // 15. Aplicar volumen inicial
     app.setVolume(settings.get('volume') / 100);
     
-    // 16. Exponer globalmente para debug (solo en desarrollo)
+    // 16. Inicializar panel de voz
+    initVoicePanel(app, settings, toast);
+    
+    // 17. Exponer globalmente para debug (solo en desarrollo)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       window.avatarApp = app;
       window.settings = settings;
@@ -312,4 +315,182 @@ function showShortcutsHelp(keyboard) {
   
   modal.querySelector('.shortcuts-close').onclick = close;
   overlay.onclick = close;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Voice Panel Initialization
+// ═══════════════════════════════════════════════════════════════════════════
+
+function initVoicePanel(app, settings, toast) {
+  const providerSelect = document.getElementById('ttsProviderSelectPanel');
+  const elevenLabsVoiceSelect = document.getElementById('elevenLabsVoiceSelectPanel');
+  const elevenLabsVoicePanel = document.getElementById('elevenLabsVoicePanel');
+  const browserVoiceSelect = document.getElementById('voiceSelect');
+  const ttsStatusDot = document.getElementById('ttsStatusDot');
+  const ttsStatusText = document.getElementById('ttsStatusText');
+  
+  // Función para actualizar el estado del TTS
+  const updateTTSStatus = async () => {
+    const provider = settings.get('ttsProvider') || 'elevenlabs';
+    
+    if (provider === 'elevenlabs') {
+      if (!app.speech.elevenLabs?.isConfigured) {
+        setTTSStatus('error', '☁️ ElevenLabs: No configurado');
+      } else {
+        // Intentar cargar voces para verificar estado
+        const error = app.speech.elevenLabs?.getLoadError?.();
+        if (error === 'no_credits') {
+          setTTSStatus('error', '☁️ ElevenLabs: Sin créditos');
+        } else if (error === 'invalid_api_key') {
+          setTTSStatus('error', '☁️ ElevenLabs: API key inválida');
+        } else if (error) {
+          setTTSStatus('error', '☁️ ElevenLabs: Error');
+        } else {
+          setTTSStatus('ok', '☁️ ElevenLabs: Conectado');
+        }
+      }
+    } else {
+      if (app.speech.browserTTS?.isAvailable) {
+        setTTSStatus('ok', '🔊 Navegador: Listo');
+      } else {
+        setTTSStatus('error', '🔊 Navegador: No disponible');
+      }
+    }
+  };
+  
+  const setTTSStatus = (status, text) => {
+    if (ttsStatusDot) {
+      ttsStatusDot.className = 'tts-status-dot ' + status;
+    }
+    if (ttsStatusText) {
+      ttsStatusText.textContent = text;
+    }
+  };
+  
+  // Función para actualizar visibilidad del selector ElevenLabs
+  const updateElevenLabsVisibility = (provider) => {
+    if (elevenLabsVoicePanel) {
+      elevenLabsVoicePanel.style.display = provider === 'elevenlabs' ? '' : 'none';
+    }
+  };
+  
+  // Cargar voces de ElevenLabs en el panel
+  const loadElevenLabsVoices = async () => {
+    if (!elevenLabsVoiceSelect || !app.speech.elevenLabs) return;
+    
+    elevenLabsVoiceSelect.innerHTML = '<option value="">Cargando...</option>';
+    
+    try {
+      const voices = await app.speech.elevenLabs.loadVoices();
+      
+      if (voices.length === 0) {
+        const error = app.speech.elevenLabs.getLoadError?.();
+        const errorMessages = {
+          'no_api_key': 'Sin API key',
+          'invalid_api_key': 'API key inválida',
+          'no_credits': 'Sin créditos',
+          'api_error': 'Error de API',
+          'network_error': 'Error de conexión',
+        };
+        elevenLabsVoiceSelect.innerHTML = `<option value="">${errorMessages[error] || 'Sin voces'}</option>`;
+        return;
+      }
+      
+      const sortedVoices = [...voices].sort((a, b) => a.name.localeCompare(b.name));
+      const currentVoiceId = settings.get('elevenLabsVoiceId') || app.speech.elevenLabs.getSelectedVoiceId();
+      
+      elevenLabsVoiceSelect.innerHTML = sortedVoices.map(voice => {
+        const selected = voice.voice_id === currentVoiceId ? 'selected' : '';
+        const category = voice.category ? ` (${voice.category})` : '';
+        return `<option value="${voice.voice_id}" ${selected}>${voice.name}${category}</option>`;
+      }).join('');
+      
+      elevenLabsVoiceSelect.disabled = false;
+      
+    } catch (e) {
+      elevenLabsVoiceSelect.innerHTML = '<option value="">Error</option>';
+    }
+    
+    // Actualizar estado después de cargar
+    updateTTSStatus();
+  };
+  
+  // Cargar voces del navegador
+  const loadBrowserVoices = () => {
+    if (!browserVoiceSelect || !app.speech.browserTTS) return;
+    
+    const loadVoices = () => {
+      app.speech.browserTTS.loadVoices();
+      const voices = app.speech.browserTTS.getSortedVoices?.() || app.speech.browserTTS.voices || [];
+      
+      if (voices.length === 0) {
+        browserVoiceSelect.innerHTML = '<option value="">Sin voces</option>';
+        return;
+      }
+      
+      const currentVoiceName = settings.get('browserVoiceName') || app.speech.browserTTS.selectedVoice?.name;
+      
+      browserVoiceSelect.innerHTML = voices.map(voice => {
+        const selected = voice.name === currentVoiceName ? 'selected' : '';
+        const lang = voice.lang ? ` [${voice.lang}]` : '';
+        return `<option value="${voice.name}" ${selected}>${voice.name}${lang}</option>`;
+      }).join('');
+    };
+    
+    if (window.speechSynthesis?.getVoices().length > 0) {
+      loadVoices();
+    } else {
+      window.speechSynthesis?.addEventListener('voiceschanged', loadVoices, { once: true });
+      setTimeout(loadVoices, 1000);
+    }
+  };
+  
+  // Event listeners
+  providerSelect?.addEventListener('change', (e) => {
+    const provider = e.target.value;
+    settings.set('ttsProvider', provider);
+    app.speech.setProvider(provider);
+    updateElevenLabsVisibility(provider);
+    updateTTSStatus();
+    toast.info(`Proveedor: ${provider === 'elevenlabs' ? 'ElevenLabs' : 'Navegador'}`);
+  });
+  
+  elevenLabsVoiceSelect?.addEventListener('change', (e) => {
+    const voiceId = e.target.value;
+    settings.set('elevenLabsVoiceId', voiceId);
+    app.speech.elevenLabs?.setVoice(voiceId);
+    toast.success('Voz ElevenLabs actualizada');
+  });
+  
+  browserVoiceSelect?.addEventListener('change', (e) => {
+    const voiceName = e.target.value;
+    settings.set('browserVoiceName', voiceName);
+    const voices = app.speech.browserTTS?.voices || [];
+    const voice = voices.find(v => v.name === voiceName);
+    if (voice) app.speech.browserTTS?.setVoice(voice);
+    toast.success('Voz de navegador actualizada');
+  });
+  
+  // Sincronizar con settings modal
+  settings.onChange(({ key, newValue }) => {
+    if (key === 'ttsProvider' && providerSelect) {
+      providerSelect.value = newValue;
+      updateElevenLabsVisibility(newValue);
+      updateTTSStatus();
+    }
+    if (key === 'elevenLabsVoiceId' && elevenLabsVoiceSelect) {
+      elevenLabsVoiceSelect.value = newValue;
+    }
+    if (key === 'browserVoiceName' && browserVoiceSelect) {
+      browserVoiceSelect.value = newValue;
+    }
+  });
+  
+  // Inicializar
+  const currentProvider = settings.get('ttsProvider') || 'elevenlabs';
+  if (providerSelect) providerSelect.value = currentProvider;
+  updateElevenLabsVisibility(currentProvider);
+  
+  loadElevenLabsVoices();
+  loadBrowserVoices();
 }

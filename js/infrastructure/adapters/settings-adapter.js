@@ -22,12 +22,37 @@ export class SettingsAdapter {
     this._listeners = new Set();
     this._panelElement = null;
     this._overlayElement = null;
+    this._deferredPrompt = null;
+    
+    // Detectar si está instalado como PWA
+    this._isInstalled = window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
     
     // Aplicar tema inicial
     this._applyTheme(this._settings.theme);
     
     // Escuchar cambios de tema del sistema
     this._setupSystemThemeListener();
+    
+    // Escuchar cambios en display-mode
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+      this._isInstalled = e.matches;
+      this._updateInstallUI();
+    });
+  }
+
+  /**
+   * @returns {boolean} - Si la app está instalada como PWA
+   */
+  get isInstalled() {
+    return this._isInstalled;
+  }
+
+  /**
+   * @returns {boolean} - Si se puede instalar
+   */
+  get canInstall() {
+    return !!this._deferredPrompt && !this._isInstalled;
   }
 
   /**
@@ -168,6 +193,7 @@ export class SettingsAdapter {
     if (this._panelElement) {
       this._panelElement.classList.add('open');
       this._overlayElement?.classList.add('open');
+      this._updateInstallUI();
       return;
     }
     
@@ -223,7 +249,7 @@ export class SettingsAdapter {
         <div class="settings-section">
           <h3>Apariencia</h3>
           
-          <div class="settings-item">
+          <div class="settings-item theme-item">
             <label>Tema</label>
             <div class="theme-selector">
               <button class="theme-btn ${this._settings.theme === 'light' ? 'active' : ''}" data-theme="light">
@@ -275,11 +301,11 @@ export class SettingsAdapter {
         <div class="settings-section">
           <h3>Aplicación</h3>
           
-          <div class="settings-item install-section" id="installSection" style="display: none;">
-            <label>Instalar app</label>
-            <button class="install-btn" id="installBtn">
+          <div class="settings-item" id="installSettingsItem">
+            <label id="installLabel">Instalar app</label>
+            <button class="install-btn" id="settingsInstallBtn">
               <i data-lucide="download"></i>
-              Instalar
+              <span>Instalar</span>
             </button>
           </div>
           
@@ -308,6 +334,9 @@ export class SettingsAdapter {
     
     // Event listeners
     this._setupPanelEvents();
+    
+    // Actualizar UI de instalación
+    this._updateInstallUI();
     
     // Mostrar
     requestAnimationFrame(() => {
@@ -356,15 +385,62 @@ export class SettingsAdapter {
       if (navigator.serviceWorker?.controller) {
         navigator.serviceWorker.controller.postMessage('clearCache');
       }
-      // También limpiar localStorage de settings
-      // localStorage.removeItem(this.STORAGE_KEY);
       alert('Cache limpiado. Recarga la página.');
     });
 
-    // Install PWA
-    document.getElementById('installBtn')?.addEventListener('click', () => {
-      this._installPWA();
+    // Install/Uninstall PWA
+    document.getElementById('settingsInstallBtn')?.addEventListener('click', () => {
+      if (this._isInstalled) {
+        this._showUninstallInstructions();
+      } else {
+        this.installPWA();
+      }
     });
+  }
+
+  /**
+   * Actualiza la UI de instalación en el panel y overlay
+   * @private
+   */
+  _updateInstallUI() {
+    // Botón del overlay
+    const overlayBtn = document.getElementById('installAppBtn');
+    if (overlayBtn) {
+      if (this.canInstall) {
+        overlayBtn.classList.remove('hidden');
+      } else {
+        overlayBtn.classList.add('hidden');
+      }
+    }
+    
+    // Sección en settings
+    const settingsItem = document.getElementById('installSettingsItem');
+    const settingsBtn = document.getElementById('settingsInstallBtn');
+    const settingsLabel = document.getElementById('installLabel');
+    
+    if (settingsItem && settingsBtn && settingsLabel) {
+      if (this._isInstalled) {
+        // App instalada - mostrar opción de desinstalar
+        settingsLabel.textContent = 'App instalada';
+        settingsBtn.innerHTML = '<i data-lucide="trash-2"></i><span>Desinstalar</span>';
+        settingsBtn.className = 'uninstall-btn';
+        settingsItem.style.display = 'flex';
+      } else if (this.canInstall) {
+        // Se puede instalar
+        settingsLabel.textContent = 'Instalar app';
+        settingsBtn.innerHTML = '<i data-lucide="download"></i><span>Instalar</span>';
+        settingsBtn.className = 'install-btn';
+        settingsItem.style.display = 'flex';
+      } else {
+        // No se puede instalar (navegador no compatible o ya instalada)
+        settingsItem.style.display = 'none';
+      }
+      
+      // Reinicializar iconos
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
   }
 
   /**
@@ -373,22 +449,16 @@ export class SettingsAdapter {
    */
   setInstallPrompt(deferredPrompt) {
     this._deferredPrompt = deferredPrompt;
-    
-    // Mostrar botón de instalar
-    const section = document.getElementById('installSection');
-    if (section) {
-      section.style.display = 'flex';
-    }
+    this._updateInstallUI();
   }
 
   /**
    * Instala la PWA
-   * @private
    */
-  async _installPWA() {
+  async installPWA() {
     if (!this._deferredPrompt) {
-      alert('La app ya está instalada o no es compatible.');
-      return;
+      alert('La instalación no está disponible en este navegador.');
+      return false;
     }
 
     this._deferredPrompt.prompt();
@@ -396,10 +466,52 @@ export class SettingsAdapter {
     
     if (outcome === 'accepted') {
       console.log('[PWA] Usuario aceptó instalar');
+      this._isInstalled = true;
+      this._deferredPrompt = null;
+      this._updateInstallUI();
+      return true;
     }
     
     this._deferredPrompt = null;
-    document.getElementById('installSection').style.display = 'none';
+    this._updateInstallUI();
+    return false;
+  }
+
+  /**
+   * Muestra instrucciones para desinstalar
+  _showUninstallInstructions() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    let instructions = '';
+    
+    if (isIOS) {
+      instructions = `Para desinstalar en iOS:
+      
+1. Mantén pulsado el icono de la app
+2. Toca "Eliminar app" o el icono (-)
+3. Confirma la eliminación`;
+    } else if (isAndroid) {
+      instructions = `Para desinstalar en Android:
+
+1. Mantén pulsado el icono de la app
+2. Arrastra a "Desinstalar" o toca "Desinstalar"
+3. Confirma la eliminación`;
+    } else {
+      instructions = `Para desinstalar:
+
+Chrome:
+1. Menú (⋮) → "Más herramientas"
+2. "Desinstalar Avatar Gespropiedad..."
+
+Edge:
+1. Menú (⋯) → "Apps"
+2. Clic derecho en la app → "Desinstalar"
+
+O desde la configuración del sistema operativo.`;
+    }
+    
+    alert(instructions);
   }
 
   /**

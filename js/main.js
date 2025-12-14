@@ -64,6 +64,13 @@ window.addEventListener('appinstalled', () => {
       settings.openPanel();
     });
     
+    // Botón de instalar en overlay
+    document.getElementById('installAppBtn')?.addEventListener('click', async () => {
+      if (settings.canInstall) {
+        await settings.installPWA();
+      }
+    });
+    
     // Pasar el prompt de instalación al settings
     if (deferredInstallPrompt) {
       settings.setInstallPrompt(deferredInstallPrompt);

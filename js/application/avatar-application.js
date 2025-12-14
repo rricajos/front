@@ -27,6 +27,9 @@ export class AvatarApplication {
     // AudioBank: dinámico (si se pasa) o estático
     this.audioBank = options.audioBank || StaticAudioBank;
     
+    // Settings adapter (opcional)
+    this.settings = options.settings || null;
+    
     // Core
     this.eventBus = new EventBus();
     this.logger = new Logger(document.getElementById("debug"));

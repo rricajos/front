@@ -1,15 +1,39 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gespropiedad Avatar</title>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Avatar Gespropiedad</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="Asistente virtual interactivo de Gespropiedad">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Avatar">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json">
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  
+  <!-- Styles -->
   <link rel="stylesheet" href="./css/styles.css">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 
 <body>
+  <!-- Settings Button -->
+  <button class="settings-btn" id="settingsBtn" title="Ajustes">
+    <i data-lucide="settings"></i>
+  </button>
+
   <div class="start-overlay" id="startOverlay">
     <svg class="start-logo" viewBox="0 0 226.1 219.1" xmlns="http://www.w3.org/2000/svg">
       <defs>

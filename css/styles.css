@@ -339,3 +339,463 @@ body.presentation-mode .presentation-container { display: flex; }
 
 .rive-wrap.fullscreen #riveCanvas { width: 100vmin !important; height: 100vmin !important; }
 .rive-wrap.fullscreen .fullscreen-btn { top: 16px; right: 16px; width: 40px; height: 40px; opacity: 0.5; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEMA CLARO
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] {
+  --bg-dark: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-input: #f1f5f9;
+  --border-color: #e2e8f0;
+  --border-light: #cbd5e1;
+  --text-primary: #1e293b;
+  --text-muted: rgba(30, 41, 59, 0.6);
+}
+
+[data-theme="light"] body {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+[data-theme="light"] .start-overlay {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+}
+
+[data-theme="light"] .start-overlay h1 {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .rive-wrap {
+  background: radial-gradient(circle at 30% 30%, #ffffff, #f1f5f9 70%);
+  border-color: #e2e8f0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .head {
+  background: radial-gradient(circle at 30% 30%, #e2e8f0, #cbd5e1 70%);
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .eye {
+  background: #334155;
+}
+
+[data-theme="light"] .eye::after {
+  background: #f1f5f9;
+}
+
+[data-theme="light"] .pupil {
+  background: #0f172a;
+}
+
+[data-theme="light"] .mouth {
+  background: #334155;
+}
+
+[data-theme="light"] .fullscreen-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #e2e8f0;
+  color: #334155;
+}
+
+[data-theme="light"] .stage {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .btn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .voice-select {
+  background: #ffffff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS BUTTON
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.settings-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings-btn:hover {
+  background: var(--bg-input);
+  transform: rotate(30deg);
+}
+
+.settings-btn i {
+  width: 20px;
+  height: 20px;
+}
+
+body.presentation-mode .settings-btn {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS PANEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 10001;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.settings-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 360px;
+  height: 100vh;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-color);
+  z-index: 10002;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-panel.open {
+  transform: translateX(0);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+}
+
+.settings-header h2 i {
+  width: 22px;
+  height: 22px;
+  color: var(--brand-primary);
+}
+
+.settings-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.settings-close:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.settings-close i {
+  width: 18px;
+  height: 18px;
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-panel .settings-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.settings-panel .settings-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.settings-item:last-child {
+  margin-bottom: 0;
+}
+
+.settings-item label {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.settings-value {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+}
+
+/* Theme Selector */
+.theme-selector {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.settings-item:has(.theme-selector) {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.theme-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-btn i {
+  width: 20px;
+  height: 20px;
+}
+
+.theme-btn:hover {
+  border-color: var(--border-light);
+  color: var(--text-primary);
+}
+
+.theme-btn.active {
+  border-color: var(--brand-primary);
+  background: rgba(28, 164, 175, 0.1);
+  color: var(--brand-primary);
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--border-color);
+  border-radius: 28px;
+  transition: all 0.3s;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle input:checked + .toggle-slider {
+  background: var(--brand-primary);
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+/* Install & Cache Buttons */
+.install-btn,
+.cache-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.install-btn {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+  color: white;
+}
+
+.install-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(28, 164, 175, 0.3);
+}
+
+.cache-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.cache-btn:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.install-btn i,
+.cache-btn i {
+  width: 16px;
+  height: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PWA INSTALL BANNER (opcional)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pwa-install-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 9000;
+  max-width: 90%;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.pwa-install-banner.hidden {
+  display: none;
+}
+
+.pwa-install-banner p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.pwa-install-banner button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.pwa-install-banner .install {
+  background: var(--brand-primary);
+  color: white;
+  border: none;
+}
+
+.pwa-install-banner .dismiss {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}

@@ -824,6 +824,15 @@ body.presentation-mode .presentation-container { display: flex; }
   border: 1px solid var(--border-color);
 }
 
+.settings-card-header .version-tag {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 2px 6px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
 /* Volume slider in settings */
 .settings-integrated .volume-slider {
   -webkit-appearance: none;

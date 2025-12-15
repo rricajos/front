@@ -8,7 +8,7 @@
   
   <!-- PWA Meta Tags -->
   <meta name="description" content="Asistente virtual interactivo de Gespropiedad">
-  <meta name="theme-color" content="#3b82f6">
+  <meta name="theme-color" content="#1ca4af">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Avatar">
@@ -24,8 +24,8 @@
   <!-- Styles -->
   <link rel="stylesheet" href="./css/styles.css">
   
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Lucide Icons (defer para no bloquear) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 </head>
 
 <body>
@@ -47,9 +47,9 @@
     <p class="loader-text">Cargando avatar...</p>
   </div>
 
-  <!-- Settings Button -->
-  <button class="settings-btn" id="settingsBtn" title="Ajustes">
-    <i data-lucide="settings"></i>
+  <!-- Debug Console Button -->
+  <button class="debug-btn" id="debugConsoleBtn" title="Consola de depuración" aria-label="Abrir consola de depuración">
+    <i data-lucide="terminal" aria-hidden="true"></i>
   </button>
 
   <div class="start-overlay" id="startOverlay">
@@ -131,34 +131,114 @@
       </div>
     </div>
 
-    <!-- Columna Derecha: Voz -->
+    <!-- Columna Derecha: TTS -->
     <div class="voice-column">
       <div class="tts-status">
         <span class="tts-status-dot" id="ttsStatusDot"></span>
         <span class="tts-status-text" id="ttsStatusText">TTS: Cargando...</span>
       </div>
       
-      <textarea class="text-input" id="textInput" placeholder="Escribe un texto para probar la voz...">Hola, soy el asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?</textarea>
+      <textarea class="text-input" id="textInput" placeholder="Escribe un texto para probar la voz..." aria-label="Texto para sintetizar">Hola, soy el asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?</textarea>
       
-      <div class="btn-row">
-        <button class="btn primary" id="playPauseBtn"><i data-lucide="play"></i><span>Reproducir</span></button>
-        <button class="btn" id="replayBtn"><i data-lucide="rotate-ccw"></i><span>Reiniciar</span></button>
+      <div class="btn-row" role="group" aria-label="Controles de reproducción">
+        <button class="btn primary" id="playPauseBtn" aria-label="Reproducir texto"><i data-lucide="play" aria-hidden="true"></i><span>Reproducir</span></button>
+        <button class="btn" id="replayBtn" aria-label="Reiniciar reproducción"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reiniciar</span></button>
       </div>
       
-      <div class="voice-settings">
-        <div class="voice-picker">
-          <label><i data-lucide="mic"></i>Proveedor</label>
-          <select id="ttsProviderSelectPanel" class="voice-select">
-            <option value="elevenlabs">☁️ ElevenLabs (IA)</option>
-            <option value="browser">🔊 Navegador (Local)</option>
+      <!-- Solo selector de voz -->
+      <div class="voice-settings" role="group" aria-label="Configuración de voz">
+        <div class="setting-row">
+          <label for="ttsProviderSelectPanel">Proveedor</label>
+          <select id="ttsProviderSelectPanel" class="voice-select" aria-label="Seleccionar proveedor de voz">
+            <option value="elevenlabs">☁️ ElevenLabs</option>
+            <option value="browser">🔊 Navegador</option>
           </select>
         </div>
-        
-        <div class="voice-picker" id="voicePickerPanel">
-          <label><i data-lucide="volume-2"></i>Voz</label>
-          <select id="voiceSelectPanel" class="voice-select" disabled>
+        <div class="setting-row" id="voicePickerPanel">
+          <label for="voiceSelectPanel">Voz</label>
+          <select id="voiceSelectPanel" class="voice-select" disabled aria-label="Seleccionar voz">
             <option value="">Cargando...</option>
           </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sección de Ajustes (debajo de las columnas) -->
+  <div class="settings-bar" role="region" aria-label="Ajustes de la aplicación">
+    <div class="settings-bar-grid">
+      <!-- Opciones -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <i data-lucide="sliders" aria-hidden="true"></i>
+          <span>Opciones</span>
+        </div>
+        <div class="settings-card-content">
+          <div class="setting-row">
+            <label for="subtitlesToggleMain">Subtítulos</label>
+            <label class="toggle">
+              <input type="checkbox" id="subtitlesToggleMain" checked aria-label="Activar subtítulos">
+              <span class="toggle-slider" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label for="soundToggleMain">Sonido</label>
+            <label class="toggle">
+              <input type="checkbox" id="soundToggleMain" checked aria-label="Activar sonido">
+              <span class="toggle-slider" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <label for="volumeSliderMain">Volumen</label>
+            <div class="volume-mini">
+              <input type="range" min="0" max="100" value="80" class="volume-slider" id="volumeSliderMain" aria-label="Ajustar volumen">
+              <span class="volume-value" id="volumeValueMain" aria-live="polite">80%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Apariencia -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <i data-lucide="palette" aria-hidden="true"></i>
+          <span>Apariencia</span>
+        </div>
+        <div class="settings-card-content">
+          <div class="setting-row">
+            <label id="themeLabel">Tema</label>
+            <div class="theme-pills" role="group" aria-labelledby="themeLabel">
+              <button class="theme-pill" data-theme="light" title="Claro" aria-label="Tema claro"><i data-lucide="sun" aria-hidden="true"></i></button>
+              <button class="theme-pill active" data-theme="dark" title="Oscuro" aria-label="Tema oscuro" aria-pressed="true"><i data-lucide="moon" aria-hidden="true"></i></button>
+              <button class="theme-pill" data-theme="system" title="Sistema" aria-label="Tema del sistema"><i data-lucide="monitor" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Aplicación -->
+      <div class="settings-card">
+        <div class="settings-card-header">
+          <i data-lucide="smartphone" aria-hidden="true"></i>
+          <span>Aplicación</span>
+        </div>
+        <div class="settings-card-content">
+          <div class="setting-row" id="installRowMain">
+            <label>Instalar</label>
+            <button class="mini-btn" id="installBtnMain" title="Instalar PWA" aria-label="Instalar aplicación">
+              <i data-lucide="download" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="setting-row">
+            <label>Caché</label>
+            <button class="mini-btn" id="clearCacheBtnMain" title="Limpiar caché" aria-label="Limpiar caché de la aplicación">
+              <i data-lucide="trash-2" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="setting-row">
+            <label>Versión</label>
+            <span class="version-tag">2.0.0</span>
+          </div>
         </div>
       </div>
     </div>

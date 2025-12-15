@@ -102,7 +102,7 @@ function showLoaderError(message) {
     settings.setToast(toast);
     
     // 3. Botón de settings
-    document.getElementById('settingsBtn')?.addEventListener('click', () => {
+    document.getElementById('debugConsoleBtn')?.addEventListener('click', () => {
       settings.openPanel();
     });
     
@@ -250,8 +250,8 @@ function showLoaderError(message) {
     // 17. Inicializar controles de reproducción
     initPlaybackControls(app, toast);
     
-    // 18. Inicializar controles móviles
-    initMobileSettings(settings, toast);
+    // 18. Inicializar controles de ajustes en panel principal
+    initMainSettings(settings, toast);
     
     // 19. Exponer globalmente para debug (solo en desarrollo)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
@@ -700,6 +700,135 @@ function initMobileSettings(settings, toast) {
   });
   
   // Inicializar iconos lucide
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Main Settings Controls (Panel Principal)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function initMainSettings(settings, toast) {
+  // Theme pills
+  const themePills = document.querySelectorAll('.theme-pill');
+  themePills.forEach(pill => {
+    // Marcar el activo según la configuración
+    if (pill.dataset.theme === settings.get('theme')) {
+      pill.classList.add('active');
+    } else {
+      pill.classList.remove('active');
+    }
+    
+    pill.addEventListener('click', () => {
+      const theme = pill.dataset.theme;
+      settings.set('theme', theme);
+      themePills.forEach(p => {
+        p.classList.remove('active');
+        p.setAttribute('aria-pressed', 'false');
+      });
+      pill.classList.add('active');
+      pill.setAttribute('aria-pressed', 'true');
+      toast.info(`Tema: ${theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Sistema'}`);
+    });
+  });
+  
+  // Subtítulos toggle
+  const subtitlesToggle = document.getElementById('subtitlesToggleMain');
+  if (subtitlesToggle) {
+    subtitlesToggle.checked = settings.get('subtitlesEnabled');
+    subtitlesToggle.addEventListener('change', (e) => {
+      settings.set('subtitlesEnabled', e.target.checked);
+      toast.info(e.target.checked ? 'Subtítulos activados' : 'Subtítulos desactivados');
+    });
+  }
+  
+  // Sonido toggle
+  const soundToggle = document.getElementById('soundToggleMain');
+  if (soundToggle) {
+    soundToggle.checked = settings.get('soundEnabled');
+    soundToggle.addEventListener('change', (e) => {
+      settings.set('soundEnabled', e.target.checked);
+      toast.info(e.target.checked ? 'Sonido activado' : 'Sonido desactivado');
+    });
+  }
+  
+  // Volumen slider
+  const volumeSlider = document.getElementById('volumeSliderMain');
+  const volumeValue = document.getElementById('volumeValueMain');
+  if (volumeSlider) {
+    volumeSlider.value = settings.get('volume');
+    if (volumeValue) volumeValue.textContent = `${settings.get('volume')}%`;
+    
+    volumeSlider.addEventListener('input', (e) => {
+      const value = parseInt(e.target.value, 10);
+      settings.set('volume', value);
+      if (volumeValue) volumeValue.textContent = `${value}%`;
+    });
+  }
+  
+  // Instalar PWA
+  const installBtn = document.getElementById('installBtnMain');
+  const installRow = document.getElementById('installRowMain');
+  if (installBtn && installRow) {
+    // Ocultar si ya está instalada o no se puede instalar
+    const updateInstallVisibility = () => {
+      if (settings.isInstalled) {
+        installRow.style.display = 'none';
+      } else if (!settings.canInstall) {
+        installBtn.disabled = true;
+        installBtn.title = 'Instalación no disponible';
+      }
+    };
+    updateInstallVisibility();
+    
+    installBtn.addEventListener('click', async () => {
+      if (settings.canInstall) {
+        const installed = await settings.installPWA();
+        if (installed) {
+          toast.success('¡App instalada!');
+          updateInstallVisibility();
+        }
+      }
+    });
+  }
+  
+  // Limpiar caché
+  const clearCacheBtn = document.getElementById('clearCacheBtnMain');
+  if (clearCacheBtn) {
+    clearCacheBtn.addEventListener('click', async () => {
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        localStorage.clear();
+        toast.success('Caché limpiada. Recargando...');
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (e) {
+        toast.error('Error al limpiar caché');
+      }
+    });
+  }
+  
+  // Sincronizar con cambios externos
+  settings.onChange(({ key, newValue }) => {
+    if (key === 'theme') {
+      themePills.forEach(p => p.classList.toggle('active', p.dataset.theme === newValue));
+    }
+    if (key === 'subtitlesEnabled' && subtitlesToggle) {
+      subtitlesToggle.checked = newValue;
+    }
+    if (key === 'soundEnabled' && soundToggle) {
+      soundToggle.checked = newValue;
+    }
+    if (key === 'volume' && volumeSlider) {
+      volumeSlider.value = newValue;
+      if (volumeValue) volumeValue.textContent = `${newValue}%`;
+    }
+  });
+  
+  // Inicializar iconos
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }

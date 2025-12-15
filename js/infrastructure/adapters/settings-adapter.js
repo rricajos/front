@@ -286,14 +286,14 @@ export class SettingsAdapter {
     this._overlayElement.onclick = () => this.closePanel();
     document.body.appendChild(this._overlayElement);
 
-    // Panel
+    // Panel - ahora es Debug Console
     this._panelElement = document.createElement('div');
-    this._panelElement.className = 'settings-panel';
+    this._panelElement.className = 'settings-panel debug-console';
     this._panelElement.innerHTML = `
       <div class="settings-header">
         <h2>
-          <i data-lucide="settings"></i>
-          Ajustes
+          <i data-lucide="terminal"></i>
+          Consola
         </h2>
         <button class="settings-close" id="settingsCloseBtn">
           <i data-lucide="x"></i>
@@ -301,126 +301,53 @@ export class SettingsAdapter {
       </div>
       
       <div class="settings-content">
-        <!-- Tema -->
+        <!-- Estado del Sistema -->
         <div class="settings-section">
-          <h3>Apariencia</h3>
-          
-          <div class="settings-item theme-item">
-            <label>Tema</label>
-            <div class="theme-selector">
-              <button class="theme-btn ${this._settings.theme === 'light' ? 'active' : ''}" data-theme="light">
-                <i data-lucide="sun"></i>
-                Claro
-              </button>
-              <button class="theme-btn ${this._settings.theme === 'dark' ? 'active' : ''}" data-theme="dark">
-                <i data-lucide="moon"></i>
-                Oscuro
-              </button>
-              <button class="theme-btn ${this._settings.theme === 'system' ? 'active' : ''}" data-theme="system">
-                <i data-lucide="monitor"></i>
-                Sistema
-              </button>
+          <h3>Estado</h3>
+          <div class="debug-status-grid">
+            <div class="debug-status-item">
+              <span class="debug-status-label">Avatar</span>
+              <span class="debug-status-value" id="debugAvatarStatus"><span class="status-dot loading"></span>Cargando</span>
+            </div>
+            <div class="debug-status-item">
+              <span class="debug-status-label">TTS</span>
+              <span class="debug-status-value" id="debugTTSStatus"><span class="status-dot loading"></span>Cargando</span>
+            </div>
+            <div class="debug-status-item">
+              <span class="debug-status-label">WebSocket</span>
+              <span class="debug-status-value" id="debugWSStatus"><span class="status-dot"></span>Desconectado</span>
+            </div>
+            <div class="debug-status-item">
+              <span class="debug-status-label">Audio</span>
+              <span class="debug-status-value" id="debugAudioStatus"><span class="status-dot loading"></span>Cargando</span>
             </div>
           </div>
         </div>
-
-        <!-- Opciones -->
-        <div class="settings-section">
-          <h3>Opciones</h3>
-          
-          <div class="settings-item">
-            <label for="subtitlesToggle">Subtítulos</label>
-            <label class="toggle">
-              <input type="checkbox" id="subtitlesToggle" ${this._settings.subtitlesEnabled ? 'checked' : ''}>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <div class="settings-item">
-            <label for="soundToggle">Sonido</label>
-            <label class="toggle">
-              <input type="checkbox" id="soundToggle" ${this._settings.soundEnabled ? 'checked' : ''}>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <div class="settings-item volume-item">
-            <label>Volumen</label>
-            <div class="volume-control">
-              <i data-lucide="volume-2" id="volumeIcon"></i>
-              <input type="range" min="0" max="100" value="${this._settings.volume}" class="volume-slider" id="volumeSlider">
-              <span class="volume-value" id="volumeValue">${this._settings.volume}%</span>
-            </div>
-          </div>
-          
-          <div class="settings-item">
-            <label for="debugToggle">Panel de debug</label>
-            <label class="toggle">
-              <input type="checkbox" id="debugToggle" ${this._settings.debugPanel ? 'checked' : ''}>
-              <span class="toggle-slider"></span>
-            </label>
+        
+        <!-- Logs -->
+        <div class="settings-section logs-section">
+          <h3>Logs <button class="clear-logs-btn" id="clearLogsBtn" title="Limpiar"><i data-lucide="trash-2"></i></button></h3>
+          <div class="debug-logs" id="debugLogs">
+            <div class="log-entry log-info">[Sistema] Consola iniciada</div>
           </div>
         </div>
-
-        <!-- Voces -->
+        
+        <!-- Acciones -->
         <div class="settings-section">
-          <h3>Voces</h3>
-          
-          <div class="settings-item voice-item">
-            <label>
-              <i data-lucide="mic" class="label-icon"></i>
-              Proveedor TTS
-            </label>
-            <select class="voice-select" id="ttsProviderSelect">
-              <option value="elevenlabs" ${this._settings.ttsProvider === 'elevenlabs' ? 'selected' : ''}>☁️ ElevenLabs (IA)</option>
-              <option value="browser" ${this._settings.ttsProvider === 'browser' ? 'selected' : ''}>🔊 Navegador (Local)</option>
-            </select>
-          </div>
-          
-          <div class="settings-item voice-item" id="voiceItemSettings">
-            <label>
-              <i data-lucide="volume-2" class="label-icon"></i>
-              Voz
-            </label>
-            <select class="voice-select" id="voiceSelectSettings" disabled>
-              <option value="">Cargando...</option>
-            </select>
-          </div>
-          
-          <div class="voice-help">
-            <i data-lucide="info"></i>
-            <span>ElevenLabs ofrece voces de IA de alta calidad. La voz del navegador se usa como respaldo.</span>
+          <h3>Acciones</h3>
+          <div class="debug-actions">
+            <button class="debug-action-btn" id="debugReloadBtn"><i data-lucide="refresh-cw"></i>Recargar</button>
+            <button class="debug-action-btn" id="debugClearCacheBtn"><i data-lucide="trash-2"></i>Limpiar caché</button>
           </div>
         </div>
-
-        <!-- PWA -->
+        
+        <!-- Info -->
         <div class="settings-section">
-          <h3>Aplicación</h3>
-          
-          <div class="settings-item" id="installSettingsItem">
-            <label id="installLabel">Instalar app</label>
-            <button class="install-btn" id="settingsInstallBtn">
-              <i data-lucide="download"></i>
-              <span>Instalar</span>
-            </button>
-          </div>
-          
-          <div class="install-help" id="installHelp">
-            <i data-lucide="info"></i>
-            <span>Para instalar necesitas: HTTPS y navegador compatible (Chrome, Edge, Safari)</span>
-          </div>
-          
-          <div class="settings-item">
-            <label>Versión</label>
-            <span class="settings-value">2.0.0</span>
-          </div>
-          
-          <div class="settings-item">
-            <label>Cache</label>
-            <button class="cache-btn" id="clearCacheBtn">
-              <i data-lucide="trash-2"></i>
-              Limpiar
-            </button>
+          <h3>Info</h3>
+          <div class="debug-info-grid">
+            <div class="debug-info-item"><span>Versión</span><span>2.0.0</span></div>
+            <div class="debug-info-item"><span>TTS</span><span id="debugTTSProvider">${this._settings.ttsProvider}</span></div>
+            <div class="debug-info-item"><span>Tema</span><span id="debugTheme">${this._settings.theme}</span></div>
           </div>
         </div>
       </div>
@@ -433,11 +360,8 @@ export class SettingsAdapter {
       lucide.createIcons();
     }
     
-    // Event listeners
-    this._setupPanelEvents();
-    
-    // Actualizar UI de instalación
-    this._updateInstallUI();
+    // Event listeners del debug console
+    this._setupDebugConsoleEvents();
     
     // Mostrar
     requestAnimationFrame(() => {
@@ -447,96 +371,78 @@ export class SettingsAdapter {
   }
 
   /**
-   * Configura eventos del panel
+   * Configura eventos del debug console
    * @private
    */
-  _setupPanelEvents() {
+  _setupDebugConsoleEvents() {
     // Cerrar
     document.getElementById('settingsCloseBtn')?.addEventListener('click', () => {
       this.closePanel();
     });
-
-    // Tema
-    this._panelElement.querySelectorAll('.theme-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const theme = btn.dataset.theme;
-        this.set('theme', theme);
-        
-        // Update UI
-        this._panelElement.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
-
-    // Toggles
-    document.getElementById('subtitlesToggle')?.addEventListener('change', (e) => {
-      this.set('subtitlesEnabled', e.target.checked);
-    });
-
-    document.getElementById('soundToggle')?.addEventListener('change', (e) => {
-      this.set('soundEnabled', e.target.checked);
-    });
-
-    document.getElementById('debugToggle')?.addEventListener('change', (e) => {
-      this.set('debugPanel', e.target.checked);
-    });
-
-    // Volume slider
-    const volumeSlider = document.getElementById('volumeSlider');
-    const volumeValue = document.getElementById('volumeValue');
-    const volumeIcon = document.getElementById('volumeIcon');
     
-    volumeSlider?.addEventListener('input', (e) => {
-      const value = parseInt(e.target.value, 10);
-      if (volumeValue) volumeValue.textContent = `${value}%`;
-      this._updateVolumeIcon(value, volumeIcon);
-      this.set('volume', value);
-    });
-
-    // Clear cache
-    document.getElementById('clearCacheBtn')?.addEventListener('click', () => {
-      if (navigator.serviceWorker?.controller) {
-        navigator.serviceWorker.controller.postMessage('clearCache');
-      }
-      this._notify('Cache limpiado. Recarga la página para aplicar.', 'success');
-    });
-
-    // Install/Uninstall PWA
-    document.getElementById('settingsInstallBtn')?.addEventListener('click', () => {
-      if (this._isInstalled) {
-        this._showUninstallInstructions();
-      } else {
-        this.installPWA();
+    // Limpiar logs
+    document.getElementById('clearLogsBtn')?.addEventListener('click', () => {
+      const logsContainer = document.getElementById('debugLogs');
+      if (logsContainer) {
+        logsContainer.innerHTML = '<div class="log-entry log-info">[Sistema] Logs limpiados</div>';
       }
     });
-
-    // Voice selectors
-    document.getElementById('ttsProviderSelect')?.addEventListener('change', (e) => {
-      const provider = e.target.value;
-      this.set('ttsProvider', provider);
-      this._updateVoiceSelector();
-      this._notify(`Proveedor TTS: ${provider === 'elevenlabs' ? 'ElevenLabs' : 'Navegador'}`, 'success');
+    
+    // Recargar app
+    document.getElementById('debugReloadBtn')?.addEventListener('click', () => {
+      window.location.reload();
     });
-
-    document.getElementById('voiceSelectSettings')?.addEventListener('change', (e) => {
-      const value = e.target.value;
-      const provider = this._settings.ttsProvider || 'elevenlabs';
-      
-      if (provider === 'elevenlabs') {
-        this.set('elevenLabsVoiceId', value);
-        this._speechService?.elevenLabs?.setVoice(value);
-      } else {
-        this.set('browserVoiceName', value);
-        const voices = this._speechService?.browserTTS?.voices || [];
-        const voice = voices.find(v => v.name === value);
-        if (voice) this._speechService?.browserTTS?.setVoice(voice);
+    
+    // Limpiar caché
+    document.getElementById('debugClearCacheBtn')?.addEventListener('click', async () => {
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        localStorage.clear();
+        this._notify('Caché limpiada. Recargando...', 'success');
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (e) {
+        this._notify('Error al limpiar caché', 'error');
       }
-      this._notify('Voz actualizada', 'success');
     });
-
-    // Cargar voces
-    this._loadVoices();
   }
+
+  /**
+   * Añade una entrada al log del debug console
+   * @param {string} message - Mensaje a mostrar
+   * @param {'info'|'success'|'warning'|'error'} type - Tipo de log
+   */
+  addLog(message, type = 'info') {
+    const logsContainer = document.getElementById('debugLogs');
+    if (!logsContainer) return;
+    
+    const entry = document.createElement('div');
+    entry.className = `log-entry log-${type}`;
+    const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    entry.textContent = `[${time}] ${message}`;
+    logsContainer.appendChild(entry);
+    logsContainer.scrollTop = logsContainer.scrollHeight;
+    
+    while (logsContainer.children.length > 100) {
+      logsContainer.removeChild(logsContainer.firstChild);
+    }
+  }
+
+  /**
+   * Actualiza el estado de un componente en el debug console
+   */
+  updateDebugStatus(component, status, text) {
+    const ids = { avatar: 'debugAvatarStatus', tts: 'debugTTSStatus', ws: 'debugWSStatus', audio: 'debugAudioStatus' };
+    const el = document.getElementById(ids[component]);
+    if (el) el.innerHTML = `<span class="status-dot ${status}"></span>${text}`;
+  }
+
+  /**
+   * @deprecated - Mantener por compatibilidad
+   */
+  _setupPanelEvents() {}
 
   /**
    * Actualiza el selector de voz según el proveedor seleccionado

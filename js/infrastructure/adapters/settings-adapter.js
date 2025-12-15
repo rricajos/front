@@ -318,64 +318,35 @@ export class SettingsAdapter {
     this._panelElement = document.createElement('div');
     this._panelElement.className = 'settings-panel debug-console';
     this._panelElement.innerHTML = `
-      <div class="settings-header">
-        <h2>
-          <i data-lucide="terminal"></i>
-          Consola
-        </h2>
-        <button class="settings-close" id="settingsCloseBtn">
-          <i data-lucide="x"></i>
-        </button>
-      </div>
-      
-      <div class="settings-content">
+      <div class="settings-content debug-content">
         <!-- Estado del Sistema -->
-        <div class="settings-section">
-          <h3>Estado</h3>
-          <div class="debug-status-grid">
-            <div class="debug-status-item">
-              <span class="debug-status-label">Avatar</span>
-              <span class="debug-status-value" id="debugAvatarStatus"><span class="status-dot loading"></span>Cargando</span>
-            </div>
-            <div class="debug-status-item">
-              <span class="debug-status-label">TTS</span>
-              <span class="debug-status-value" id="debugTTSStatus"><span class="status-dot loading"></span>Cargando</span>
-            </div>
-            <div class="debug-status-item">
-              <span class="debug-status-label">WebSocket</span>
-              <span class="debug-status-value" id="debugWSStatus"><span class="status-dot"></span>Desconectado</span>
-            </div>
-            <div class="debug-status-item">
-              <span class="debug-status-label">Audio</span>
-              <span class="debug-status-value" id="debugAudioStatus"><span class="status-dot loading"></span>Cargando</span>
-            </div>
+        <div class="debug-status-compact">
+          <div class="debug-status-item">
+            <span class="debug-status-label">Avatar</span>
+            <span class="debug-status-value" id="debugAvatarStatus"><span class="status-dot loading"></span>Cargando</span>
+          </div>
+          <div class="debug-status-item">
+            <span class="debug-status-label">TTS</span>
+            <span class="debug-status-value" id="debugTTSStatus"><span class="status-dot loading"></span>Cargando</span>
+          </div>
+          <div class="debug-status-item">
+            <span class="debug-status-label">WebSocket</span>
+            <span class="debug-status-value" id="debugWSStatus"><span class="status-dot"></span>Desconectado</span>
+          </div>
+          <div class="debug-status-item">
+            <span class="debug-status-label">Audio</span>
+            <span class="debug-status-value" id="debugAudioStatus"><span class="status-dot loading"></span>Cargando</span>
           </div>
         </div>
         
         <!-- Logs -->
-        <div class="settings-section logs-section">
-          <h3>Logs <button class="clear-logs-btn" id="clearLogsBtn" title="Limpiar"><i data-lucide="trash-2"></i></button></h3>
+        <div class="debug-logs-container">
+          <div class="debug-logs-header">
+            <span>Logs</span>
+            <button class="clear-logs-btn" id="clearLogsBtn" title="Limpiar"><i data-lucide="trash-2"></i></button>
+          </div>
           <div class="debug-logs" id="debugLogs">
             <div class="log-entry log-info">[Sistema] Consola iniciada</div>
-          </div>
-        </div>
-        
-        <!-- Acciones -->
-        <div class="settings-section">
-          <h3>Acciones</h3>
-          <div class="debug-actions">
-            <button class="debug-action-btn" id="debugReloadBtn"><i data-lucide="refresh-cw"></i>Recargar</button>
-            <button class="debug-action-btn" id="debugClearCacheBtn"><i data-lucide="trash-2"></i>Limpiar caché</button>
-          </div>
-        </div>
-        
-        <!-- Info -->
-        <div class="settings-section">
-          <h3>Info</h3>
-          <div class="debug-info-grid">
-            <div class="debug-info-item"><span>Versión</span><span>2.0.0</span></div>
-            <div class="debug-info-item"><span>TTS</span><span id="debugTTSProvider">${this._settings.ttsProvider}</span></div>
-            <div class="debug-info-item"><span>Tema</span><span id="debugTheme">${this._settings.theme}</span></div>
           </div>
         </div>
       </div>
@@ -407,36 +378,11 @@ export class SettingsAdapter {
    * @private
    */
   _setupDebugConsoleEvents() {
-    // Cerrar
-    document.getElementById('settingsCloseBtn')?.addEventListener('click', () => {
-      this.closePanel();
-    });
-    
     // Limpiar logs
     document.getElementById('clearLogsBtn')?.addEventListener('click', () => {
       const logsContainer = document.getElementById('debugLogs');
       if (logsContainer) {
         logsContainer.innerHTML = '<div class="log-entry log-info">[Sistema] Logs limpiados</div>';
-      }
-    });
-    
-    // Recargar app
-    document.getElementById('debugReloadBtn')?.addEventListener('click', () => {
-      window.location.reload();
-    });
-    
-    // Limpiar caché
-    document.getElementById('debugClearCacheBtn')?.addEventListener('click', async () => {
-      try {
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k => caches.delete(k)));
-        }
-        localStorage.clear();
-        this._notify('Caché limpiada. Recargando...', 'success');
-        setTimeout(() => window.location.reload(), 1000);
-      } catch (e) {
-        this._notify('Error al limpiar caché', 'error');
       }
     });
   }

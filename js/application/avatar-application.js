@@ -235,12 +235,12 @@ export class AvatarApplication {
 
     // Overlay buttons
     addDOMListener("startNormalBtn", "click", async () => {
-      await this._unlockAudio();
+      await this._unlockAudioOnly(); // Solo desbloquear, no procesar mensajes
       this.ui.hideOverlay();
     });
 
     addDOMListener("startPresentationBtn", "click", async () => {
-      await this._unlockAudio();
+      await this._unlockAudio(); // Desbloquear y procesar mensajes
       this.ui.hideOverlay();
       await this.enterPresentationMode();
     });
@@ -318,6 +318,22 @@ export class AvatarApplication {
     if (btn) {
       btn.innerHTML = '<i data-lucide="maximize-2"></i>';
       lucide.createIcons();
+    }
+  }
+
+  async _unlockAudioOnly() {
+    if (this._destroyed) return;
+    if (this._audioUnlocked) return;
+    
+    await this.audio.unlock();
+    this.speech.unlock();
+    this._audioUnlocked = true;
+    this.logger.log("Audio desbloqueado ✓");
+    
+    // NO procesar mensajes pendientes - los limpiamos
+    if (this._pendingMessages.length > 0) {
+      this.logger.log(`Descartando ${this._pendingMessages.length} mensaje(s) pendiente(s)`);
+      this._pendingMessages = [];
     }
   }
 

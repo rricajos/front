@@ -77,7 +77,12 @@ export class WebSocketAdapter {
     }
     
     const msg = validation.message;
-    this.logger.log("WS: " + msg.type + (msg.audioId ? ` [${msg.audioId}]` : ''));
+    
+    // Log más detallado
+    let logMsg = "WS: " + msg.type;
+    if (msg.audioId) logMsg += ` [${msg.audioId}]`;
+    if (msg.text && !msg.audioId) logMsg += ` (texto: ${msg.text.substring(0, 30)}...)`;
+    this.logger.log(logMsg);
     
     // Emitir eventos según el tipo de mensaje
     switch (msg.type) {

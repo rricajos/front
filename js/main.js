@@ -563,6 +563,7 @@ function initPlaybackControls(app, toast) {
   const textInput = document.getElementById('textInput');
   
   let lastText = textInput?.value || '';
+  let isProcessing = false; // Evitar doble clicks
   
   // Actualizar estado del botón play/pause
   const updatePlayPauseButton = (isPlaying) => {
@@ -587,14 +588,25 @@ function initPlaybackControls(app, toast) {
   
   // Escuchar cambios de estado de la app
   const checkSpeakingState = () => {
-    updatePlayPauseButton(app.isSpeaking);
+    const isSpeaking = app.isSpeaking;
+    updatePlayPauseButton(isSpeaking);
+    
+    // Habilitar/deshabilitar botones según estado
+    if (playPauseBtn) {
+      playPauseBtn.disabled = isProcessing;
+    }
+    if (replayBtn) {
+      replayBtn.disabled = isProcessing || isSpeaking;
+    }
   };
   
-  // Polling simple para detectar cambios (el speech service no tiene eventos públicos)
+  // Polling para detectar cambios
   let stateCheckInterval = setInterval(checkSpeakingState, 200);
   
   // Play/Pause
   playPauseBtn?.addEventListener('click', async () => {
+    if (isProcessing) return; // Ignorar si está procesando
+    
     if (app.isSpeaking) {
       // Pausar (detener)
       app.stop();
@@ -609,21 +621,26 @@ function initPlaybackControls(app, toast) {
         return;
       }
       
+      isProcessing = true;
       lastText = text;
       updatePlayPauseButton(true);
       
       try {
         await app.speak(text);  // Solo texto, sin audioId
       } catch (e) {
+        console.error('Error en speak:', e);
         toast.error('Error al reproducir');
+      } finally {
+        isProcessing = false;
+        updatePlayPauseButton(false);
       }
-      
-      updatePlayPauseButton(false);
     }
   });
   
   // Replay (reiniciar con el último texto)
   replayBtn?.addEventListener('click', async () => {
+    if (isProcessing) return; // Ignorar si está procesando
+    
     const text = textInput?.value?.trim() || lastText;
     if (!text) {
       toast.warning('No hay texto para reiniciar');
@@ -633,18 +650,23 @@ function initPlaybackControls(app, toast) {
     // Detener si está hablando
     if (app.isSpeaking) {
       app.stop();
+      // Pequeño delay para asegurar que se detuvo
+      await new Promise(r => setTimeout(r, 100));
     }
     
+    isProcessing = true;
     lastText = text;
     updatePlayPauseButton(true);
     
     try {
       await app.speak(text);  // Solo texto, sin audioId
     } catch (e) {
+      console.error('Error en speak:', e);
       toast.error('Error al reproducir');
+    } finally {
+      isProcessing = false;
+      updatePlayPauseButton(false);
     }
-    
-    updatePlayPauseButton(false);
   });
   
   // Atajo de teclado: Ctrl+Enter para reproducir

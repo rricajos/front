@@ -347,15 +347,15 @@ export class AvatarApplication {
   async _processMessage({ audioId, text }) {
     if (this._destroyed) return;
     
-    // Si hay audioId, verificar que esté en el banco
+    // Si hay audioId, SOLO reproducir audio pregrabado (ignorar texto)
     if (audioId) {
       if (!this.audioBank[audioId]) {
-        this.logger.log("⏭️ Ignorando: " + audioId);
+        this.logger.log("⏭️ Ignorando audioId desconocido: " + audioId);
         return;
       }
       
       this.state.update({ currentAudioId: audioId });
-      this.logger.log("🎬 " + audioId);
+      this.logger.log("🎬 Reproduciendo: " + audioId);
       this.telemetry.track(TelemetryEventType.AUDIO_PLAY_START, { audioId });
       
       if (audioId === this.config.PRESENTATION_START_ID && this.isPresentationMode) {
@@ -363,26 +363,23 @@ export class AvatarApplication {
         await this._delay(800);
       }
       
+      // SOLO audio pregrabado, sin TTS
       await this.speak(null, audioId);
       
       if (audioId === this.config.PRESENTATION_END_ID && this.isPresentationMode) {
         this.ui.hideAvatar();
       }
-    } 
-    // Si hay texto, usar TTS
-    else if (text) {
+      
+      // Terminar aquí - NO continuar con TTS
+      return;
+    }
+    
+    // SOLO si NO hay audioId, usar TTS
+    if (text) {
       this.ui.setBubble(text);
       this.telemetry.track(TelemetryEventType.TTS_REQUEST, { length: text.length });
       await this.speak(text);
     }
-  }
-
-  async _testSpeak() {
-    if (this._destroyed) return;
-    const text = "Hola, soy tu asistente virtual. ¿En qué puedo ayudarte?";
-    this.ui.setBubble(text);
-    if (this.isPresentationMode) this.karaoke.showStatic(text);
-    await this.speak(text);
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -404,11 +401,12 @@ export class AvatarApplication {
         // Verificar que entry.audio existe
         if (!entry.audio) {
           this.logger.warn(`AudioBank[${audioId}] sin archivo de audio`);
-          // Usar el texto del entry como fallback
+          // Usar el texto del entry como fallback SOLO si no hay audio
           if (entry.text) {
             this.ui.setBubble(entry.text);
-            await this.speech.speak(entry.text);
+            await this._speakWithTTS(entry.text, avatar);
           }
+          this.state.update({ isSpeaking: false });
           return;
         }
         
@@ -433,37 +431,50 @@ export class AvatarApplication {
         };
 
         await this.audio.play(entry.audio);
+        // NO hacer nada más después de reproducir audio pregrabado
         return;
       }
 
-      // TTS (ElevenLabs con fallback a navegador)
-      if (text) {
-        this.logger.log(`Usando TTS para: "${text.substring(0, 50)}..."`);
-        this.speech.onStart = () => {
-          if (this._destroyed) return;
-          avatar.startLipSync([]);
-        };
-        this.speech.onEnd = () => {
-          if (this._destroyed) return;
-          avatar.stopLipSync();
-          this.state.update({ isSpeaking: false });
-          
-          // Track qué TTS se usó
-          const adapter = this.speech.lastUsedAdapter;
-          if (adapter === 'browser') {
-            this.telemetry.track(TelemetryEventType.TTS_FALLBACK);
-          } else {
-            this.telemetry.track(TelemetryEventType.TTS_SUCCESS);
-          }
-        };
-        
-        await this.speech.speak(text);
+      // TTS (solo si se pide explícitamente con texto y sin audioId)
+      if (text && !audioId) {
+        await this._speakWithTTS(text, avatar);
+      } else {
+        this.state.update({ isSpeaking: false });
       }
     } catch (e) {
       this.logger.error("Error en speak: " + e.message);
       this.state.update({ isSpeaking: false });
       this.telemetry.trackError(e, { context: 'speak', audioId, textLength: text?.length });
     }
+  }
+
+  /**
+   * Reproduce texto con TTS
+   * @private
+   */
+  async _speakWithTTS(text, avatar) {
+    this.logger.log(`Usando TTS para: "${text.substring(0, 50)}..."`);
+    
+    this.speech.onStart = () => {
+      if (this._destroyed) return;
+      avatar.startLipSync([]);
+    };
+    
+    this.speech.onEnd = () => {
+      if (this._destroyed) return;
+      avatar.stopLipSync();
+      this.state.update({ isSpeaking: false });
+      
+      // Track qué TTS se usó
+      const adapter = this.speech.lastUsedAdapter;
+      if (adapter === 'browser') {
+        this.telemetry.track(TelemetryEventType.TTS_FALLBACK);
+      } else {
+        this.telemetry.track(TelemetryEventType.TTS_SUCCESS);
+      }
+    };
+    
+    await this.speech.speak(text);
   }
 
   stop() {
@@ -619,20 +630,14 @@ export class AvatarApplication {
 
   /**
    * Toggle play/pause
+   * Solo detiene, no reproduce automáticamente
    */
   togglePlay() {
     if (this.isSpeaking) {
       this.stop();
       this.toast?.info('Reproducción pausada');
-    } else {
-      // Reproducir audio de test o el primero del banco
-      const ids = this.getAudioIds();
-      if (ids.length > 0) {
-        this.playAudio(ids[0]);
-      } else {
-        this._testSpeak();
-      }
     }
+    // No reproducir automáticamente - el usuario debe usar el botón Reproducir
   }
 
   /**

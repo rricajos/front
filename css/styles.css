@@ -1906,6 +1906,7 @@ body.presentation-mode .settings-btn {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: hidden; /* No scroll en contenedor */
 }
 
 .debug-status-compact {
@@ -1929,8 +1930,7 @@ body.presentation-mode .settings-btn {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
+  min-height: 0; /* Importante para que flex: 1 funcione con overflow */
 }
 
 .debug-logs-header {
@@ -1949,6 +1949,7 @@ body.presentation-mode .settings-btn {
   flex: 1;
   max-height: none;
   overflow-y: auto;
+  min-height: 0; /* Permite que flex funcione con scroll */
 }
 
 .debug-status-grid {

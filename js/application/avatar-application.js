@@ -235,12 +235,12 @@ export class AvatarApplication {
 
     // Overlay buttons
     addDOMListener("startNormalBtn", "click", async () => {
-      await this._unlockAudioOnly(); // Solo desbloquear, no procesar mensajes
+      await this._unlockAudio();
       this.ui.hideOverlay();
     });
 
     addDOMListener("startPresentationBtn", "click", async () => {
-      await this._unlockAudio(); // Desbloquear y procesar mensajes
+      await this._unlockAudio();
       this.ui.hideOverlay();
       await this.enterPresentationMode();
     });
@@ -321,7 +321,7 @@ export class AvatarApplication {
     }
   }
 
-  async _unlockAudioOnly() {
+  async _unlockAudio() {
     if (this._destroyed) return;
     if (this._audioUnlocked) return;
     
@@ -330,28 +330,9 @@ export class AvatarApplication {
     this._audioUnlocked = true;
     this.logger.log("Audio desbloqueado ✓");
     
-    // NO procesar mensajes pendientes - los limpiamos
+    // Descartar mensajes pendientes - no reproducir nada automáticamente
     if (this._pendingMessages.length > 0) {
       this.logger.log(`Descartando ${this._pendingMessages.length} mensaje(s) pendiente(s)`);
-      this._pendingMessages = [];
-    }
-  }
-
-  async _unlockAudio() {
-    if (this._destroyed) return;
-    if (this._audioUnlocked) return; // Ya desbloqueado
-    
-    await this.audio.unlock();
-    this.speech.unlock();
-    this._audioUnlocked = true;
-    this.logger.log("Audio desbloqueado ✓");
-    
-    // Procesar mensajes pendientes
-    if (this._pendingMessages.length > 0) {
-      this.logger.log(`Procesando ${this._pendingMessages.length} mensaje(s) pendiente(s)`);
-      for (const msg of this._pendingMessages) {
-        await this._processMessage(msg);
-      }
       this._pendingMessages = [];
     }
   }

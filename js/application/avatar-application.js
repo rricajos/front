@@ -40,6 +40,10 @@ export class AvatarApplication {
     // Audio navigation
     this._currentAudioIndex = 0;
     
+    // Audio unlock state
+    this._audioUnlocked = false;
+    this._pendingMessages = []; // Cola de mensajes antes del desbloqueo
+    
     // Core
     this.eventBus = new EventBus();
     this.logger = new Logger(document.getElementById("debug"));
@@ -174,34 +178,14 @@ export class AvatarApplication {
     const unsub1 = this.eventBus.on('speak:start', async ({ audioId, text }) => {
       if (this._destroyed) return;
       
-      // Si hay audioId, verificar que esté en el banco
-      if (audioId) {
-        if (!this.audioBank[audioId]) {
-          this.logger.log("⏭️ Ignorando: " + audioId);
-          return;
-        }
-        
-        this.state.update({ currentAudioId: audioId });
-        this.logger.log("🎬 " + audioId);
-        this.telemetry.track(TelemetryEventType.AUDIO_PLAY_START, { audioId });
-        
-        if (audioId === this.config.PRESENTATION_START_ID && this.isPresentationMode) {
-          this.ui.showAvatar();
-          await this._delay(800);
-        }
-        
-        await this.speak(null, audioId);
-        
-        if (audioId === this.config.PRESENTATION_END_ID && this.isPresentationMode) {
-          this.ui.hideAvatar();
-        }
-      } 
-      // Si hay texto, usar TTS
-      else if (text) {
-        this.ui.setBubble(text);
-        this.telemetry.track(TelemetryEventType.TTS_REQUEST, { length: text.length });
-        await this.speak(text);
+      // Si el audio no está desbloqueado, encolar el mensaje
+      if (!this._audioUnlocked) {
+        this.logger.log("⏸️ Audio no desbloqueado, encolando mensaje");
+        this._pendingMessages.push({ audioId, text });
+        return;
       }
+      
+      await this._processMessage({ audioId, text });
     });
     this._eventCleanups.push(unsub1);
 
@@ -339,9 +323,58 @@ export class AvatarApplication {
 
   async _unlockAudio() {
     if (this._destroyed) return;
+    if (this._audioUnlocked) return; // Ya desbloqueado
+    
     await this.audio.unlock();
     this.speech.unlock();
+    this._audioUnlocked = true;
     this.logger.log("Audio desbloqueado ✓");
+    
+    // Procesar mensajes pendientes
+    if (this._pendingMessages.length > 0) {
+      this.logger.log(`Procesando ${this._pendingMessages.length} mensaje(s) pendiente(s)`);
+      for (const msg of this._pendingMessages) {
+        await this._processMessage(msg);
+      }
+      this._pendingMessages = [];
+    }
+  }
+
+  /**
+   * Procesa un mensaje de audio/texto del WebSocket
+   * @private
+   */
+  async _processMessage({ audioId, text }) {
+    if (this._destroyed) return;
+    
+    // Si hay audioId, verificar que esté en el banco
+    if (audioId) {
+      if (!this.audioBank[audioId]) {
+        this.logger.log("⏭️ Ignorando: " + audioId);
+        return;
+      }
+      
+      this.state.update({ currentAudioId: audioId });
+      this.logger.log("🎬 " + audioId);
+      this.telemetry.track(TelemetryEventType.AUDIO_PLAY_START, { audioId });
+      
+      if (audioId === this.config.PRESENTATION_START_ID && this.isPresentationMode) {
+        this.ui.showAvatar();
+        await this._delay(800);
+      }
+      
+      await this.speak(null, audioId);
+      
+      if (audioId === this.config.PRESENTATION_END_ID && this.isPresentationMode) {
+        this.ui.hideAvatar();
+      }
+    } 
+    // Si hay texto, usar TTS
+    else if (text) {
+      this.ui.setBubble(text);
+      this.telemetry.track(TelemetryEventType.TTS_REQUEST, { length: text.length });
+      await this.speak(text);
+    }
   }
 
   async _testSpeak() {

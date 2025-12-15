@@ -499,6 +499,13 @@ function initVoicePanel(app, settings, toast) {
     settings.set('ttsProvider', provider);
     app.speech.setProvider(provider);
     updateVoiceSelector();
+    
+    // Actualizar estado en consola de debug
+    const isReady = provider === 'browser' 
+      ? app.speech.browserTTS?.isAvailable 
+      : app.speech.elevenLabs?.isReady;
+    settings.updateTTSProviderStatus(provider, isReady);
+    
     toast.info(`Proveedor: ${provider === 'elevenlabs' ? 'ElevenLabs' : 'Navegador'}`);
   });
   

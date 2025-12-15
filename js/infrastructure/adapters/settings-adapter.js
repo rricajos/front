@@ -249,6 +249,7 @@ export class SettingsAdapter {
     if (this._panelElement) {
       this._panelElement.classList.add('open');
       this._overlayElement?.classList.add('open');
+      document.body.classList.add('panel-open');
       this._updateInstallUI();
       return;
     }
@@ -273,6 +274,32 @@ export class SettingsAdapter {
       this.closePanel();
     } else {
       this.openPanel();
+    }
+  }
+
+  /**
+   * Actualiza el estado de TTS en la consola
+   * @param {string} provider - 'elevenlabs' | 'browser'
+   * @param {boolean} isReady - si está listo
+   * @param {string} [error] - mensaje de error opcional
+   */
+  updateTTSProviderStatus(provider, isReady, error = null) {
+    const providerName = provider === 'elevenlabs' ? 'ElevenLabs' : 'Navegador';
+    
+    if (error) {
+      this.updateDebugStatus('tts', 'error', `${providerName}: ${error}`);
+      this.addLog(`TTS ${providerName}: ${error}`, 'error');
+    } else if (isReady) {
+      this.updateDebugStatus('tts', 'ok', `${providerName} OK`);
+      this.addLog(`TTS cambiado a ${providerName}`, 'success');
+    } else {
+      this.updateDebugStatus('tts', 'loading', `${providerName}...`);
+    }
+    
+    // Actualizar info panel
+    const ttsInfo = document.getElementById('debugTTSProvider');
+    if (ttsInfo) {
+      ttsInfo.textContent = provider;
     }
   }
 

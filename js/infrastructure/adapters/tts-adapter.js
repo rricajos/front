@@ -138,21 +138,30 @@ export class TTSAdapter {
       // Cancelar cualquier síntesis anterior
       this.stop();
       
-      // Workaround para Chrome: a veces el synth se "pausa" solo
-      // Necesitamos cancelar y reintentar
+      // Workaround para Chrome: cancelar y esperar
       this.synth.cancel();
       
       // Pequeño delay para que Chrome procese el cancel
       setTimeout(() => {
+        // Verificar voces
+        if (this.voices.length === 0) {
+          this.loadVoices();
+        }
+        
         this.currentUtterance = new SpeechSynthesisUtterance(text);
         
-        // Intentar usar la voz seleccionada o la primera disponible
-        if (this.selectedVoice) {
-          this.currentUtterance.voice = this.selectedVoice;
-          this.logger.log(`TTS: usando voz "${this.selectedVoice.name}"`);
-        } else if (this.voices.length > 0) {
-          this.currentUtterance.voice = this.voices[0];
-          this.logger.log(`TTS: usando primera voz "${this.voices[0].name}"`);
+        // Usar voz seleccionada o la primera española disponible
+        let voiceToUse = this.selectedVoice;
+        if (!voiceToUse && this.voices.length > 0) {
+          // Buscar una voz española primero
+          voiceToUse = this.voices.find(v => v.lang.startsWith('es')) || this.voices[0];
+        }
+        
+        if (voiceToUse) {
+          this.currentUtterance.voice = voiceToUse;
+          this.logger.log(`TTS: usando voz "${voiceToUse.name}"`);
+        } else {
+          this.logger.warn("TTS: sin voz seleccionada, usando default");
         }
         
         this.currentUtterance.lang = 'es-ES';
@@ -161,6 +170,7 @@ export class TTSAdapter {
         this.currentUtterance.volume = this._volume;
         
         let hasStarted = false;
+        let startTime = Date.now();
         
         this.currentUtterance.onstart = () => {
           hasStarted = true;
@@ -169,16 +179,26 @@ export class TTSAdapter {
         };
         
         this.currentUtterance.onend = () => {
-          this.logger.log("🔊 TTS: finalizado");
+          const duration = Date.now() - startTime;
+          
+          // Si terminó muy rápido sin empezar, probablemente no reprodujo nada
+          if (!hasStarted && duration < 100) {
+            this.logger.warn(`TTS: terminó sin reproducir (${duration}ms)`);
+            // No llamar onEnd ya que no reprodujo nada realmente
+          } else {
+            this.logger.log(`🔊 TTS: finalizado (${duration}ms)`);
+            this.onEnd?.();
+          }
+          
           this.currentUtterance = null;
-          this.onEnd?.();
           resolve();
         };
         
         this.currentUtterance.onerror = (event) => {
           // Ignorar errores de "interrupted" que ocurren al cancelar
-          if (event.error === 'interrupted') {
+          if (event.error === 'interrupted' || event.error === 'canceled') {
             this.logger.log("TTS: interrumpido (normal)");
+            this.currentUtterance = null;
             resolve();
             return;
           }
@@ -189,25 +209,30 @@ export class TTSAdapter {
           reject(error);
         };
         
-        // Workaround adicional: si después de 500ms no ha empezado, reintentar
-        const timeout = setTimeout(() => {
+        // Workaround: Chrome a veces necesita un "empujón"
+        // Si después de 300ms no ha empezado, reintentar
+        const retryTimeout = setTimeout(() => {
           if (!hasStarted && this.currentUtterance) {
-            this.logger.warn("TTS: timeout, reintentando...");
+            this.logger.warn("TTS: no inició, reintentando...");
+            const utterance = this.currentUtterance;
             this.synth.cancel();
             setTimeout(() => {
-              if (this.currentUtterance) {
-                this.synth.speak(this.currentUtterance);
+              if (utterance && !hasStarted) {
+                this.synth.speak(utterance);
+                // Resume por si acaso
+                if (this.synth.paused) {
+                  this.synth.resume();
+                }
               }
-            }, 100);
+            }, 50);
           }
-        }, 500);
+        }, 300);
         
-        this.currentUtterance.onend = () => {
-          clearTimeout(timeout);
-          this.logger.log("🔊 TTS: finalizado");
-          this.currentUtterance = null;
-          this.onEnd?.();
-          resolve();
+        // Limpiar timeout cuando termine
+        const originalOnEnd = this.currentUtterance.onend;
+        this.currentUtterance.onend = (e) => {
+          clearTimeout(retryTimeout);
+          originalOnEnd(e);
         };
         
         this.synth.speak(this.currentUtterance);
@@ -217,7 +242,7 @@ export class TTSAdapter {
           this.logger.log("TTS: resumiendo synth pausado");
           this.synth.resume();
         }
-      }, 50);
+      }, 100); // Aumentado el delay inicial
     });
   }
 

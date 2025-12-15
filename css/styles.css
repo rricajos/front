@@ -1309,8 +1309,7 @@ body.presentation-mode .settings-btn {
   position: fixed;
   top: 0;
   right: 0;
-  width: 100%;
-  max-width: 320px;
+  width: 380px;
   height: 100vh;
   background: var(--bg-card);
   border-left: 1px solid var(--border-color);
@@ -1322,16 +1321,18 @@ body.presentation-mode .settings-btn {
   overflow: hidden;
 }
 
-/* En móvil, panel más ancho */
+/* En móvil, panel ocupa 80% */
 @media (max-width: 800px) {
   .settings-panel {
-    max-width: 280px;
+    width: 80vw;
+    max-width: 320px;
   }
 }
 
 @media (max-width: 400px) {
   .settings-panel {
-    max-width: 85vw;
+    width: 85vw;
+    max-width: none;
   }
 }
 
@@ -1346,7 +1347,7 @@ body.presentation-mode .settings-btn {
   }
   
   body.panel-open {
-    padding-right: 320px;
+    padding-right: 396px; /* 380px panel + 16px gap */
   }
 }
 

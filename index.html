@@ -102,9 +102,6 @@
         <div class="status-bar">
           <span class="status-dot loading" id="statusDot"></span>
           <span class="status-text" id="statusText">Inicializando...</span>
-          <button class="debug-btn-inline" id="debugConsoleBtn" title="Consola de depuración" aria-label="Abrir consola de depuración">
-            <i data-lucide="terminal" aria-hidden="true"></i>
-          </button>
         </div>
         <div class="debug" id="debug"></div>
       </div>
@@ -188,13 +185,6 @@
               <span class="toggle-slider" aria-hidden="true"></span>
             </label>
           </div>
-          <div class="setting-row">
-            <label for="volumeSliderMain">Volumen</label>
-            <div class="volume-mini">
-              <input type="range" min="0" max="100" value="80" class="volume-slider" id="volumeSliderMain" aria-label="Ajustar volumen">
-              <span class="volume-value" id="volumeValueMain" aria-live="polite">80%</span>
-            </div>
-          </div>
         </div>
       </div>
       
@@ -238,6 +228,12 @@
           <div class="setting-row">
             <label>Versión</label>
             <span class="version-tag">2.0.0</span>
+          </div>
+          <div class="setting-row">
+            <label>Consola</label>
+            <button class="mini-btn" id="debugConsoleBtn" title="Abrir consola de depuración" aria-label="Abrir consola de depuración">
+              <i data-lucide="terminal" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
       </div>

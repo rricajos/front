@@ -816,20 +816,6 @@ function initMainSettings(settings, toast) {
     });
   }
   
-  // Volumen slider
-  const volumeSlider = document.getElementById('volumeSliderMain');
-  const volumeValue = document.getElementById('volumeValueMain');
-  if (volumeSlider) {
-    volumeSlider.value = settings.get('volume');
-    if (volumeValue) volumeValue.textContent = `${settings.get('volume')}%`;
-    
-    volumeSlider.addEventListener('input', (e) => {
-      const value = parseInt(e.target.value, 10);
-      settings.set('volume', value);
-      if (volumeValue) volumeValue.textContent = `${value}%`;
-    });
-  }
-  
   // Instalar PWA
   const installBtn = document.getElementById('installBtnMain');
   const installRow = document.getElementById('installRowMain');

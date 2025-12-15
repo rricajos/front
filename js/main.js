@@ -8,6 +8,19 @@ import { SettingsAdapter, ToastAdapter, KeyboardAdapter, WakeLockAdapter } from 
 import { AvatarApplication } from './application/index.js';
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Helper para Lucide Icons - solo procesa iconos pendientes
+// ═══════════════════════════════════════════════════════════════════════════
+
+function refreshIcons() {
+  if (typeof lucide === 'undefined') return;
+  // Solo procesar elementos <i> con data-lucide que no son SVG todavía
+  const pending = document.querySelectorAll('i[data-lucide]');
+  if (pending.length > 0) {
+    lucide.createIcons();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // PWA - Service Worker Registration
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -78,7 +91,7 @@ function showLoaderError(message) {
         ">Reintentar</button>
       </div>
     `;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    refreshIcons();
   }
 }
 
@@ -349,7 +362,7 @@ function showShortcutsHelp(keyboard) {
   document.body.appendChild(modal);
   
   // Inicializar iconos
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  refreshIcons();
   
   // Mostrar con animación
   requestAnimationFrame(() => modal.classList.add('visible'));
@@ -599,7 +612,7 @@ function initPlaybackControls(app, toast) {
     
     // Refrescar iconos con requestAnimationFrame para mejor rendimiento
     requestAnimationFrame(() => {
-      if (typeof lucide !== 'undefined') lucide.createIcons();
+      refreshIcons();
     });
   };
   
@@ -757,9 +770,7 @@ function initMobileSettings(settings, toast) {
   });
   
   // Inicializar iconos lucide
-  if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-  }
+  refreshIcons();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -767,7 +778,7 @@ function initMobileSettings(settings, toast) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function initMainSettings(app, settings, toast) {
-  // Theme pills - feedback INMEDIATO
+  // Theme pills - feedback INMEDIATO con pointerdown
   const themePills = document.querySelectorAll('.theme-pill');
   const currentTheme = settings.get('theme') || 'dark';
   
@@ -777,14 +788,14 @@ function initMainSettings(app, settings, toast) {
     pill.classList.toggle('active', isActive);
     pill.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     
-    // Click handler - feedback visual PRIMERO, luego acción
-    pill.addEventListener('click', (e) => {
+    // Usar pointerdown para respuesta más rápida que click
+    const handleThemeChange = (e) => {
       e.preventDefault();
       e.stopPropagation();
       
       const theme = pill.dataset.theme;
       
-      // 1. Feedback visual INMEDIATO
+      // 1. Feedback visual INMEDIATO - sincrónico
       themePills.forEach(p => {
         p.classList.remove('active');
         p.setAttribute('aria-pressed', 'false');
@@ -792,13 +803,23 @@ function initMainSettings(app, settings, toast) {
       pill.classList.add('active');
       pill.setAttribute('aria-pressed', 'true');
       
-      // 2. Toast inmediato
-      toast.info(`Tema: ${theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Sistema'}`);
+      // 2. Aplicar tema inmediatamente
+      settings.set('theme', theme);
       
-      // 3. Aplicar tema (puede ser más lento)
-      requestAnimationFrame(() => {
-        settings.set('theme', theme);
-      });
+      // 3. Toast después
+      toast.info(`Tema: ${theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Sistema'}`);
+    };
+    
+    // Responder a pointerdown para máxima velocidad
+    pill.addEventListener('pointerdown', handleThemeChange);
+    // También click como fallback
+    pill.addEventListener('click', (e) => {
+      // Evitar doble ejecución si pointerdown ya lo manejó
+      if (pill.classList.contains('active') && pill.dataset.theme === settings.get('theme')) {
+        e.preventDefault();
+        return;
+      }
+      handleThemeChange(e);
     });
   });
   
@@ -825,22 +846,23 @@ function initMainSettings(app, settings, toast) {
   // WebSocket toggle
   const wsToggle = document.getElementById('websocketToggleMain');
   if (wsToggle && app) {
-    // Sincronizar estado inicial
-    wsToggle.checked = app.isWebSocketConnected;
-    
-    // Actualizar toggle cuando cambie el estado
+    // Función para actualizar el toggle
     const updateWsToggle = () => {
       wsToggle.checked = app.isWebSocketConnected;
     };
+    
+    // Sincronizar estado inicial con un pequeño delay para que el WS se conecte
+    setTimeout(updateWsToggle, 500);
     
     // Escuchar eventos de conexión
     app.eventBus?.on('ws:connected', updateWsToggle);
     app.eventBus?.on('ws:disconnected', updateWsToggle);
     
     wsToggle.addEventListener('change', (e) => {
+      e.preventDefault();
       if (e.target.checked) {
-        app.connectWebSocket();
         toast.info('Conectando WebSocket...');
+        app.connectWebSocket();
       } else {
         app.disconnectWebSocket();
         toast.info('WebSocket desconectado');
@@ -914,7 +936,5 @@ function initMainSettings(app, settings, toast) {
   });
   
   // Inicializar iconos
-  if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-  }
+  refreshIcons();
 }

@@ -929,25 +929,26 @@ body.presentation-mode .presentation-container { display: flex; }
 
 /* Botón de debug inline en status bar */
 .debug-btn-inline {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
-  border: 1px solid var(--border-color);
+  border: none;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
   flex-shrink: 0;
   margin-left: auto;
+  opacity: 0.4;
 }
 
 .debug-btn-inline:hover {
-  background: rgba(28, 164, 175, 0.1);
-  border-color: var(--brand-primary);
+  background: rgba(28, 164, 175, 0.15);
   color: var(--brand-primary);
+  opacity: 1;
 }
 
 .debug-btn-inline i {

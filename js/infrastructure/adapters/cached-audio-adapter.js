@@ -108,12 +108,18 @@ export class CachedAudioAdapter extends AudioAdapter {
       }
       
       const blob = await response.blob();
+      
+      // Verificar que el blob no está vacío
+      if (blob.size === 0) {
+        throw new Error('Archivo vacío');
+      }
+      
       const blobUrl = URL.createObjectURL(blob);
       
       this._cache.set(url, blobUrl);
       
       const filename = url.split('/').pop();
-      this.logger.log(`Cache: ✓ ${filename}`);
+      this.logger.log(`Cache: ✓ ${filename} (${Math.round(blob.size / 1024)}KB)`);
       
       return blobUrl;
     } catch (e) {

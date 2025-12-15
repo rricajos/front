@@ -41,6 +41,7 @@ export class AudioAdapter {
   async play(url) {
     if (this._destroyed) return;
     
+    this.logger.log(`Audio: preparando ${url.substring(0, 50)}...`);
     this.stop();
     
     return new Promise((resolve, reject) => {
@@ -52,6 +53,7 @@ export class AudioAdapter {
         audio.removeEventListener('play', handlePlay);
         audio.removeEventListener('ended', handleEnded);
         audio.removeEventListener('error', handleError);
+        audio.removeEventListener('canplaythrough', handleCanPlay);
         // Remover de lista de cleanups
         const idx = this._cleanupFunctions.indexOf(cleanup);
         if (idx > -1) this._cleanupFunctions.splice(idx, 1);
@@ -59,6 +61,10 @@ export class AudioAdapter {
 
       // Guardar función de cleanup
       this._cleanupFunctions.push(cleanup);
+
+      const handleCanPlay = () => {
+        this.logger.log(`Audio: listo para reproducir (duración: ${Math.round(audio.duration)}s)`);
+      };
 
       const handlePlay = () => {
         if (this._destroyed) return;
@@ -68,6 +74,7 @@ export class AudioAdapter {
       };
 
       const handleEnded = () => {
+        this.logger.log("Audio: finalizado");
         cleanup();
         if (!this._destroyed) {
           this.onEnded?.();
@@ -78,7 +85,8 @@ export class AudioAdapter {
 
       const handleError = (e) => {
         cleanup();
-        const error = new Error("Error reproduciendo audio: " + e.message);
+        const errorMsg = e.target?.error?.message || e.message || 'Error desconocido';
+        const error = new Error("Error reproduciendo audio: " + errorMsg);
         if (!this._destroyed) {
           this.logger.error(error.message);
           this.onError?.(error);
@@ -87,12 +95,14 @@ export class AudioAdapter {
         reject(error);
       };
 
+      audio.addEventListener('canplaythrough', handleCanPlay);
       audio.addEventListener('play', handlePlay);
       audio.addEventListener('ended', handleEnded);
       audio.addEventListener('error', handleError);
 
       audio.src = url;
       audio.play().catch((e) => {
+        this.logger.error(`Audio: error al iniciar reproducción - ${e.message}`);
         cleanup();
         reject(e);
       });

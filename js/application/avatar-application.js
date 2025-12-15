@@ -151,6 +151,12 @@ export class AvatarApplication {
     
     this.logger.log("✓ Aplicación lista");
     this.logger.log(`AudioBank: ${Object.keys(this.audioBank).length} entradas`);
+    
+    // Log inicial en consola UI
+    if (this.settings?.addLog) {
+      this.settings.addLog('✓ App iniciada', 'success');
+      this.settings.addLog(`AudioBank: ${Object.keys(this.audioBank).length} audios`, 'info');
+    }
   }
 
   _setupVoices() {
@@ -330,6 +336,11 @@ export class AvatarApplication {
     this._audioUnlocked = true;
     this.logger.log("Audio desbloqueado ✓");
     
+    // Log en consola UI
+    if (this.settings?.addLog) {
+      this.settings.addLog('🔊 Audio desbloqueado', 'success');
+    }
+    
     // Descartar mensajes pendientes - no reproducir nada automáticamente
     if (this._pendingMessages.length > 0) {
       this.logger.log(`Descartando ${this._pendingMessages.length} mensaje(s) pendiente(s)`);
@@ -344,10 +355,19 @@ export class AvatarApplication {
   async _processMessage({ audioId, text }) {
     if (this._destroyed) return;
     
+    // Log del mensaje recibido
+    if (this.settings?.addLog) {
+      const msgType = audioId ? `Audio: ${audioId}` : `TTS: "${text?.substring(0, 30)}..."`;
+      this.settings.addLog(`📨 Mensaje WS: ${msgType}`, 'info');
+    }
+    
     // Si hay audioId, SOLO reproducir audio pregrabado (ignorar texto)
     if (audioId) {
       if (!this.audioBank[audioId]) {
         this.logger.log("⏭️ Ignorando audioId desconocido: " + audioId);
+        if (this.settings?.addLog) {
+          this.settings.addLog(`⚠️ Audio no encontrado: ${audioId}`, 'warning');
+        }
         return;
       }
       
@@ -410,6 +430,11 @@ export class AvatarApplication {
         this.ui.setBubble(entry.text);
         this.logger.log(`Reproduciendo audio pregrabado: ${audioId}`);
         
+        // Log en consola UI
+        if (this.settings?.addLog) {
+          this.settings.addLog(`▶️ Audio: ${audioId}`, 'info');
+        }
+        
         this.audio.onPlay = () => {
           if (this._destroyed) return;
           avatar.startLipSync(entry.pauses || []);
@@ -425,6 +450,10 @@ export class AvatarApplication {
           this.karaoke.stop();
           this.state.update({ isSpeaking: false });
           this.telemetry.track(TelemetryEventType.AUDIO_PLAY_END, { audioId });
+          // Log en consola UI
+          if (this.settings?.addLog) {
+            this.settings.addLog(`⏹️ Fin: ${audioId}`, 'info');
+          }
         };
 
         await this.audio.play(entry.audio);
@@ -452,6 +481,11 @@ export class AvatarApplication {
   async _speakWithTTS(text, avatar) {
     this.logger.log(`Usando TTS para: "${text.substring(0, 50)}..."`);
     
+    // Log en consola UI
+    if (this.settings?.addLog) {
+      this.settings.addLog(`🗣️ TTS: "${text.substring(0, 25)}..."`, 'info');
+    }
+    
     this.speech.onStart = () => {
       if (this._destroyed) return;
       avatar.startLipSync([]);
@@ -466,8 +500,14 @@ export class AvatarApplication {
       const adapter = this.speech.lastUsedAdapter;
       if (adapter === 'browser') {
         this.telemetry.track(TelemetryEventType.TTS_FALLBACK);
+        if (this.settings?.addLog) {
+          this.settings.addLog('⏹️ TTS fin (navegador)', 'info');
+        }
       } else {
         this.telemetry.track(TelemetryEventType.TTS_SUCCESS);
+        if (this.settings?.addLog) {
+          this.settings.addLog('⏹️ TTS fin (ElevenLabs)', 'success');
+        }
       }
     };
     
@@ -494,6 +534,11 @@ export class AvatarApplication {
     this.state.update({ isPresentationMode: true });
     this.ui.enterPresentationMode();
     this.telemetry.track(TelemetryEventType.PRESENTATION_START);
+    
+    // Log en consola UI
+    if (this.settings?.addLog) {
+      this.settings.addLog('🎬 Modo presentación activado', 'success');
+    }
     
     // Activar wake lock para evitar que se apague la pantalla
     this.wakeLock?.acquire();
@@ -528,6 +573,11 @@ export class AvatarApplication {
     this.karaoke.stop();
     this.stop();
     this.telemetry.track(TelemetryEventType.PRESENTATION_END);
+    
+    // Log en consola UI
+    if (this.settings?.addLog) {
+      this.settings.addLog('🎬 Modo presentación desactivado', 'info');
+    }
     
     // Liberar wake lock
     this.wakeLock?.release();

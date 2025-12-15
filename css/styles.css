@@ -57,10 +57,23 @@ body {
   background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f2e 100%);
   color: var(--text-primary);
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 16px;
+}
+
+/* Centrar en desktop, scroll en móvil */
+@media (min-width: 801px) {
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 800px) {
+  body {
+    display: block;
+    padding: 12px;
+  }
 }
 
 /* Contenedor principal que envuelve stage + settings */
@@ -70,6 +83,7 @@ body {
   gap: 0;
   width: 100%;
   max-width: 950px;
+  margin: 0 auto;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -365,6 +379,18 @@ body.presentation-mode .presentation-container { display: flex; }
   gap: 12px;
 }
 
+/* Tablet: 2 columnas */
+@media (max-width: 900px) and (min-width: 601px) {
+  .settings-bar-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* La tercera card (Aplicación) ocupa todo el ancho */
+  .settings-card:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+
 .settings-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -452,6 +478,41 @@ body.presentation-mode .presentation-container { display: flex; }
   .settings-card-content {
     padding: 12px;
     gap: 10px;
+  }
+  
+  /* Hacer toggle y theme-pills más pequeños */
+  .setting-row .toggle {
+    width: 40px;
+    height: 22px;
+  }
+  
+  .setting-row .toggle-slider::before {
+    height: 16px;
+    width: 16px;
+  }
+  
+  .setting-row .toggle input:checked + .toggle-slider::before {
+    transform: translateX(18px);
+  }
+  
+  .theme-pill {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .theme-pill i {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .mini-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .mini-btn i {
+    width: 14px;
+    height: 14px;
   }
 }
 
@@ -1240,7 +1301,7 @@ body.presentation-mode .settings-btn {
   z-index: 10001;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .settings-overlay.open {
@@ -1248,12 +1309,19 @@ body.presentation-mode .settings-btn {
   visibility: visible;
 }
 
+/* En desktop, no mostrar overlay */
+@media (min-width: 801px) {
+  .settings-overlay {
+    display: none !important;
+  }
+}
+
 .settings-panel {
   position: fixed;
   top: 0;
   right: 0;
   width: 100%;
-  max-width: 360px;
+  max-width: 320px;
   height: 100vh;
   background: var(--bg-card);
   border-left: 1px solid var(--border-color);
@@ -1265,8 +1333,36 @@ body.presentation-mode .settings-btn {
   overflow: hidden;
 }
 
+/* En móvil, panel más ancho */
+@media (max-width: 800px) {
+  .settings-panel {
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 400px) {
+  .settings-panel {
+    max-width: 85vw;
+  }
+}
+
 .settings-panel.open {
   transform: translateX(0);
+}
+
+/* En desktop, el panel empuja el contenido */
+@media (min-width: 801px) {
+  body {
+    transition: padding-right 0.3s ease;
+  }
+  
+  body.panel-open {
+    padding-right: 320px;
+  }
+  
+  body.panel-open .debug-btn {
+    right: 336px;
+  }
 }
 
 .settings-header {
@@ -2414,15 +2510,9 @@ body.presentation-mode .settings-btn {
    MOBILE SETTINGS (inline para móvil)
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* Mobile settings - DEPRECADO, usar settings-bar */
 .mobile-settings {
-  display: none;
-  width: 100%;
-  max-width: 950px;
-  margin-top: 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 16px;
+  display: none !important;
 }
 
 .mobile-settings h3 {
@@ -2525,15 +2615,17 @@ body.presentation-mode .settings-btn {
   color: var(--brand-primary);
 }
 
-/* Mostrar solo en móvil */
+/* Mostrar solo en móvil - DEPRECADO */
 @media (max-width: 800px) {
-  .mobile-settings {
-    display: block;
-  }
+  /* mobile-settings ya no se usa, usar settings-bar */
   
-  /* Ocultar botón de settings en móvil ya que está inline */
-  .settings-btn {
-    display: none;
+  /* Ocultar botón de debug en móvil (se usa el panel lateral) */
+  .debug-btn {
+    /* Mantener visible pero más pequeño */
+    width: 40px;
+    height: 40px;
+    top: 12px;
+    right: 12px;
   }
 }
 

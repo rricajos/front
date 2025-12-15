@@ -262,6 +262,7 @@ export class SettingsAdapter {
   closePanel() {
     this._panelElement?.classList.remove('open');
     this._overlayElement?.classList.remove('open');
+    document.body.classList.remove('panel-open');
   }
 
   /**
@@ -367,6 +368,7 @@ export class SettingsAdapter {
     requestAnimationFrame(() => {
       this._panelElement.classList.add('open');
       this._overlayElement.classList.add('open');
+      document.body.classList.add('panel-open');
     });
   }
 

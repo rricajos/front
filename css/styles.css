@@ -63,6 +63,15 @@ body {
   padding: 16px;
 }
 
+/* Contenedor principal que envuelve stage + settings */
+.main-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: 950px;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    START OVERLAY
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -344,15 +353,16 @@ body.presentation-mode .presentation-container { display: flex; }
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .settings-bar {
-  padding: 0 24px 24px;
-  max-width: 900px;
-  margin: 0 auto;
+  padding: 0;
+  margin-top: 16px;
+  position: relative;
+  z-index: 1;
 }
 
 .settings-bar-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 12px;
 }
 
 .settings-card {
@@ -361,6 +371,7 @@ body.presentation-mode .presentation-container { display: flex; }
   border-radius: 12px;
   overflow: hidden;
   contain: layout style;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .settings-card-header {
@@ -426,12 +437,21 @@ body.presentation-mode .presentation-container { display: flex; }
 /* Responsive: stack cards en móvil */
 @media (max-width: 800px) {
   .settings-bar {
-    padding: 0 16px 16px;
+    margin-top: 12px;
   }
   
   .settings-bar-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
+  }
+  
+  .settings-card-header {
+    padding: 10px 12px;
+  }
+  
+  .settings-card-content {
+    padding: 12px;
+    gap: 10px;
   }
 }
 

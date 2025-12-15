@@ -150,6 +150,35 @@ function showLoaderError(message) {
     });
     await app.initialize();
     
+    // Actualizar debug console con estados
+    settings.updateDebugStatus('avatar', 'ok', 'Listo');
+    settings.addLog('Avatar Rive cargado correctamente', 'success');
+    
+    // Detectar estado de TTS
+    const ttsProvider = settings.get('ttsProvider') || 'elevenlabs';
+    if (ttsProvider === 'elevenlabs') {
+      const elevenLabs = app.speech?.elevenLabs;
+      if (elevenLabs?.isReady) {
+        settings.updateDebugStatus('tts', 'ok', 'ElevenLabs OK');
+        settings.addLog('ElevenLabs conectado', 'success');
+      } else {
+        settings.updateDebugStatus('tts', 'error', 'ElevenLabs Error');
+        settings.addLog('ElevenLabs no disponible', 'warning');
+      }
+    } else {
+      settings.updateDebugStatus('tts', 'ok', 'Navegador OK');
+      settings.addLog('TTS del navegador activo', 'success');
+    }
+    
+    // Estado de audio bank
+    if (audioBank && Object.keys(audioBank).length > 0) {
+      settings.updateDebugStatus('audio', 'ok', `${Object.keys(audioBank).length} audios`);
+      settings.addLog(`Audio bank cargado: ${Object.keys(audioBank).length} archivos`, 'success');
+    } else {
+      settings.updateDebugStatus('audio', '', 'Sin audios');
+      settings.addLog('Audio bank vacío o no disponible', 'info');
+    }
+    
     // 10. Conectar speechService con settings para selector de voces
     settings.setSpeechService(app.speech);
     

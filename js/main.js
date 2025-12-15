@@ -101,13 +101,17 @@ function showLoaderError(message) {
     // Conectar toast con settings
     settings.setToast(toast);
     
-    // 3. Botón de settings - con feedback inmediato
+    // 3. Botón de settings - respuesta inmediata
     const debugBtn = document.getElementById('debugConsoleBtn');
     if (debugBtn) {
-      debugBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Evitar que el click se propague
+      // Handler único para click
+      const handleDebugClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         settings.togglePanel();
-      });
+      };
+      
+      debugBtn.addEventListener('click', handleDebugClick);
     } else {
       console.warn('debugConsoleBtn no encontrado');
     }
@@ -587,16 +591,21 @@ function initPlaybackControls(app, toast) {
       playPauseBtn.classList.remove('playing');
     }
     
-    // Refrescar iconos
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    // Refrescar iconos con requestAnimationFrame para mejor rendimiento
+    requestAnimationFrame(() => {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
   };
   
   // Polling para sincronizar estado visual
   setInterval(() => updatePlayPauseButton(app.isSpeaking), 250);
   
-  // Play/Pause - SIN bloqueo, siempre responde
-  playPauseBtn?.addEventListener('click', async () => {
+  // Play/Pause - feedback INMEDIATO, sin await bloqueante
+  playPauseBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    
     if (app.isSpeaking) {
+      // Detener - acción inmediata
       app.stop();
       updatePlayPauseButton(false);
       toast.info('Detenido');
@@ -608,45 +617,54 @@ function initPlaybackControls(app, toast) {
         return;
       }
       
+      // Feedback visual INMEDIATO
       lastText = text;
       updatePlayPauseButton(true);
+      toast.info('Reproduciendo...');
       
-      try {
-        await app.speak(text);
-      } catch (e) {
-        console.error('Error:', e);
-        toast.error('Error al reproducir');
-      }
-      
-      updatePlayPauseButton(false);
+      // Ejecutar speak en background (no bloquea)
+      app.speak(text)
+        .catch(e => {
+          console.error('Error:', e);
+          toast.error('Error al reproducir');
+        })
+        .finally(() => {
+          updatePlayPauseButton(false);
+        });
     }
   });
   
-  // Replay - siempre disponible
-  replayBtn?.addEventListener('click', async () => {
+  // Replay - feedback INMEDIATO
+  replayBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    
     const text = textInput?.value?.trim() || lastText;
     if (!text) {
       toast.warning('No hay texto');
       return;
     }
     
-    // Detener primero si está hablando
+    // Detener si está hablando
     if (app.isSpeaking) {
       app.stop();
-      await new Promise(r => setTimeout(r, 50));
     }
     
+    // Feedback visual INMEDIATO
     lastText = text;
     updatePlayPauseButton(true);
+    toast.info('Reiniciando...');
     
-    try {
-      await app.speak(text);
-    } catch (e) {
-      console.error('Error:', e);
-      toast.error('Error al reproducir');
-    }
-    
-    updatePlayPauseButton(false);
+    // Pequeño delay y luego speak en background
+    setTimeout(() => {
+      app.speak(text)
+        .catch(e => {
+          console.error('Error:', e);
+          toast.error('Error al reproducir');
+        })
+        .finally(() => {
+          updatePlayPauseButton(false);
+        });
+    }, 50);
   });
   
   // Atajo de teclado: Ctrl+Enter para reproducir
@@ -655,11 +673,6 @@ function initPlaybackControls(app, toast) {
       e.preventDefault();
       playPauseBtn?.click();
     }
-  });
-  
-  // Limpiar interval al cerrar (aunque en SPA no se cierra)
-  window.addEventListener('beforeunload', () => {
-    clearInterval(stateCheckInterval);
   });
 }
 
@@ -748,7 +761,7 @@ function initMobileSettings(settings, toast) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function initMainSettings(settings, toast) {
-  // Theme pills - con click handler robusto
+  // Theme pills - feedback INMEDIATO
   const themePills = document.querySelectorAll('.theme-pill');
   const currentTheme = settings.get('theme') || 'dark';
   
@@ -758,12 +771,14 @@ function initMainSettings(settings, toast) {
     pill.classList.toggle('active', isActive);
     pill.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     
-    // Click handler con feedback inmediato
+    // Click handler - feedback visual PRIMERO, luego acción
     pill.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      
       const theme = pill.dataset.theme;
       
-      // Feedback visual inmediato
+      // 1. Feedback visual INMEDIATO
       themePills.forEach(p => {
         p.classList.remove('active');
         p.setAttribute('aria-pressed', 'false');
@@ -771,9 +786,13 @@ function initMainSettings(settings, toast) {
       pill.classList.add('active');
       pill.setAttribute('aria-pressed', 'true');
       
-      // Aplicar tema
-      settings.set('theme', theme);
+      // 2. Toast inmediato
       toast.info(`Tema: ${theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Sistema'}`);
+      
+      // 3. Aplicar tema (puede ser más lento)
+      requestAnimationFrame(() => {
+        settings.set('theme', theme);
+      });
     });
   });
   

@@ -745,6 +745,10 @@ body.presentation-mode .presentation-container { display: flex; }
   background: rgba(255, 255, 255, 0.05);
 }
 
+.theme-pill:active {
+  transform: scale(0.92);
+}
+
 .theme-pill.active {
   border-color: var(--brand-primary);
   background: rgba(28, 164, 175, 0.15);
@@ -775,6 +779,10 @@ body.presentation-mode .presentation-container { display: flex; }
   border-color: var(--border-light);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
+}
+
+.mini-btn:active:not(:disabled) {
+  transform: scale(0.92);
 }
 
 .mini-btn i {
@@ -929,26 +937,29 @@ body.presentation-mode .presentation-container { display: flex; }
 
 /* Botón de debug inline en status bar */
 .debug-btn-inline {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
-  border: none;
+  border: 1px solid var(--border-color);
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, color 0.15s, opacity 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
   flex-shrink: 0;
   margin-left: auto;
-  opacity: 0.4;
 }
 
 .debug-btn-inline:hover {
   background: rgba(28, 164, 175, 0.15);
+  border-color: var(--brand-primary);
   color: var(--brand-primary);
-  opacity: 1;
+}
+
+.debug-btn-inline:active {
+  transform: scale(0.95);
 }
 
 .debug-btn-inline i {
@@ -1395,6 +1406,10 @@ body.presentation-mode .settings-btn {
   color: var(--text-primary);
 }
 
+.settings-close:active {
+  transform: scale(0.92);
+}
+
 .settings-close i {
   width: 18px;
   height: 18px;
@@ -1649,6 +1664,10 @@ body.presentation-mode .settings-btn {
   background: var(--border-color);
   border-radius: 28px;
   transition: all 0.3s;
+}
+
+.toggle-slider:active {
+  transform: scale(0.95);
 }
 
 .toggle-slider::before {

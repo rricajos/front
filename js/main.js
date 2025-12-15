@@ -101,10 +101,16 @@ function showLoaderError(message) {
     // Conectar toast con settings
     settings.setToast(toast);
     
-    // 3. Botón de settings
-    document.getElementById('debugConsoleBtn')?.addEventListener('click', () => {
-      settings.openPanel();
-    });
+    // 3. Botón de settings - con feedback inmediato
+    const debugBtn = document.getElementById('debugConsoleBtn');
+    if (debugBtn) {
+      debugBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evitar que el click se propague
+        settings.togglePanel();
+      });
+    } else {
+      console.warn('debugConsoleBtn no encontrado');
+    }
     
     // 4. Botón de instalar en overlay
     document.getElementById('installAppBtn')?.addEventListener('click', async () => {
@@ -563,7 +569,6 @@ function initPlaybackControls(app, toast) {
   const textInput = document.getElementById('textInput');
   
   let lastText = textInput?.value || '';
-  let isProcessing = false; // Evitar doble clicks
   
   // Actualizar estado del botón play/pause
   const updatePlayPauseButton = (isPlaying) => {
@@ -586,87 +591,62 @@ function initPlaybackControls(app, toast) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
   };
   
-  // Escuchar cambios de estado de la app
-  const checkSpeakingState = () => {
-    const isSpeaking = app.isSpeaking;
-    updatePlayPauseButton(isSpeaking);
-    
-    // Habilitar/deshabilitar botones según estado
-    if (playPauseBtn) {
-      playPauseBtn.disabled = isProcessing;
-    }
-    if (replayBtn) {
-      replayBtn.disabled = isProcessing || isSpeaking;
-    }
-  };
+  // Polling para sincronizar estado visual
+  setInterval(() => updatePlayPauseButton(app.isSpeaking), 250);
   
-  // Polling para detectar cambios
-  let stateCheckInterval = setInterval(checkSpeakingState, 200);
-  
-  // Play/Pause
+  // Play/Pause - SIN bloqueo, siempre responde
   playPauseBtn?.addEventListener('click', async () => {
-    if (isProcessing) return; // Ignorar si está procesando
-    
     if (app.isSpeaking) {
-      // Pausar (detener)
       app.stop();
       updatePlayPauseButton(false);
-      toast.info('Reproducción detenida');
+      toast.info('Detenido');
     } else {
-      // Reproducir
       const text = textInput?.value?.trim();
       if (!text) {
-        toast.warning('Escribe un texto para reproducir');
+        toast.warning('Escribe un texto');
         textInput?.focus();
         return;
       }
       
-      isProcessing = true;
       lastText = text;
       updatePlayPauseButton(true);
       
       try {
-        await app.speak(text);  // Solo texto, sin audioId
+        await app.speak(text);
       } catch (e) {
-        console.error('Error en speak:', e);
+        console.error('Error:', e);
         toast.error('Error al reproducir');
-      } finally {
-        isProcessing = false;
-        updatePlayPauseButton(false);
       }
+      
+      updatePlayPauseButton(false);
     }
   });
   
-  // Replay (reiniciar con el último texto)
+  // Replay - siempre disponible
   replayBtn?.addEventListener('click', async () => {
-    if (isProcessing) return; // Ignorar si está procesando
-    
     const text = textInput?.value?.trim() || lastText;
     if (!text) {
-      toast.warning('No hay texto para reiniciar');
+      toast.warning('No hay texto');
       return;
     }
     
-    // Detener si está hablando
+    // Detener primero si está hablando
     if (app.isSpeaking) {
       app.stop();
-      // Pequeño delay para asegurar que se detuvo
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 50));
     }
     
-    isProcessing = true;
     lastText = text;
     updatePlayPauseButton(true);
     
     try {
-      await app.speak(text);  // Solo texto, sin audioId
+      await app.speak(text);
     } catch (e) {
-      console.error('Error en speak:', e);
+      console.error('Error:', e);
       toast.error('Error al reproducir');
-    } finally {
-      isProcessing = false;
-      updatePlayPauseButton(false);
     }
+    
+    updatePlayPauseButton(false);
   });
   
   // Atajo de teclado: Ctrl+Enter para reproducir
@@ -768,25 +748,31 @@ function initMobileSettings(settings, toast) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function initMainSettings(settings, toast) {
-  // Theme pills
+  // Theme pills - con click handler robusto
   const themePills = document.querySelectorAll('.theme-pill');
+  const currentTheme = settings.get('theme') || 'dark';
+  
   themePills.forEach(pill => {
-    // Marcar el activo según la configuración
-    if (pill.dataset.theme === settings.get('theme')) {
-      pill.classList.add('active');
-    } else {
-      pill.classList.remove('active');
-    }
+    // Sincronizar estado inicial
+    const isActive = pill.dataset.theme === currentTheme;
+    pill.classList.toggle('active', isActive);
+    pill.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     
-    pill.addEventListener('click', () => {
+    // Click handler con feedback inmediato
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
       const theme = pill.dataset.theme;
-      settings.set('theme', theme);
+      
+      // Feedback visual inmediato
       themePills.forEach(p => {
         p.classList.remove('active');
         p.setAttribute('aria-pressed', 'false');
       });
       pill.classList.add('active');
       pill.setAttribute('aria-pressed', 'true');
+      
+      // Aplicar tema
+      settings.set('theme', theme);
       toast.info(`Tema: ${theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Sistema'}`);
     });
   });

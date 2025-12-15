@@ -117,14 +117,20 @@ function showLoaderError(message) {
     }
     
     // 4. Botón de instalar en overlay
-    document.getElementById('installAppBtn')?.addEventListener('click', async () => {
-      if (settings.canInstall) {
-        const installed = await settings.installPWA();
-        if (installed) {
-          toast.success('¡App instalada correctamente!');
-        }
-      }
-    });
+    const installOverlayBtn = document.getElementById('installAppBtn');
+    if (installOverlayBtn) {
+      installOverlayBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!settings.canInstall) return;
+        
+        toast.info('Instalando...');
+        settings.installPWA().then(installed => {
+          if (installed) {
+            toast.success('¡App instalada correctamente!');
+          }
+        });
+      });
+    }
     
     // 5. Pasar el prompt de instalación al settings
     if (deferredInstallPrompt) {
@@ -290,7 +296,7 @@ function showLoaderError(message) {
     initPlaybackControls(app, toast);
     
     // 18. Inicializar controles de ajustes en panel principal
-    initMainSettings(settings, toast);
+    initMainSettings(app, settings, toast);
     
     // 19. Exponer globalmente para debug (solo en desarrollo)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
@@ -760,7 +766,7 @@ function initMobileSettings(settings, toast) {
 // Main Settings Controls (Panel Principal)
 // ═══════════════════════════════════════════════════════════════════════════
 
-function initMainSettings(settings, toast) {
+function initMainSettings(app, settings, toast) {
   // Theme pills - feedback INMEDIATO
   const themePills = document.querySelectorAll('.theme-pill');
   const currentTheme = settings.get('theme') || 'dark';
@@ -816,6 +822,32 @@ function initMainSettings(settings, toast) {
     });
   }
   
+  // WebSocket toggle
+  const wsToggle = document.getElementById('websocketToggleMain');
+  if (wsToggle && app) {
+    // Sincronizar estado inicial
+    wsToggle.checked = app.isWebSocketConnected;
+    
+    // Actualizar toggle cuando cambie el estado
+    const updateWsToggle = () => {
+      wsToggle.checked = app.isWebSocketConnected;
+    };
+    
+    // Escuchar eventos de conexión
+    app.eventBus?.on('ws:connected', updateWsToggle);
+    app.eventBus?.on('ws:disconnected', updateWsToggle);
+    
+    wsToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        app.connectWebSocket();
+        toast.info('Conectando WebSocket...');
+      } else {
+        app.disconnectWebSocket();
+        toast.info('WebSocket desconectado');
+      }
+    });
+  }
+  
   // Instalar PWA
   const installBtn = document.getElementById('installBtnMain');
   const installRow = document.getElementById('installRowMain');
@@ -831,32 +863,40 @@ function initMainSettings(settings, toast) {
     };
     updateInstallVisibility();
     
-    installBtn.addEventListener('click', async () => {
-      if (settings.canInstall) {
-        const installed = await settings.installPWA();
+    installBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!settings.canInstall) return;
+      
+      toast.info('Instalando...');
+      settings.installPWA().then(installed => {
         if (installed) {
           toast.success('¡App instalada!');
           updateInstallVisibility();
         }
-      }
+      });
     });
   }
   
   // Limpiar caché
   const clearCacheBtn = document.getElementById('clearCacheBtnMain');
   if (clearCacheBtn) {
-    clearCacheBtn.addEventListener('click', async () => {
-      try {
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k => caches.delete(k)));
+    clearCacheBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      toast.info('Limpiando caché...');
+      
+      Promise.resolve().then(async () => {
+        try {
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          }
+          localStorage.clear();
+          toast.success('Caché limpiada. Recargando...');
+          setTimeout(() => window.location.reload(), 1000);
+        } catch (e) {
+          toast.error('Error al limpiar caché');
         }
-        localStorage.clear();
-        toast.success('Caché limpiada. Recargando...');
-        setTimeout(() => window.location.reload(), 1000);
-      } catch (e) {
-        toast.error('Error al limpiar caché');
-      }
+      });
     });
   }
   
@@ -870,10 +910,6 @@ function initMainSettings(settings, toast) {
     }
     if (key === 'soundEnabled' && soundToggle) {
       soundToggle.checked = newValue;
-    }
-    if (key === 'volume' && volumeSlider) {
-      volumeSlider.value = newValue;
-      if (volumeValue) volumeValue.textContent = `${newValue}%`;
     }
   });
   

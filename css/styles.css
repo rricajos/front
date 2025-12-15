@@ -55,6 +55,13 @@ button, .btn, .start-btn, .theme-pill, .mini-btn, .toggle,
   touch-action: manipulation;
   cursor: pointer;
   -webkit-tap-highlight-color: rgba(28, 164, 175, 0.2);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Transiciones rápidas para feedback inmediato */
+button, .btn, .start-btn, .theme-pill, .mini-btn, .toggle-slider, .settings-close {
+  transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease !important;
 }
 
 * { box-sizing: border-box; }

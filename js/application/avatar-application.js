@@ -759,6 +759,34 @@ export class AvatarApplication {
   }
 
   // ═══════════════════════════════════════════════════════════════════════
+  // WebSocket Control
+  // ═══════════════════════════════════════════════════════════════════════
+
+  /**
+   * Conecta el WebSocket
+   */
+  connectWebSocket() {
+    if (this._destroyed) return;
+    this.webSocket.resetReconnectAttempts();
+    this.webSocket.connect();
+  }
+
+  /**
+   * Desconecta el WebSocket
+   */
+  disconnectWebSocket() {
+    this.webSocket.disconnect();
+    this.eventBus.emit('ws:disconnected', { code: 1000 });
+  }
+
+  /**
+   * @returns {boolean} Estado de conexión del WebSocket
+   */
+  get isWebSocketConnected() {
+    return this.webSocket.isConnected;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
   // Destroy (Cleanup)
   // ═══════════════════════════════════════════════════════════════════════
   

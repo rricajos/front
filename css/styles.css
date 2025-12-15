@@ -862,46 +862,6 @@ body.presentation-mode .presentation-container { display: flex; }
    DEBUG CONSOLE BUTTON
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.debug-btn {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 1000;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-card);
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.debug-btn:hover {
-  background: var(--bg-input);
-  color: var(--text-primary);
-  border-color: var(--border-light);
-  transform: scale(1.05);
-}
-
-.debug-btn i {
-  width: 20px;
-  height: 20px;
-}
-
-[data-theme="light"] .debug-btn {
-  background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .debug-btn:hover {
-  background: #f8fafc;
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════
    AVATAR
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -966,6 +926,34 @@ body.presentation-mode .presentation-container { display: flex; }
 .status-dot.loading { background: var(--warning); animation: pulse 1s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 .status-text { font-size: 13px; color: var(--text-muted); flex: 1; }
+
+/* Botón de debug inline en status bar */
+.debug-btn-inline {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.debug-btn-inline:hover {
+  background: rgba(28, 164, 175, 0.1);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.debug-btn-inline i {
+  width: 14px;
+  height: 14px;
+}
 
 .debug {
   font-size: 10px; color: var(--text-muted);
@@ -1358,10 +1346,6 @@ body.presentation-mode .settings-btn {
   
   body.panel-open {
     padding-right: 320px;
-  }
-  
-  body.panel-open .debug-btn {
-    right: 336px;
   }
 }
 

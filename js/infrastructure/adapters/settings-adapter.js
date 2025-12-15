@@ -361,6 +361,9 @@ export class SettingsAdapter {
       lucide.createIcons();
     }
     
+    // Aplicar estados guardados
+    this._applyBufferedState();
+    
     // Event listeners del debug console
     this._setupDebugConsoleEvents();
     
@@ -417,12 +420,18 @@ export class SettingsAdapter {
    * @param {'info'|'success'|'warning'|'error'} type - Tipo de log
    */
   addLog(message, type = 'info') {
+    // Guardar en buffer interno
+    if (!this._logBuffer) this._logBuffer = [];
+    const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    this._logBuffer.push({ time, message, type });
+    if (this._logBuffer.length > 100) this._logBuffer.shift();
+    
+    // Actualizar UI si existe
     const logsContainer = document.getElementById('debugLogs');
     if (!logsContainer) return;
     
     const entry = document.createElement('div');
     entry.className = `log-entry log-${type}`;
-    const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     entry.textContent = `[${time}] ${message}`;
     logsContainer.appendChild(entry);
     logsContainer.scrollTop = logsContainer.scrollHeight;
@@ -436,9 +445,44 @@ export class SettingsAdapter {
    * Actualiza el estado de un componente en el debug console
    */
   updateDebugStatus(component, status, text) {
+    // Guardar en buffer interno
+    if (!this._statusBuffer) this._statusBuffer = {};
+    this._statusBuffer[component] = { status, text };
+    
+    // Actualizar UI si existe
     const ids = { avatar: 'debugAvatarStatus', tts: 'debugTTSStatus', ws: 'debugWSStatus', audio: 'debugAudioStatus' };
     const el = document.getElementById(ids[component]);
     if (el) el.innerHTML = `<span class="status-dot ${status}"></span>${text}`;
+  }
+  
+  /**
+   * Aplica los buffers de estado y logs al panel
+   * @private
+   */
+  _applyBufferedState() {
+    // Aplicar estados
+    if (this._statusBuffer) {
+      Object.entries(this._statusBuffer).forEach(([component, { status, text }]) => {
+        const ids = { avatar: 'debugAvatarStatus', tts: 'debugTTSStatus', ws: 'debugWSStatus', audio: 'debugAudioStatus' };
+        const el = document.getElementById(ids[component]);
+        if (el) el.innerHTML = `<span class="status-dot ${status}"></span>${text}`;
+      });
+    }
+    
+    // Aplicar logs
+    if (this._logBuffer && this._logBuffer.length > 0) {
+      const logsContainer = document.getElementById('debugLogs');
+      if (logsContainer) {
+        logsContainer.innerHTML = '';
+        this._logBuffer.forEach(({ time, message, type }) => {
+          const entry = document.createElement('div');
+          entry.className = `log-entry log-${type}`;
+          entry.textContent = `[${time}] ${message}`;
+          logsContainer.appendChild(entry);
+        });
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+      }
+    }
   }
 
   /**

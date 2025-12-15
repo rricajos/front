@@ -35,6 +35,7 @@ export class AvatarApplication {
     this.toast = options.toast || null;
     this.wakeLock = options.wakeLock || null;
     this.externalEventBus = options.eventBus || null;
+    this.settings = options.settings || null;
     
     // Audio navigation
     this._currentAudioIndex = 0;
@@ -218,12 +219,22 @@ export class AvatarApplication {
     const unsub3 = this.eventBus.on('ws:connected', () => {
       this.state.update({ isConnected: true });
       this.telemetry.track(TelemetryEventType.WS_CONNECTED);
+      // Actualizar debug console
+      if (this.settings?.updateDebugStatus) {
+        this.settings.updateDebugStatus('ws', 'ok', 'Conectado');
+        this.settings.addLog('WebSocket conectado', 'success');
+      }
     });
     this._eventCleanups.push(unsub3);
     
     const unsub4 = this.eventBus.on('ws:disconnected', () => {
       this.state.update({ isConnected: false });
       this.telemetry.track(TelemetryEventType.WS_DISCONNECTED);
+      // Actualizar debug console
+      if (this.settings?.updateDebugStatus) {
+        this.settings.updateDebugStatus('ws', 'error', 'Desconectado');
+        this.settings.addLog('WebSocket desconectado', 'warning');
+      }
     });
     this._eventCleanups.push(unsub4);
   }
@@ -356,7 +367,20 @@ export class AvatarApplication {
       // Audio pregrabado del banco
       if (audioId && this.audioBank[audioId]) {
         const entry = this.audioBank[audioId];
+        
+        // Verificar que entry.audio existe
+        if (!entry.audio) {
+          this.logger.warn(`AudioBank[${audioId}] sin archivo de audio`);
+          // Usar el texto del entry como fallback
+          if (entry.text) {
+            this.ui.setBubble(entry.text);
+            await this.speech.speak(entry.text);
+          }
+          return;
+        }
+        
         this.ui.setBubble(entry.text);
+        this.logger.log(`Reproduciendo audio pregrabado: ${audioId}`);
         
         this.audio.onPlay = () => {
           if (this._destroyed) return;
@@ -368,6 +392,7 @@ export class AvatarApplication {
         
         this.audio.onEnded = () => {
           if (this._destroyed) return;
+          this.logger.log(`Audio finalizado: ${audioId}`);
           avatar.stopLipSync();
           this.karaoke.stop();
           this.state.update({ isSpeaking: false });
@@ -380,6 +405,7 @@ export class AvatarApplication {
 
       // TTS (ElevenLabs con fallback a navegador)
       if (text) {
+        this.logger.log(`Usando TTS para: "${text.substring(0, 50)}..."`);
         this.speech.onStart = () => {
           if (this._destroyed) return;
           avatar.startLipSync([]);

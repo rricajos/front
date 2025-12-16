@@ -135,22 +135,18 @@
         <span class="tts-status-text" id="ttsStatusText">TTS: Cargando...</span>
       </div>
       
-      <!-- Text input con label de AudioBank -->
+      <!-- Text input con labels -->
       <div class="text-input-wrapper">
         <span class="audiobank-label" id="audiobankLabel" hidden>
           <i data-lucide="database" aria-hidden="true"></i>
           AudioBank
         </span>
-        <textarea class="text-input" id="textInput" placeholder="Escribe un texto para probar la voz..." aria-label="Texto para sintetizar">Hola, soy el asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?</textarea>
-      </div>
-      
-      <!-- LipSync text (oculto por defecto) -->
-      <div class="lipsync-wrapper" id="lipsyncWrapper" hidden>
-        <label class="lipsync-label">
+        <span class="lipsync-mode-label" id="lipsyncModeLabel" hidden>
           <i data-lucide="audio-waveform" aria-hidden="true"></i>
-          LipSync (usa :: para pausas de 0.5s)
-        </label>
-        <textarea class="text-input lipsync-input" id="lipsyncInput" placeholder="Texto con :: para pausas de labios..." aria-label="Texto de sincronización labial"></textarea>
+          LipSync
+        </span>
+        <textarea class="text-input" id="textInput" placeholder="Escribe un texto para probar la voz..." aria-label="Texto para sintetizar">Hola, soy el asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?</textarea>
+        <span class="lipsync-hint" id="lipsyncHint" hidden>Usa :: para pausas de 0.5s</span>
       </div>
       
       <div class="btn-row" role="group" aria-label="Controles de reproducción">
@@ -160,7 +156,7 @@
       
       <!-- Botones de herramientas -->
       <div class="tools-row" role="group" aria-label="Herramientas de audio">
-        <button class="btn tool-btn" id="toggleLipsyncBtn" title="Mostrar/ocultar editor LipSync">
+        <button class="btn tool-btn" id="toggleLipsyncBtn" title="Alternar modo LipSync (texto con pausas)">
           <i data-lucide="audio-waveform" aria-hidden="true"></i>
           <span>LipSync</span>
         </button>

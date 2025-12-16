@@ -610,60 +610,105 @@ function initVoicePanel(app, settings, toast) {
 function initAudioBankTools(app, toast) {
   const toggleLipsyncBtn = document.getElementById('toggleLipsyncBtn');
   const generateAudioBtn = document.getElementById('generateAudioBtn');
-  const lipsyncWrapper = document.getElementById('lipsyncWrapper');
-  const lipsyncInput = document.getElementById('lipsyncInput');
   const textInput = document.getElementById('textInput');
+  const lipsyncModeLabel = document.getElementById('lipsyncModeLabel');
+  const lipsyncHint = document.getElementById('lipsyncHint');
   
-  let lipsyncVisible = false;
+  // Estado del modo LipSync
+  let isLipsyncMode = false;
+  let cleanText = textInput?.value || '';      // Texto sin ::
+  let lipSyncText = '';                         // Texto con :: (si existe)
   
-  // Toggle LipSync editor
+  /**
+   * Actualiza la UI según el modo
+   */
+  function updateLipsyncUI() {
+    if (isLipsyncMode) {
+      lipsyncModeLabel?.removeAttribute('hidden');
+      lipsyncHint?.removeAttribute('hidden');
+      toggleLipsyncBtn?.classList.add('active');
+      textInput?.classList.add('lipsync-mode');
+    } else {
+      lipsyncModeLabel?.setAttribute('hidden', '');
+      lipsyncHint?.setAttribute('hidden', '');
+      toggleLipsyncBtn?.classList.remove('active');
+      textInput?.classList.remove('lipsync-mode');
+    }
+  }
+  
+  /**
+   * Limpia :: del texto
+   */
+  function removePauseMarkers(text) {
+    return text.replace(/::/g, '').replace(/\s+/g, ' ').trim();
+  }
+  
+  // Toggle LipSync mode
   toggleLipsyncBtn?.addEventListener('click', (e) => {
     e.preventDefault();
-    lipsyncVisible = !lipsyncVisible;
     
-    if (lipsyncVisible) {
-      lipsyncWrapper?.removeAttribute('hidden');
-      toggleLipsyncBtn.classList.add('active');
+    const currentText = textInput?.value || '';
+    
+    if (!isLipsyncMode) {
+      // Cambiando a modo LipSync
+      cleanText = currentText;
       
-      // Si hay texto en textInput y no hay lipSyncText, generarlo
-      if (!lipsyncInput?.value && textInput?.value) {
-        lipsyncInput.value = textInput.value;
+      // Si ya teníamos lipSyncText guardado, mostrarlo; si no, usar el texto actual
+      if (lipSyncText) {
+        textInput.value = lipSyncText;
       }
+      // Si el texto actual no tiene ::, lo dejamos tal cual para que el usuario añada ::
+      
+      isLipsyncMode = true;
+      toast.info('Modo LipSync: usa :: para pausas');
     } else {
-      lipsyncWrapper?.setAttribute('hidden', '');
-      toggleLipsyncBtn.classList.remove('active');
+      // Cambiando a modo normal
+      lipSyncText = currentText; // Guardar el texto con ::
+      cleanText = removePauseMarkers(currentText);
+      textInput.value = cleanText;
+      
+      isLipsyncMode = false;
+      toast.info('Modo normal');
     }
     
+    updateLipsyncUI();
     refreshIcons();
   });
   
-  // Auto-guardar LipSync cuando cambia (debounced)
-  let saveTimeout = null;
-  lipsyncInput?.addEventListener('input', () => {
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
-      const audioId = app.currentPlayingAudioId;
-      if (audioId && lipsyncInput.value) {
-        // Guardar lipSyncText y generar text limpio
-        const lipSyncText = lipsyncInput.value;
-        const text = app.cleanLipSyncText(lipSyncText);
-        
-        app.saveAudioBankOverride(audioId, { lipSyncText, text });
-        textInput.value = text;
-        toast.info('LipSync guardado');
+  // Cuando el textarea cambia, actualizar el texto correspondiente
+  textInput?.addEventListener('input', () => {
+    if (isLipsyncMode) {
+      lipSyncText = textInput.value;
+      cleanText = removePauseMarkers(textInput.value);
+    } else {
+      cleanText = textInput.value;
+      // Si el usuario añade :: en modo normal, detectarlo
+      if (textInput.value.includes('::')) {
+        lipSyncText = textInput.value;
       }
-    }, 1000);
+    }
   });
+  
+  // Exponer método para obtener lipSyncText desde fuera
+  window.getLipSyncText = () => {
+    const currentText = textInput?.value || '';
+    // Si está en modo LipSync o el texto tiene ::, devolverlo
+    if (isLipsyncMode || currentText.includes('::')) {
+      return currentText;
+    }
+    // Si hay lipSyncText guardado con ::, devolverlo
+    if (lipSyncText && lipSyncText.includes('::')) {
+      return lipSyncText;
+    }
+    return null;
+  };
   
   // Generar audio con ElevenLabs
   generateAudioBtn?.addEventListener('click', async (e) => {
     e.preventDefault();
     
-    // Obtener texto (preferir lipSyncText limpio si existe)
-    let text = textInput?.value?.trim();
-    if (lipsyncInput?.value) {
-      text = app.cleanLipSyncText(lipsyncInput.value);
-    }
+    // Obtener texto limpio para TTS
+    let text = cleanText || removePauseMarkers(textInput?.value || '');
     
     if (!text) {
       toast.warning('Escribe un texto primero');
@@ -704,9 +749,10 @@ function initAudioBankTools(app, toast) {
         toast.success('Audio generado correctamente');
         
         // Guardar también el lipSyncText si existe
-        if (lipsyncInput?.value) {
+        const currentLipSync = window.getLipSyncText();
+        if (currentLipSync) {
           app.saveAudioBankOverride(audioId, {
-            lipSyncText: lipsyncInput.value,
+            lipSyncText: currentLipSync,
             text: text
           });
         }
@@ -766,27 +812,29 @@ function initPlaybackControls(app, toast) {
       updatePlayPauseButton(false);
       toast.info('Detenido');
     } else {
-      const text = textInput?.value?.trim();
-      if (!text) {
+      // Obtener texto para TTS (sin :: si está en modo normal)
+      let text = textInput?.value?.trim();
+      
+      // Limpiar :: si existe para el texto que se enviará al TTS
+      const cleanText = text ? text.replace(/::/g, '').replace(/\s+/g, ' ').trim() : '';
+      
+      if (!cleanText) {
         toast.warning('Escribe un texto');
         textInput?.focus();
         return;
       }
       
-      // Obtener lipSyncText si el panel está visible
-      const lipsyncWrapper = document.getElementById('lipsyncWrapper');
-      const lipsyncInput = document.getElementById('lipsyncInput');
-      const lipSyncText = (!lipsyncWrapper?.hidden && lipsyncInput?.value?.trim()) 
-        ? lipsyncInput.value.trim() 
-        : null;
+      // Obtener lipSyncText usando la función global
+      const lipSyncText = window.getLipSyncText ? window.getLipSyncText() : 
+                          (text.includes('::') ? text : null);
       
       // Feedback visual INMEDIATO
-      lastText = text;
+      lastText = cleanText;
       updatePlayPauseButton(true);
       toast.info('Reproduciendo...');
       
-      // Ejecutar speak con lipSyncText opcional
-      app.speak(text, null, lipSyncText)
+      // Ejecutar speak con texto limpio y lipSyncText para pausas
+      app.speak(cleanText, null, lipSyncText)
         .catch(e => {
           console.error('Error:', e);
           toast.error('Error al reproducir');
@@ -801,25 +849,32 @@ function initPlaybackControls(app, toast) {
   replayBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     
-    const text = textInput?.value?.trim() || lastText;
+    let text = textInput?.value?.trim() || lastText;
     if (!text) {
       toast.warning('No hay texto');
       return;
     }
+    
+    // Limpiar :: para el texto del TTS
+    const cleanText = text.replace(/::/g, '').replace(/\s+/g, ' ').trim();
     
     // Detener si está hablando
     if (app.isSpeaking) {
       app.stop();
     }
     
+    // Obtener lipSyncText
+    const lipSyncText = window.getLipSyncText ? window.getLipSyncText() : 
+                        (text.includes('::') ? text : null);
+    
     // Feedback visual INMEDIATO
-    lastText = text;
+    lastText = cleanText;
     updatePlayPauseButton(true);
     toast.info('Reiniciando...');
     
     // Pequeño delay y luego speak en background
     setTimeout(() => {
-      app.speak(text)
+      app.speak(cleanText, null, lipSyncText)
         .catch(e => {
           console.error('Error:', e);
           toast.error('Error al reproducir');

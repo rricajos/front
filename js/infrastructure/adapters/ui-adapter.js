@@ -13,6 +13,11 @@ export class UIAdapter {
       voiceSelect: document.getElementById("voiceSelect"),
       debug: document.getElementById("debug"),
       
+      // AudioBank & LipSync
+      audiobankLabel: document.getElementById("audiobankLabel"),
+      lipsyncWrapper: document.getElementById("lipsyncWrapper"),
+      lipsyncInput: document.getElementById("lipsyncInput"),
+      
       // Presentation
       presentationContainer: document.getElementById("presentationContainer"),
       presentationAvatar: document.getElementById("presentationAvatar"),
@@ -84,6 +89,64 @@ export class UIAdapter {
       return this.elements.bubble.textContent;
     }
     return '';
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // AudioBank Mode
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  /**
+   * Activa modo AudioBank - muestra label y bloquea textarea
+   * @param {boolean} active
+   */
+  setAudioBankMode(active) {
+    const label = this.elements.audiobankLabel;
+    const input = this.elements.textInput;
+    
+    if (active) {
+      label?.removeAttribute('hidden');
+      input?.classList.add('readonly');
+      if (input) input.readOnly = true;
+    } else {
+      label?.setAttribute('hidden', '');
+      input?.classList.remove('readonly');
+      if (input) input.readOnly = false;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // LipSync Editor
+  // ═══════════════════════════════════════════════════════════════════════
+  
+  /**
+   * Muestra/oculta el editor de LipSync
+   * @param {boolean} show
+   */
+  showLipSyncEditor(show) {
+    const wrapper = this.elements.lipsyncWrapper;
+    if (show) {
+      wrapper?.removeAttribute('hidden');
+    } else {
+      wrapper?.setAttribute('hidden', '');
+    }
+  }
+
+  /**
+   * Establece el texto de LipSync
+   * @param {string} text
+   */
+  setLipSyncText(text) {
+    if (this.elements.lipsyncInput) {
+      this.elements.lipsyncInput.value = text || '';
+    }
+  }
+
+  /**
+   * Obtiene el texto de LipSync
+   * @returns {string}
+   */
+  getLipSyncText() {
+    return this.elements.lipsyncInput?.value || '';
   }
 
   // ═══════════════════════════════════════════════════════════════════════

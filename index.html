@@ -135,11 +135,39 @@
         <span class="tts-status-text" id="ttsStatusText">TTS: Cargando...</span>
       </div>
       
-      <textarea class="text-input" id="textInput" placeholder="Escribe un texto para probar la voz..." aria-label="Texto para sintetizar">Hola, soy el asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?</textarea>
+      <!-- Text input con label de AudioBank -->
+      <div class="text-input-wrapper">
+        <span class="audiobank-label" id="audiobankLabel" hidden>
+          <i data-lucide="database" aria-hidden="true"></i>
+          AudioBank
+        </span>
+        <textarea class="text-input" id="textInput" placeholder="Escribe un texto para probar la voz..." aria-label="Texto para sintetizar">Hola, soy el asistente virtual de Gespropiedad. ¿En qué puedo ayudarte hoy?</textarea>
+      </div>
+      
+      <!-- LipSync text (oculto por defecto) -->
+      <div class="lipsync-wrapper" id="lipsyncWrapper" hidden>
+        <label class="lipsync-label">
+          <i data-lucide="audio-waveform" aria-hidden="true"></i>
+          LipSync (usa :: para pausas de 0.5s)
+        </label>
+        <textarea class="text-input lipsync-input" id="lipsyncInput" placeholder="Texto con :: para pausas de labios..." aria-label="Texto de sincronización labial"></textarea>
+      </div>
       
       <div class="btn-row" role="group" aria-label="Controles de reproducción">
         <button class="btn primary" id="playPauseBtn" aria-label="Reproducir texto"><i data-lucide="play" aria-hidden="true"></i><span>Reproducir</span></button>
         <button class="btn" id="replayBtn" aria-label="Reiniciar reproducción"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reiniciar</span></button>
+      </div>
+      
+      <!-- Botones de herramientas -->
+      <div class="tools-row" role="group" aria-label="Herramientas de audio">
+        <button class="btn tool-btn" id="toggleLipsyncBtn" title="Mostrar/ocultar editor LipSync">
+          <i data-lucide="audio-waveform" aria-hidden="true"></i>
+          <span>LipSync</span>
+        </button>
+        <button class="btn tool-btn" id="generateAudioBtn" title="Generar audio con ElevenLabs">
+          <i data-lucide="sparkles" aria-hidden="true"></i>
+          <span>Generar Audio</span>
+        </button>
       </div>
       
       <!-- Solo selector de voz -->

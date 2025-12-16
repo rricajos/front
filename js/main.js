@@ -308,10 +308,13 @@ function showLoaderError(message) {
     // 17. Inicializar controles de reproducción
     initPlaybackControls(app, toast);
     
-    // 18. Inicializar controles de ajustes en panel principal
+    // 18. Inicializar herramientas de AudioBank
+    initAudioBankTools(app, toast);
+    
+    // 19. Inicializar controles de ajustes en panel principal
     initMainSettings(app, settings, toast);
     
-    // 19. Exponer globalmente para debug (solo en desarrollo)
+    // 20. Exponer globalmente para debug (solo en desarrollo)
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       window.avatarApp = app;
       window.settings = settings;
@@ -585,6 +588,122 @@ function initVoicePanel(app, settings, toast) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Playback Controls (Play/Pause, Replay)
 // ═══════════════════════════════════════════════════════════════════════════
+
+function initAudioBankTools(app, toast) {
+  const toggleLipsyncBtn = document.getElementById('toggleLipsyncBtn');
+  const generateAudioBtn = document.getElementById('generateAudioBtn');
+  const lipsyncWrapper = document.getElementById('lipsyncWrapper');
+  const lipsyncInput = document.getElementById('lipsyncInput');
+  const textInput = document.getElementById('textInput');
+  
+  let lipsyncVisible = false;
+  
+  // Toggle LipSync editor
+  toggleLipsyncBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    lipsyncVisible = !lipsyncVisible;
+    
+    if (lipsyncVisible) {
+      lipsyncWrapper?.removeAttribute('hidden');
+      toggleLipsyncBtn.classList.add('active');
+      
+      // Si hay texto en textInput y no hay lipSyncText, generarlo
+      if (!lipsyncInput?.value && textInput?.value) {
+        lipsyncInput.value = textInput.value;
+      }
+    } else {
+      lipsyncWrapper?.setAttribute('hidden', '');
+      toggleLipsyncBtn.classList.remove('active');
+    }
+    
+    refreshIcons();
+  });
+  
+  // Auto-guardar LipSync cuando cambia (debounced)
+  let saveTimeout = null;
+  lipsyncInput?.addEventListener('input', () => {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+      const audioId = app.currentPlayingAudioId;
+      if (audioId && lipsyncInput.value) {
+        // Guardar lipSyncText y generar text limpio
+        const lipSyncText = lipsyncInput.value;
+        const text = app.cleanLipSyncText(lipSyncText);
+        
+        app.saveAudioBankOverride(audioId, { lipSyncText, text });
+        textInput.value = text;
+        toast.info('LipSync guardado');
+      }
+    }, 1000);
+  });
+  
+  // Generar audio con ElevenLabs
+  generateAudioBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    // Obtener texto (preferir lipSyncText limpio si existe)
+    let text = textInput?.value?.trim();
+    if (lipsyncInput?.value) {
+      text = app.cleanLipSyncText(lipsyncInput.value);
+    }
+    
+    if (!text) {
+      toast.warning('Escribe un texto primero');
+      return;
+    }
+    
+    // Verificar si hay API key
+    if (!app.config.ELEVENLABS_API_KEY) {
+      toast.error('ElevenLabs no configurado');
+      return;
+    }
+    
+    // Generar ID único si no hay uno actual
+    let audioId = app.currentPlayingAudioId;
+    if (!audioId) {
+      audioId = 'custom_' + Date.now();
+    }
+    
+    // Confirmar si ya existe audio
+    const existingEntry = app.audioBank[audioId];
+    if (existingEntry?.audio || existingEntry?.generatedAudio) {
+      const confirm = window.confirm(`¿Sobreescribir audio "${existingEntry.title || audioId}"?`);
+      if (!confirm) return;
+    }
+    
+    // UI feedback
+    generateAudioBtn.disabled = true;
+    generateAudioBtn.classList.add('generating');
+    const originalText = generateAudioBtn.querySelector('span')?.textContent;
+    if (generateAudioBtn.querySelector('span')) {
+      generateAudioBtn.querySelector('span').textContent = 'Generando...';
+    }
+    
+    try {
+      const blob = await app.generateAudio(audioId, text);
+      
+      if (blob) {
+        toast.success('Audio generado correctamente');
+        
+        // Guardar también el lipSyncText si existe
+        if (lipsyncInput?.value) {
+          app.saveAudioBankOverride(audioId, {
+            lipSyncText: lipsyncInput.value,
+            text: text
+          });
+        }
+      }
+    } catch (error) {
+      toast.error(error.message || 'Error al generar audio');
+    } finally {
+      generateAudioBtn.disabled = false;
+      generateAudioBtn.classList.remove('generating');
+      if (generateAudioBtn.querySelector('span')) {
+        generateAudioBtn.querySelector('span').textContent = originalText;
+      }
+    }
+  });
+}
 
 function initPlaybackControls(app, toast) {
   const playPauseBtn = document.getElementById('playPauseBtn');

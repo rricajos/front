@@ -1053,6 +1053,117 @@ body.presentation-mode .presentation-container { display: flex; }
   background: #ffffff;
 }
 
+/* Text input wrapper con label AudioBank */
+.text-input-wrapper {
+  position: relative;
+}
+
+.audiobank-label {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--brand-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.audiobank-label i {
+  width: 12px;
+  height: 12px;
+}
+
+.text-input.readonly {
+  background: var(--bg-dark);
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+[data-theme="light"] .text-input.readonly {
+  background: #f3f4f6;
+}
+
+/* LipSync wrapper */
+.lipsync-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lipsync-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lipsync-label i {
+  width: 14px;
+  height: 14px;
+  color: var(--brand-primary);
+}
+
+.lipsync-input {
+  min-height: 80px;
+  max-height: 120px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  background: rgba(28, 164, 175, 0.05);
+  border-color: var(--brand-primary);
+}
+
+[data-theme="light"] .lipsync-input {
+  background: rgba(28, 164, 175, 0.08);
+}
+
+/* Tools row */
+.tools-row {
+  display: flex;
+  gap: 8px;
+}
+
+.tool-btn {
+  flex: 1;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+.tool-btn i {
+  width: 14px;
+  height: 14px;
+}
+
+.tool-btn.active {
+  background: rgba(28, 164, 175, 0.15);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.tool-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Generating state */
+.tool-btn.generating {
+  background: linear-gradient(90deg, var(--bg-input) 0%, rgba(28, 164, 175, 0.1) 50%, var(--bg-input) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    BUBBLE & BUTTONS
    ═══════════════════════════════════════════════════════════════════════════ */

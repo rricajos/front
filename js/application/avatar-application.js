@@ -88,8 +88,8 @@ export class AvatarApplication {
     
     // Speech Service (ElevenLabs + Browser TTS fallback)
     const browserTTS = new TTSAdapter(this.logger);
-    const elevenLabs = new ElevenLabsAdapter(config, this.logger);
-    this.speech = new SpeechService(elevenLabs, browserTTS, config, this.logger);
+    this.elevenlabs = new ElevenLabsAdapter(config, this.logger);
+    this.speech = new SpeechService(this.elevenlabs, browserTTS, config, this.logger);
     
     // Karaoke
     this.karaoke = new KaraokeAdapter(
@@ -427,7 +427,18 @@ export class AvatarApplication {
           return;
         }
         
+        // Activar modo AudioBank en UI
+        this.ui.setAudioBankMode(true);
         this.ui.setBubble(entry.text);
+        
+        // Establecer LipSync text si existe
+        if (entry.lipSyncText) {
+          this.ui.setLipSyncText(entry.lipSyncText);
+        }
+        
+        // Guardar audioId actual para referencia
+        this._currentPlayingAudioId = audioId;
+        
         this.logger.log(`Reproduciendo audio pregrabado: ${audioId}`);
         
         // Log en consola UI
@@ -449,6 +460,9 @@ export class AvatarApplication {
           avatar.stopLipSync();
           this.karaoke.stop();
           this.state.update({ isSpeaking: false });
+          // Desactivar modo AudioBank
+          this.ui.setAudioBankMode(false);
+          this._currentPlayingAudioId = null;
           this.telemetry.track(TelemetryEventType.AUDIO_PLAY_END, { audioId });
           // Log en consola UI
           if (this.settings?.addLog) {
@@ -521,7 +535,10 @@ export class AvatarApplication {
     this._getActiveAvatar()?.stopLipSync();
     this.karaoke.stop();
     this.state.update({ isSpeaking: false });
-    this.ui.setBubble("En espera…");
+    // Desactivar modo AudioBank si estaba activo
+    this.ui.setAudioBankMode(false);
+    this._currentPlayingAudioId = null;
+    // No cambiar el texto del textarea al parar
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -806,6 +823,123 @@ export class AvatarApplication {
     indicator._timeout = setTimeout(() => {
       indicator.classList.remove('visible');
     }, 1500);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // AudioBank Management
+  // ═══════════════════════════════════════════════════════════════════════
+
+  /**
+   * Obtiene el audioId que se está reproduciendo actualmente
+   * @returns {string|null}
+   */
+  get currentPlayingAudioId() {
+    return this._currentPlayingAudioId || null;
+  }
+
+  /**
+   * Obtiene una entrada del audiobank (con overrides de localStorage)
+   * @param {string} audioId
+   * @returns {object|null}
+   */
+  getAudioBankEntry(audioId) {
+    const baseEntry = this.audioBank[audioId];
+    if (!baseEntry) return null;
+    
+    // Buscar override en localStorage
+    const overrides = this._getAudioBankOverrides();
+    const override = overrides[audioId];
+    
+    if (override) {
+      return { ...baseEntry, ...override };
+    }
+    return baseEntry;
+  }
+
+  /**
+   * Guarda un override para una entrada del audiobank
+   * @param {string} audioId
+   * @param {object} data - { text?, lipSyncText? }
+   */
+  saveAudioBankOverride(audioId, data) {
+    const overrides = this._getAudioBankOverrides();
+    overrides[audioId] = { ...(overrides[audioId] || {}), ...data };
+    localStorage.setItem('audiobank-overrides', JSON.stringify(overrides));
+    
+    // Actualizar también el audioBank en memoria
+    if (this.audioBank[audioId]) {
+      Object.assign(this.audioBank[audioId], data);
+    }
+    
+    this.logger.log(`AudioBank[${audioId}] guardado`);
+  }
+
+  /**
+   * Obtiene overrides del localStorage
+   * @private
+   */
+  _getAudioBankOverrides() {
+    try {
+      return JSON.parse(localStorage.getItem('audiobank-overrides') || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * Genera texto limpio (sin ::) desde lipSyncText
+   * @param {string} lipSyncText
+   * @returns {string}
+   */
+  cleanLipSyncText(lipSyncText) {
+    return lipSyncText.replace(/::/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /**
+   * Genera audio con ElevenLabs y lo guarda
+   * @param {string} audioId - ID del audio en el bank
+   * @param {string} text - Texto para generar
+   * @returns {Promise<Blob|null>}
+   */
+  async generateAudio(audioId, text) {
+    if (!this.elevenlabs) {
+      throw new Error('ElevenLabs no está configurado');
+    }
+    
+    this.logger.log(`Generando audio para: ${audioId}`);
+    if (this.settings?.addLog) {
+      this.settings.addLog(`🎙️ Generando: ${audioId}...`, 'info');
+    }
+    
+    try {
+      const blob = await this.elevenlabs.speak(text);
+      
+      if (!blob) {
+        throw new Error('No se generó audio');
+      }
+      
+      // Crear URL para el blob y guardarlo
+      const url = URL.createObjectURL(blob);
+      
+      // Guardar en audioBank
+      if (this.audioBank[audioId]) {
+        this.audioBank[audioId].generatedAudio = url;
+        this.audioBank[audioId].text = text;
+      }
+      
+      this.logger.log(`Audio generado: ${audioId} (${(blob.size / 1024).toFixed(1)}KB)`);
+      if (this.settings?.addLog) {
+        this.settings.addLog(`✓ Audio generado: ${(blob.size / 1024).toFixed(1)}KB`, 'success');
+      }
+      
+      return blob;
+    } catch (e) {
+      this.logger.error(`Error generando audio: ${e.message}`);
+      if (this.settings?.addLog) {
+        this.settings.addLog(`❌ Error: ${e.message}`, 'error');
+      }
+      throw e;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════

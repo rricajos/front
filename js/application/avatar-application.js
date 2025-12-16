@@ -146,7 +146,7 @@ export class AvatarApplication {
     // Setup event handlers
     this._setupWebSocketEvents();
     
-    this.ui.setBubble("En espera…");
+    // No sobrescribir el texto inicial del textarea
     lucide.createIcons();
     
     this.logger.log("✓ Aplicación lista");

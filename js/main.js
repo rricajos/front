@@ -13,9 +13,12 @@ import { AvatarApplication } from './application/index.js';
 
 function refreshIcons() {
   if (typeof lucide === 'undefined') return;
-  // Solo procesar elementos <i> con data-lucide que no son SVG todavía
-  const pending = document.querySelectorAll('i[data-lucide]');
-  if (pending.length > 0) {
+  
+  // Lucide convierte <i data-lucide="x"> en <svg data-lucide="x">
+  // Solo necesitamos procesar si hay elementos <i> con data-lucide
+  // Los <svg> ya procesados no son <i>, así que este selector los excluye automáticamente
+  const pendingIcons = document.querySelectorAll('i[data-lucide]');
+  if (pendingIcons.length > 0) {
     lucide.createIcons();
   }
 }

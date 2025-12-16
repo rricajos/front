@@ -403,7 +403,7 @@ export class AvatarApplication {
   // USE CASE: Speak
   // ═══════════════════════════════════════════════════════════════════════
   
-  async speak(text, audioId = null) {
+  async speak(text, audioId = null, lipSyncText = null) {
     if (this._destroyed) return;
     if (this.isSpeaking) this.stop();
     this.state.update({ isSpeaking: true });
@@ -421,7 +421,7 @@ export class AvatarApplication {
           // Usar el texto del entry como fallback SOLO si no hay audio
           if (entry.text) {
             this.ui.setBubble(entry.text);
-            await this._speakWithTTS(entry.text, avatar);
+            await this._speakWithTTS(entry.text, avatar, entry.lipSyncText);
           }
           this.state.update({ isSpeaking: false });
           return;
@@ -477,7 +477,7 @@ export class AvatarApplication {
 
       // TTS (solo si se pide explícitamente con texto y sin audioId)
       if (text && !audioId) {
-        await this._speakWithTTS(text, avatar);
+        await this._speakWithTTS(text, avatar, lipSyncText);
       } else {
         this.state.update({ isSpeaking: false });
       }
@@ -490,23 +490,27 @@ export class AvatarApplication {
 
   /**
    * Reproduce texto con TTS
+   * @param {string} text - Texto a reproducir
+   * @param {AvatarService} avatar - Servicio de avatar para lip-sync
+   * @param {string} lipSyncText - Texto con marcadores :: para pausas (opcional)
    * @private
    */
-  async _speakWithTTS(text, avatar) {
+  async _speakWithTTS(text, avatar, lipSyncText = null) {
     this.logger.log(`Usando TTS para: "${text.substring(0, 50)}..."`);
     
     // Verificar que tenemos avatar
     if (!avatar) {
       this.logger.warn("TTS: No hay avatar disponible para LipSync");
     } else {
-      this.logger.log(`TTS: Avatar listo (${avatar.isReady ? 'Rive' : 'CSS'})`);
+      const hasMethod = typeof avatar.startLipSync === 'function';
+      this.logger.log(`TTS: Avatar tipo=${avatar.constructor?.name}, isReady=${avatar.isReady}, hasStartLipSync=${hasMethod}`);
     }
     
-    // Parsear pausas del texto (:: indica pausa de 0.5s)
-    // Esto calcula los timestamps aproximados basándose en la posición del ::
-    const pauseTimestamps = this._parseLipSyncPauses(text);
+    // Parsear pausas del lipSyncText si existe, si no del texto normal
+    const textForPauses = lipSyncText || text;
+    const pauseTimestamps = this._parseLipSyncPauses(textForPauses);
     if (pauseTimestamps.length > 0) {
-      this.logger.log(`TTS: ${pauseTimestamps.length} pausas detectadas`);
+      this.logger.log(`TTS: ${pauseTimestamps.length} pausas detectadas: [${pauseTimestamps.join(', ')}]ms`);
     }
     
     // Log en consola UI
@@ -514,50 +518,52 @@ export class AvatarApplication {
       this.settings.addLog(`🗣️ TTS: "${text.substring(0, 25)}..."`, 'info');
     }
     
-    // Guardar referencia al avatar para los callbacks
-    const avatarRef = avatar;
+    // Crear funciones de callback que capturan las referencias
+    const self = this;
     
-    this.speech.onStart = () => {
-      if (this._destroyed) return;
-      this.logger.log("TTS onStart: iniciando LipSync");
+    this.speech.onStart = function() {
+      if (self._destroyed) return;
+      self.logger.log("TTS onStart callback ejecutándose");
       
-      // Llamada directa sin optional chaining para ver errores
-      if (avatarRef && typeof avatarRef.startLipSync === 'function') {
+      if (avatar) {
+        self.logger.log(`TTS: Intentando iniciar LipSync en avatar`);
         try {
-          avatarRef.startLipSync(pauseTimestamps);
+          avatar.startLipSync(pauseTimestamps);
+          self.logger.log("TTS: startLipSync llamado correctamente");
         } catch (e) {
-          this.logger.error("Error iniciando LipSync: " + e.message);
+          self.logger.error("Error iniciando LipSync: " + e.message);
+          console.error(e);
         }
       } else {
-        this.logger.warn("TTS: Avatar no tiene método startLipSync");
+        self.logger.warn("TTS: avatar es null en callback");
       }
     };
     
-    this.speech.onEnd = () => {
-      if (this._destroyed) return;
-      this.logger.log("TTS onEnd: deteniendo LipSync");
+    this.speech.onEnd = function() {
+      if (self._destroyed) return;
+      self.logger.log("TTS onEnd: deteniendo LipSync");
       
-      if (avatarRef && typeof avatarRef.stopLipSync === 'function') {
+      if (avatar) {
         try {
-          avatarRef.stopLipSync();
+          avatar.stopLipSync();
         } catch (e) {
-          this.logger.error("Error deteniendo LipSync: " + e.message);
+          self.logger.error("Error deteniendo LipSync: " + e.message);
         }
       }
       
-      this.state.update({ isSpeaking: false });
+      self.state.update({ isSpeaking: false });
       
       // Track qué TTS se usó
-      const adapter = this.speech.lastUsedAdapter;
+      const adapter = self.speech.lastUsedAdapter;
       if (adapter === 'browser') {
-        this.telemetry.track(TelemetryEventType.TTS_FALLBACK);
-        if (this.settings?.addLog) {
-          this.settings.addLog('⏹️ TTS fin (navegador)', 'info');
+        self.telemetry.track(TelemetryEventType.TTS_FALLBACK);
+        if (self.settings?.addLog) {
+          self.settings.addLog('⏹️ TTS fin (navegador)', 'info');
         }
       } else {
-        this.telemetry.track(TelemetryEventType.TTS_SUCCESS);
-        if (this.settings?.addLog) {
-          this.settings.addLog('⏹️ TTS fin (ElevenLabs)', 'success');
+        self.telemetry.track(TelemetryEventType.TTS_SUCCESS);
+        if (self.settings?.addLog) {
+          self.settings.addLog('⏹️ TTS fin (ElevenLabs)', 'success');
         }
       }
     };

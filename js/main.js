@@ -773,13 +773,20 @@ function initPlaybackControls(app, toast) {
         return;
       }
       
+      // Obtener lipSyncText si el panel está visible
+      const lipsyncWrapper = document.getElementById('lipsyncWrapper');
+      const lipsyncInput = document.getElementById('lipsyncInput');
+      const lipSyncText = (!lipsyncWrapper?.hidden && lipsyncInput?.value?.trim()) 
+        ? lipsyncInput.value.trim() 
+        : null;
+      
       // Feedback visual INMEDIATO
       lastText = text;
       updatePlayPauseButton(true);
       toast.info('Reproduciendo...');
       
-      // Ejecutar speak en background (no bloquea)
-      app.speak(text)
+      // Ejecutar speak con lipSyncText opcional
+      app.speak(text, null, lipSyncText)
         .catch(e => {
           console.error('Error:', e);
           toast.error('Error al reproducir');

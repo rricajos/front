@@ -136,6 +136,15 @@ export class AvatarApplication {
       await this.panelAvatar.initialize();
     });
     this.state.update({ avatarReady: true });
+    
+    // Log avatar status
+    if (this.settings?.addLog) {
+      if (this.panelAvatar.isUsingRive) {
+        this.settings.addLog('Avatar Rive cargado correctamente', 'success');
+      } else {
+        this.settings.addLog('Avatar CSS fallback activo', 'warning');
+      }
+    }
 
     // Load TTS voices
     this._setupVoices();
@@ -156,6 +165,12 @@ export class AvatarApplication {
     if (this.settings?.addLog) {
       this.settings.addLog('✓ App iniciada', 'success');
       this.settings.addLog(`AudioBank: ${Object.keys(this.audioBank).length} audios`, 'info');
+      
+      // Contar audios con archivo
+      const audioCount = Object.values(this.audioBank).filter(e => e.audio).length;
+      if (audioCount > 0) {
+        this.settings.addLog(`Audio bank cargado: ${audioCount} archivos`, 'success');
+      }
     }
   }
 
@@ -167,6 +182,11 @@ export class AvatarApplication {
         const sorted = this.speech.sortedVoices;
         this.ui.populateVoices(sorted);
         this.logger.log("Voces cargadas: " + sorted.length);
+        
+        // Log de TTS activo
+        if (this.settings?.addLog) {
+          this.settings.addLog('TTS del navegador activo', 'success');
+        }
       }
     };
     
@@ -515,7 +535,13 @@ export class AvatarApplication {
     
     // Log en consola UI
     if (this.settings?.addLog) {
-      this.settings.addLog(`🗣️ TTS: "${text.substring(0, 25)}..."`, 'info');
+      const truncatedText = text.length > 25 ? text.substring(0, 22) + '...' : text;
+      this.settings.addLog(`🗣️ TTS: "${truncatedText}"`, 'info');
+      
+      // Log de pausas LipSync si hay
+      if (pauseTimestamps.length > 0) {
+        this.settings.addLog(`👄 LipSync: ${pauseTimestamps.length} pausas`, 'info');
+      }
     }
     
     // Crear funciones de callback que capturan las referencias

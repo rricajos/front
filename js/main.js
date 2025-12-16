@@ -661,14 +661,31 @@ function initAudioBankTools(app, toast) {
       
       isLipsyncMode = true;
       toast.info('Modo LipSync: usa :: para pausas');
+      
+      // Log en consola UI
+      if (app.settings?.addLog) {
+        app.settings.addLog('✏️ Modo LipSync activado', 'info');
+      }
     } else {
       // Cambiando a modo normal
       lipSyncText = currentText; // Guardar el texto con ::
       cleanText = removePauseMarkers(currentText);
       textInput.value = cleanText;
       
+      // Contar pausas guardadas
+      const pauseCount = (lipSyncText.match(/::/g) || []).length;
+      
       isLipsyncMode = false;
       toast.info('Modo normal');
+      
+      // Log en consola UI
+      if (app.settings?.addLog) {
+        if (pauseCount > 0) {
+          app.settings.addLog(`✏️ LipSync guardado: ${pauseCount} pausas`, 'success');
+        } else {
+          app.settings.addLog('✏️ Modo normal activado', 'info');
+        }
+      }
     }
     
     updateLipsyncUI();
@@ -742,11 +759,22 @@ function initAudioBankTools(app, toast) {
       generateAudioBtn.querySelector('span').textContent = 'Generando...';
     }
     
+    // Log inicio
+    if (app.settings?.addLog) {
+      app.settings.addLog('✨ Generando audio con ElevenLabs...', 'info');
+    }
+    
     try {
       const blob = await app.generateAudio(audioId, text);
       
       if (blob) {
         toast.success('Audio generado correctamente');
+        
+        // Log éxito
+        const sizeKB = Math.round(blob.size / 1024);
+        if (app.settings?.addLog) {
+          app.settings.addLog(`✨ Audio generado: ${sizeKB}KB`, 'success');
+        }
         
         // Guardar también el lipSyncText si existe
         const currentLipSync = window.getLipSyncText();
@@ -759,6 +787,11 @@ function initAudioBankTools(app, toast) {
       }
     } catch (error) {
       toast.error(error.message || 'Error al generar audio');
+      
+      // Log error
+      if (app.settings?.addLog) {
+        app.settings.addLog(`✨ Error: ${error.message}`, 'error');
+      }
     } finally {
       generateAudioBtn.disabled = false;
       generateAudioBtn.classList.remove('generating');

@@ -102,9 +102,14 @@ export class UIAdapter {
   setAudioBankMode(active) {
     const label = this.elements.audiobankLabel;
     const input = this.elements.textInput;
+    const lipsyncLabel = document.getElementById('lipsyncModeLabel');
     
     if (active) {
-      label?.removeAttribute('hidden');
+      // Solo mostrar audiobank label si NO está en modo LipSync
+      const isLipsyncMode = lipsyncLabel && !lipsyncLabel.hidden;
+      if (!isLipsyncMode) {
+        label?.removeAttribute('hidden');
+      }
       input?.classList.add('readonly');
       if (input) input.readOnly = true;
     } else {

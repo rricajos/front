@@ -613,6 +613,7 @@ function initAudioBankTools(app, toast) {
   const textInput = document.getElementById('textInput');
   const lipsyncModeLabel = document.getElementById('lipsyncModeLabel');
   const lipsyncHint = document.getElementById('lipsyncHint');
+  const audiobankLabel = document.getElementById('audiobankLabel');
   
   // Estado del modo LipSync
   let isLipsyncMode = false;
@@ -628,6 +629,8 @@ function initAudioBankTools(app, toast) {
       lipsyncHint?.removeAttribute('hidden');
       toggleLipsyncBtn?.classList.add('active');
       textInput?.classList.add('lipsync-mode');
+      // Ocultar audiobank label cuando está en modo lipsync
+      audiobankLabel?.setAttribute('hidden', '');
     } else {
       lipsyncModeLabel?.setAttribute('hidden', '');
       lipsyncHint?.setAttribute('hidden', '');

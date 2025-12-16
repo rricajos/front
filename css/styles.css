@@ -1058,7 +1058,7 @@ body.presentation-mode .presentation-container { display: flex; }
   position: relative;
 }
 
-/* Labels sutiles estilo leyenda */
+/* Labels sutiles estilo leyenda - solo uno visible a la vez */
 .audiobank-label,
 .lipsync-mode-label {
   position: absolute;
@@ -1076,15 +1076,21 @@ body.presentation-mode .presentation-container { display: flex; }
   border-radius: 3px;
   z-index: 1;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .audiobank-label {
   color: var(--brand-primary);
 }
 
+.lipsync-mode-label {
+  color: #8b5cf6;
+}
+
 .audiobank-label i,
-.audiobank-label svg {
+.audiobank-label svg,
+.lipsync-mode-label i,
+.lipsync-mode-label svg {
   width: 12px;
   height: 12px;
 }
@@ -1097,17 +1103,6 @@ body.presentation-mode .presentation-container { display: flex; }
 
 [data-theme="light"] .text-input.readonly {
   background: #f3f4f6;
-}
-
-/* LipSync mode label */
-.lipsync-mode-label {
-  color: #8b5cf6;
-}
-
-.lipsync-mode-label i,
-.lipsync-mode-label svg {
-  width: 12px;
-  height: 12px;
 }
 
 /* LipSync hint */
@@ -1124,16 +1119,13 @@ body.presentation-mode .presentation-container { display: flex; }
   opacity: 0.5;
 }
 
-/* LipSync mode textarea styling */
+/* LipSync mode textarea styling - sin cambio de fuente */
 .text-input.lipsync-mode {
-  font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 13px;
-  background: rgba(139, 92, 246, 0.05);
-  border-color: #8b5cf6;
+  border-color: rgba(139, 92, 246, 0.4);
 }
 
 [data-theme="light"] .text-input.lipsync-mode {
-  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.5);
 }
 
 /* Tools row */

@@ -14,13 +14,28 @@ import { AvatarApplication } from './application/index.js';
 function refreshIcons() {
   if (typeof lucide === 'undefined') return;
   
-  // Lucide convierte <i data-lucide="x"> en <svg data-lucide="x">
-  // Solo necesitamos procesar si hay elementos <i> con data-lucide
-  // Los <svg> ya procesados no son <i>, así que este selector los excluye automáticamente
+  // Solo procesamos elementos <i> pendientes (los SVG ya convertidos no tienen tag <i>)
   const pendingIcons = document.querySelectorAll('i[data-lucide]');
   if (pendingIcons.length > 0) {
     lucide.createIcons();
+    cleanupLucideIcons();
   }
+}
+
+// Limpia atributos data-lucide de SVGs ya procesados para evitar warnings
+function cleanupLucideIcons() {
+  document.querySelectorAll('svg[data-lucide]').forEach(svg => {
+    svg.removeAttribute('data-lucide');
+  });
+}
+
+// Envolver lucide.createIcons para limpiar automáticamente
+if (typeof lucide !== 'undefined') {
+  const originalCreateIcons = lucide.createIcons.bind(lucide);
+  lucide.createIcons = function(options) {
+    originalCreateIcons(options);
+    cleanupLucideIcons();
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

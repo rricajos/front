@@ -66,7 +66,11 @@ export class AvatarService {
    * @param {number[]} pauseTimestamps - Timestamps de pausas en ms
    */
   startLipSync(pauseTimestamps = []) {
-    if (this._destroyed) return;
+    if (this._destroyed) {
+      this.logger.warn("AvatarService: startLipSync en servicio destruido");
+      return;
+    }
+    this.logger.log(`AvatarService: startLipSync (usando ${this._useRive ? 'Rive' : 'CSS'})`);
     this.activeAdapter.startLipSync(pauseTimestamps);
   }
 

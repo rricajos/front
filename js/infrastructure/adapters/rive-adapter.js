@@ -103,6 +103,8 @@ export class RiveAdapter {
       return;
     }
     
+    this.logger.log("👄 LipSync iniciado");
+    
     if (this.isTalkingInput) {
       this.isTalkingInput.value = true;
     }
@@ -147,6 +149,7 @@ export class RiveAdapter {
     if (this.lipSyncTimer) {
       clearInterval(this.lipSyncTimer);
       this.lipSyncTimer = null;
+      this.logger.log("👄 LipSync detenido");
     }
     if (this.isTalkingInput) this.isTalkingInput.value = false;
     if (this.visemeIDInput) this.visemeIDInput.value = 0;

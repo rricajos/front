@@ -495,6 +495,13 @@ export class AvatarApplication {
   async _speakWithTTS(text, avatar) {
     this.logger.log(`Usando TTS para: "${text.substring(0, 50)}..."`);
     
+    // Verificar que tenemos avatar
+    if (!avatar) {
+      this.logger.warn("TTS: No hay avatar disponible para LipSync");
+    } else {
+      this.logger.log(`TTS: Avatar listo (${avatar.isReady ? 'Rive' : 'CSS'})`);
+    }
+    
     // Log en consola UI
     if (this.settings?.addLog) {
       this.settings.addLog(`🗣️ TTS: "${text.substring(0, 25)}..."`, 'info');
@@ -502,12 +509,14 @@ export class AvatarApplication {
     
     this.speech.onStart = () => {
       if (this._destroyed) return;
-      avatar.startLipSync([]);
+      this.logger.log("TTS onStart: iniciando LipSync");
+      avatar?.startLipSync?.([]);
     };
     
     this.speech.onEnd = () => {
       if (this._destroyed) return;
-      avatar.stopLipSync();
+      this.logger.log("TTS onEnd: deteniendo LipSync");
+      avatar?.stopLipSync?.();
       this.state.update({ isSpeaking: false });
       
       // Track qué TTS se usó

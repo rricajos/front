@@ -2312,6 +2312,14 @@ body.presentation-mode .settings-btn {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .toast-message {
@@ -2341,7 +2349,7 @@ body.presentation-mode .settings-btn {
   color: var(--text-primary);
 }
 
-.toast-close i {
+.toast-close svg {
   width: 16px;
   height: 16px;
 }

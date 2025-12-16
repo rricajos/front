@@ -13,13 +13,14 @@ export const ToastType = {
 };
 
 /**
- * Iconos por tipo de toast
+ * SVGs inline para los iconos de toast (evita dependencia de Lucide)
  */
-const ToastIcons = {
-  info: 'info',
-  success: 'check-circle',
-  warning: 'alert-triangle',
-  error: 'x-circle',
+const ToastSVGs = {
+  info: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
+  success: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+  warning: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
+  error: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`,
+  close: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
 };
 
 /**
@@ -59,13 +60,13 @@ export class ToastAdapter {
     toast.className = `toast toast-${type}`;
     toast.setAttribute('role', 'alert');
     
-    const icon = ToastIcons[type] || 'info';
+    const iconSvg = ToastSVGs[type] || ToastSVGs.info;
     
     toast.innerHTML = `
-      <i data-lucide="${icon}" class="toast-icon"></i>
+      <span class="toast-icon">${iconSvg}</span>
       <span class="toast-message">${this._escapeHtml(message)}</span>
       <button class="toast-close" aria-label="Cerrar">
-        <i data-lucide="x"></i>
+        ${ToastSVGs.close}
       </button>
     `;
     
@@ -75,11 +76,6 @@ export class ToastAdapter {
     
     // Añadir al contenedor
     this._container.appendChild(toast);
-    
-    // Inicializar iconos Lucide
-    if (typeof lucide !== 'undefined') {
-      lucide.createIcons({ icons: { [icon]: true, x: true } });
-    }
     
     // Animar entrada
     requestAnimationFrame(() => {

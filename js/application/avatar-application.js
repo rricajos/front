@@ -502,21 +502,49 @@ export class AvatarApplication {
       this.logger.log(`TTS: Avatar listo (${avatar.isReady ? 'Rive' : 'CSS'})`);
     }
     
+    // Parsear pausas del texto (:: indica pausa de 0.5s)
+    // Esto calcula los timestamps aproximados basándose en la posición del ::
+    const pauseTimestamps = this._parseLipSyncPauses(text);
+    if (pauseTimestamps.length > 0) {
+      this.logger.log(`TTS: ${pauseTimestamps.length} pausas detectadas`);
+    }
+    
     // Log en consola UI
     if (this.settings?.addLog) {
       this.settings.addLog(`🗣️ TTS: "${text.substring(0, 25)}..."`, 'info');
     }
     
+    // Guardar referencia al avatar para los callbacks
+    const avatarRef = avatar;
+    
     this.speech.onStart = () => {
       if (this._destroyed) return;
       this.logger.log("TTS onStart: iniciando LipSync");
-      avatar?.startLipSync?.([]);
+      
+      // Llamada directa sin optional chaining para ver errores
+      if (avatarRef && typeof avatarRef.startLipSync === 'function') {
+        try {
+          avatarRef.startLipSync(pauseTimestamps);
+        } catch (e) {
+          this.logger.error("Error iniciando LipSync: " + e.message);
+        }
+      } else {
+        this.logger.warn("TTS: Avatar no tiene método startLipSync");
+      }
     };
     
     this.speech.onEnd = () => {
       if (this._destroyed) return;
       this.logger.log("TTS onEnd: deteniendo LipSync");
-      avatar?.stopLipSync?.();
+      
+      if (avatarRef && typeof avatarRef.stopLipSync === 'function') {
+        try {
+          avatarRef.stopLipSync();
+        } catch (e) {
+          this.logger.error("Error deteniendo LipSync: " + e.message);
+        }
+      }
+      
       this.state.update({ isSpeaking: false });
       
       // Track qué TTS se usó
@@ -535,6 +563,31 @@ export class AvatarApplication {
     };
     
     await this.speech.speak(text);
+  }
+
+  /**
+   * Parsea texto con :: para obtener timestamps de pausas
+   * @param {string} text - Texto con :: como marcadores de pausa
+   * @returns {number[]} - Array de timestamps en ms
+   * @private
+   */
+  _parseLipSyncPauses(text) {
+    if (!text || !text.includes('::')) return [];
+    
+    const pauseTimestamps = [];
+    const parts = text.split('::');
+    
+    // Estimar duración por caracter (aproximadamente 60-80ms por caracter en TTS)
+    const msPerChar = 70;
+    let accumulatedLength = 0;
+    
+    for (let i = 0; i < parts.length - 1; i++) {
+      accumulatedLength += parts[i].length;
+      // El timestamp de la pausa es donde termina cada parte
+      pauseTimestamps.push(accumulatedLength * msPerChar);
+    }
+    
+    return pauseTimestamps;
   }
 
   stop() {

@@ -447,8 +447,8 @@ export class AvatarApplication {
           return;
         }
         
-        // Activar modo AudioBank en UI
-        this.ui.setAudioBankMode(true);
+        // Activar modo AudioBank en UI con el ID
+        this.ui.setAudioBankMode(true, audioId);
         this.ui.setBubble(entry.text);
         
         // Establecer LipSync text si existe

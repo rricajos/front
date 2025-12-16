@@ -98,13 +98,20 @@ export class UIAdapter {
   /**
    * Activa modo AudioBank - muestra label y bloquea textarea
    * @param {boolean} active
+   * @param {string} audioId - ID del audio (opcional)
    */
-  setAudioBankMode(active) {
+  setAudioBankMode(active, audioId = null) {
     const label = this.elements.audiobankLabel;
     const input = this.elements.textInput;
     const lipsyncLabel = document.getElementById('lipsyncModeLabel');
+    const audiobankIdSpan = document.getElementById('audiobankId');
     
     if (active) {
+      // Actualizar ID si se proporciona
+      if (audiobankIdSpan && audioId) {
+        audiobankIdSpan.textContent = audioId;
+      }
+      
       // Solo mostrar audiobank label si NO está en modo LipSync
       const isLipsyncMode = lipsyncLabel && !lipsyncLabel.hidden;
       if (!isLipsyncMode) {
@@ -114,6 +121,7 @@ export class UIAdapter {
       if (input) input.readOnly = true;
     } else {
       label?.setAttribute('hidden', '');
+      if (audiobankIdSpan) audiobankIdSpan.textContent = '';
       input?.classList.remove('readonly');
       if (input) input.readOnly = false;
     }

@@ -1084,7 +1084,7 @@ body.presentation-mode .presentation-container { display: flex; }
 }
 
 .lipsync-mode-label {
-  color: #8b5cf6;
+  color: rgba(139, 92, 246, 0.7);
 }
 
 .audiobank-label i,
@@ -1111,12 +1111,11 @@ body.presentation-mode .presentation-container { display: flex; }
   bottom: 8px;
   right: 8px;
   font-size: 10px;
-  color: var(--text-muted);
+  color: rgba(139, 92, 246, 0.6);
   background: transparent;
   padding: 2px 6px;
   border-radius: 3px;
   pointer-events: none;
-  opacity: 0.5;
 }
 
 /* LipSync mode textarea styling - sin cambio de fuente */
